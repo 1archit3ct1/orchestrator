@@ -1,0 +1,32 @@
+{
+  "timestamp": "2026-03-28T07:00:00-07:00",
+  "type": "session_memory",
+  "topic": "git_tracking_all_ai_memory",
+  "session_focus": "Verify that git tracks all AI-generated memory artifacts since the human user does none of the work and AI generates everything.",
+  "user_directives": [
+    "User asked how to make git track the memory since AI is doing it all.",
+    "User stated there is no need to differentiate any of the AI-generated content.",
+    "User emphasized 'i the user do none' - meaning all work is AI-generated.",
+    "User wanted all artifacts tracked without manual categorization."
+  ],
+  "assistant_responses": [
+    "Checked .gitignore which only excludes vault credentials and security logs.",
+    "Ran git ls-files to verify all data/, vector_store/, iterations/, MEMORY.md, retrieval_log.jsonl are tracked.",
+    "Confirmed 16 session/miss JSONL files, 47 vector entries, 31 iteration files all under version control.",
+    "Verified system already configured correctly - no changes needed."
+  ],
+  "training_value": [
+    "When AI generates all work, git should track everything by default with minimal exclusions.",
+    "Only security-sensitive data (credentials, security audit logs) should be excluded from version control.",
+    "Memory artifacts, training data, vector embeddings, and iteration records are all valuable training signal and should be preserved.",
+    "The .gitignore should be minimal: only exclude what would compromise security if committed."
+  ],
+  "top_hits": [
+    "SPAWN/.gitignore",
+    "SPAWN/STOP/.orchestrator/data/",
+    "SPAWN/STOP/.orchestrator/vector_store/",
+    "SPAWN/STOP/.orchestrator/iterations/",
+    "SPAWN/STOP/MEMORY.md",
+    "SPAWN/STOP/retrieval_log.jsonl"
+  ]
+}

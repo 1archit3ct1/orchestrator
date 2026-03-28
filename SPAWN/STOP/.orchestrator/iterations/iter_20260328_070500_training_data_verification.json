@@ -1,0 +1,19 @@
+{
+  "timestamp": "2026-03-28T07:05:00-07:00",
+  "type": "iteration_record",
+  "cycle": 2,
+  "task_id": "training_data_and_lock_fix",
+  "outcome": "success",
+  "artifacts_created": [
+    "SPAWN/STOP/.orchestrator/data/session_20260328_070500_training_data_verification.jsonl",
+    "SPAWN/STOP/.orchestrator/vector_store/session_20260328_070500_training_data_verification.json",
+    "SPAWN/STOP/.orchestrator/iterations/iter_20260328_070500_training_data_verification.json"
+  ],
+  "findings": {
+    "training_data_real": true,
+    "data_format": "instruction/input/output/signal tuples",
+    "lock_issue": "expired lock not clearing, same-task continuation blocked",
+    "lock_fix": "allow expired takeover, allow same-task refresh, only deny different-task"
+  },
+  "lesson": "Write locks should enforce task consistency, not agent identity. Any LLM/agent working on the same TASK.md task should be able to write. Expired locks must auto-release."
+}

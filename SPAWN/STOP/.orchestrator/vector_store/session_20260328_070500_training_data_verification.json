@@ -1,0 +1,31 @@
+{
+  "timestamp": "2026-03-28T07:05:00-07:00",
+  "type": "session_memory",
+  "topic": "training_data_verification_and_lock_fix",
+  "session_focus": "Verify GUI training data is real and fix autonomous loop write lock to allow any agent to work on current task.",
+  "user_directives": [
+    "User asked if the 13.93K tokens and 31 trace artifacts shown in GUI are real training data before building deeper.",
+    "User asked if the autonomous loop log is fixed.",
+    "User complained about lock-based failures: 'we cant create failure paramters just based on who the llm is thats retarded'.",
+    "User demanded: 'make it open allowable for any agent to write the single task'."
+  ],
+  "assistant_responses": [
+    "Confirmed YES - real training data with instruction/input/output/signal tuples from actual sessions.",
+    "Identified lock problem: expired lock file wasn't clearing, same-task continuation wasn't allowed.",
+    "Fixed security_manager.py acquire_global_write_lock() to allow expired lock takeover and same-task refresh.",
+    "Cleared stale lock file, committed and pushed fix."
+  ],
+  "training_value": [
+    "Training data should be verified as real before building UI features on top of it.",
+    "Write locks should be task-scoped, not agent-scoped - any LLM/agent working on the same task should be able to continue writing.",
+    "Expired locks must auto-release to prevent blocking.",
+    "Lock failures based on 'which agent' rather than 'which task' create artificial failures that waste cycles.",
+    "The single-write constraint should be about task consistency, not agent identity."
+  ],
+  "top_hits": [
+    "SPAWN/STOP/.orchestrator/data/session_20260327_232800_flask_reload_mismatch_recovery.jsonl",
+    "SPAWN/STOP/.orchestrator/vector_store/session_20260327_232800_flask_reload_mismatch_recovery.json",
+    "SPAWN/STOP/.orchestrator/security_manager.py",
+    "SPAWN/STOP/.orchestrator/locks/global_write.lock"
+  ]
+}

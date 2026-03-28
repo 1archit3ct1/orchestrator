@@ -88,5 +88,214 @@
     "priority": 7,
     "status": "pending",
     "goal": "independent_repos_security"
+  },
+  {
+    "id": "gap_trace_schema_normalization",
+    "repo": "orchestrator",
+    "description": "Normalize training traces to a canonical JSONL schema with required fields like instruction/prompt, output/response, signal, node_id, timestamp, and session_id where applicable.",
+    "allowed_paths": [
+      "SPAWN/STOP/training/",
+      "SPAWN/STOP/.orchestrator/data/",
+      "SPAWN/STOP/.orchestrator/iterations/"
+    ],
+    "priority": 8,
+    "status": "pending",
+    "goal": "deliver_24b_model",
+    "question_ids": [
+      "D02"
+    ]
+  },
+  {
+    "id": "gap_steering_trace_labeling",
+    "repo": "orchestrator",
+    "description": "Separate or explicitly label steering/correction traces versus clean success traces so weighting and filtering can be controlled during training.",
+    "allowed_paths": [
+      "SPAWN/STOP/training/",
+      "SPAWN/STOP/.orchestrator/data/",
+      "SPAWN/STOP/.orchestrator/iterations/",
+      "SPAWN/STOP/.orchestrator/vector_store/"
+    ],
+    "priority": 9,
+    "status": "pending",
+    "goal": "deliver_24b_model",
+    "question_ids": [
+      "D04"
+    ]
+  },
+  {
+    "id": "gap_trace_quality_thresholds",
+    "repo": "orchestrator",
+    "description": "Define and implement acceptance/rejection quality gates for traces, including minimum completeness and filters for broken or low-value outputs.",
+    "allowed_paths": [
+      "SPAWN/STOP/training/",
+      "SPAWN/STOP/.orchestrator/data/",
+      "SPAWN/STOP/.orchestrator/config.json"
+    ],
+    "priority": 10,
+    "status": "pending",
+    "goal": "deliver_24b_model",
+    "question_ids": [
+      "C02"
+    ]
+  },
+  {
+    "id": "gap_clean_dataset_metric",
+    "repo": "orchestrator",
+    "description": "Compute a real clean-trace dataset metric after dedup and filtering so training readiness is measured by usable traces instead of only raw collected tokens.",
+    "allowed_paths": [
+      "SPAWN/STOP/training/",
+      "SPAWN/STOP/.orchestrator/data/",
+      "SPAWN/STOP/.orchestrator/dashboard_state.py",
+      "SPAWN/STOP/web/app.py"
+    ],
+    "priority": 11,
+    "status": "pending",
+    "goal": "deliver_24b_model",
+    "question_ids": [
+      "C03"
+    ]
+  },
+  {
+    "id": "gap_training_framework_selection",
+    "repo": "orchestrator",
+    "description": "Choose and codify the fine-tuning framework for this repo, including its required dataset format, configs, and launch contract.",
+    "allowed_paths": [
+      "SPAWN/STOP/training/",
+      "SPAWN/STOP/.orchestrator/config.json",
+      "README.md"
+    ],
+    "priority": 12,
+    "status": "pending",
+    "goal": "deliver_24b_model",
+    "question_ids": [
+      "T01"
+    ]
+  },
+  {
+    "id": "gap_base_model_selection",
+    "repo": "orchestrator",
+    "description": "Decide the target base model and parameter class, including whether the current 24B goal should stay in place or pivot to a smaller coding model such as 9B.",
+    "allowed_paths": [
+      "SPAWN/STOP/.orchestrator/config.json",
+      "README.md",
+      "SPAWN/STOP/training/"
+    ],
+    "priority": 13,
+    "status": "pending",
+    "goal": "deliver_24b_model",
+    "question_ids": [
+      "T02"
+    ]
+  },
+  {
+    "id": "gap_smoke_test_finetune",
+    "repo": "orchestrator",
+    "description": "Run a smoke-test fine-tuning pass on a tiny curated subset to validate data format, training configs, and artifact flow before larger runs.",
+    "allowed_paths": [
+      "SPAWN/STOP/training/",
+      "SPAWN/STOP/.orchestrator/data/",
+      "SPAWN/STOP/.orchestrator/models/",
+      "SPAWN/STOP/.orchestrator/iterations/"
+    ],
+    "priority": 14,
+    "status": "pending",
+    "goal": "deliver_24b_model",
+    "question_ids": [
+      "T03"
+    ]
+  },
+  {
+    "id": "gap_vram_profiling",
+    "repo": "orchestrator",
+    "description": "Measure real GPU and VRAM headroom during orchestrator sessions so training can be scheduled against actual RTX 5090 capacity instead of assumptions.",
+    "allowed_paths": [
+      "SPAWN/STOP/training/",
+      "SPAWN/STOP/.orchestrator/logs/",
+      "SPAWN/STOP/.orchestrator/config.json"
+    ],
+    "priority": 15,
+    "status": "pending",
+    "goal": "deliver_24b_model",
+    "question_ids": [
+      "T04"
+    ]
+  },
+  {
+    "id": "gap_trace_storage_format_contract",
+    "repo": "orchestrator",
+    "description": "Codify the current mixed training-data storage contract so JSONL, vector JSON, iteration JSON, and MEMORY.md all have explicit roles, normalization rules, and downstream conversion guarantees.",
+    "allowed_paths": [
+      "SPAWN/STOP/training/",
+      "SPAWN/STOP/.orchestrator/data/",
+      "SPAWN/STOP/.orchestrator/vector_store/",
+      "SPAWN/STOP/.orchestrator/iterations/",
+      "SPAWN/STOP/MEMORY.md",
+      "README.md"
+    ],
+    "priority": 16,
+    "status": "pending",
+    "goal": "deliver_24b_model",
+    "question_ids": [
+      "D01"
+    ]
+  },
+  {
+    "id": "gap_trace_storage_location_index",
+    "repo": "orchestrator",
+    "description": "Create and maintain a canonical index of where traces physically live across local flat files so transfer, cleanup, and training preparation workflows can target the right sources.",
+    "allowed_paths": [
+      "SPAWN/STOP/.orchestrator/data/",
+      "SPAWN/STOP/.orchestrator/vector_store/",
+      "SPAWN/STOP/.orchestrator/iterations/",
+      "SPAWN/STOP/MEMORY.md",
+      "SPAWN/STOP/.orchestrator/dashboard_state.py",
+      "README.md"
+    ],
+    "priority": 17,
+    "status": "pending",
+    "goal": "deliver_24b_model",
+    "question_ids": [
+      "D03"
+    ]
+  },
+  {
+    "id": "gap_dedup_policy_surface",
+    "repo": "orchestrator",
+    "description": "Surface the canonical dedup policy in repo docs and runtime metrics so content-hash dedup behavior is explicit, reviewable, and measurable instead of only implicit in maintenance.py.",
+    "allowed_paths": [
+      "SPAWN/STOP/.orchestrator/maintenance.py",
+      "SPAWN/STOP/.orchestrator/dashboard_state.py",
+      "SPAWN/STOP/web/app.py",
+      "README.md"
+    ],
+    "priority": 18,
+    "status": "pending",
+    "goal": "deliver_24b_model",
+    "question_ids": [
+      "C01"
+    ]
+  },
+  {
+    "id": "maintenance_parse_duplicates",
+    "repo": "orchestrator",
+    "job": "parse_duplicates",
+    "description": "Parse memory/training artifacts for duplicates and delete exact duplicates when found.",
+    "allowed_paths": [
+      "SPAWN/STOP/MEMORY.md",
+      "SPAWN/STOP/retrieval_log.jsonl",
+      "SPAWN/STOP/.orchestrator/vector_store/",
+      "SPAWN/STOP/.orchestrator/data/",
+      "SPAWN/STOP/.orchestrator/iterations/",
+      "SPAWN/STOP/.orchestrator/logs/maintenance/"
+    ],
+    "priority": 999,
+    "status": "pending",
+    "trigger": {
+      "type": "token_threshold",
+      "memory_collected_tokens": 4300,
+      "threshold": 3000,
+      "cron_schedule": "*/15 * * * *"
+    },
+    "prompt_load_path": "SPAWN/STOP/.orchestrator/task_queue.json"
   }
 ]

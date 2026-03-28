@@ -1,0 +1,8 @@
+{
+  "timestamp": "2026-03-27T22:05:00-07:00",
+  "decision": {
+    "question": "How should the current live stray-monitor lock-denial queue be handled once the events are useful training data?",
+    "chosen": "Upload the visible stray events into durable memory and training artifacts, then mark those exact event signatures as processed so the live monitor clears.",
+    "rationale": "This preserves the miss history for training while keeping the live stray monitor focused on unprocessed events that still need operator attention."
+  }
+}

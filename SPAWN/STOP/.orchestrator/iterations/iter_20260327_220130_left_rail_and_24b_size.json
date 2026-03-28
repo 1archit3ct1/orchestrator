@@ -1,0 +1,22 @@
+{
+  "timestamp": "2026-03-27T22:01:30-07:00",
+  "iteration_type": "memory_sync",
+  "focus": "left_rail_task_coverage_and_24b_size",
+  "inputs": {
+    "recent_user_directives": [
+      "Check whether all left-rail GUI sections are represented on the task list.",
+      "Clarify whether the large dataset-size figure means 17 GB or 1788 GB."
+    ],
+    "recent_assistant_responses": [
+      "The DAG only partially covers the left rail and still misses explicit tasks for several visible sections.",
+      "The full 24B-goal corpus estimate is about 1788.14 GB, while the minimum tuning-start estimate is about 8.94 GB."
+    ]
+  },
+  "outputs": {
+    "memory_md_updated": true,
+    "vector_memory_written": "SPAWN/STOP/.orchestrator/vector_store/session_20260327_220130_left_rail_and_24b_size.json",
+    "training_data_written": "SPAWN/STOP/.orchestrator/data/session_20260327_220130_left_rail_and_24b_size.jsonl",
+    "retrieval_log_updated": true
+  },
+  "notes": "This iteration preserves the distinction between full 24B corpus scale and minimum tuning-start size while also capturing the need for closer GUI-to-DAG coverage."
+}

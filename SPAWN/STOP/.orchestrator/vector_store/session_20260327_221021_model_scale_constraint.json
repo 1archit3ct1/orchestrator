@@ -1,0 +1,33 @@
+{
+  "id": "session_20260327_221021_model_scale_constraint",
+  "timestamp": "2026-03-27T22:10:21-07:00",
+  "type": "dialog_memory_sync",
+  "topic": "model_scale_constraint_and_9b_pivot",
+  "summary": [
+    "The user flagged that the full 24B corpus estimate is too large relative to available drive capacity.",
+    "The user suggested a possible pivot to a 9B model because the 24B storage target may be unrealistic.",
+    "The assistant clarified that the dashboard should separate minimum tuning size from full corpus ambition more clearly.",
+    "The assistant estimated that a 9B model would reduce the full corpus target to about 670.55 GB and the minimum tuning threshold to about 3.35 GB."
+  ],
+  "captured_user_directives": [
+    "Make the distinction between minimum tuning size and full target much more obvious.",
+    "Consider scaling the target down to 9B because 24B may be too large for the available storage."
+  ],
+  "captured_assistant_responses": [
+    "The current panel uses a pretraining-scale assumption and should relabel the size tiers more clearly.",
+    "A 9B target would materially reduce both full target and minimum tuning-start estimates."
+  ],
+  "source_files": [
+    "SPAWN/STOP/MEMORY.md",
+    "SPAWN/STOP/.orchestrator/dashboard_state.py"
+  ],
+  "tags": [
+    "dialog",
+    "memory-sync",
+    "model-scale",
+    "9b-pivot",
+    "storage-constraint",
+    "24b-goal",
+    "steering"
+  ]
+}

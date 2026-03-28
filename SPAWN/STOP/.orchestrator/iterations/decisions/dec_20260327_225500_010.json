@@ -1,0 +1,8 @@
+{
+  "timestamp": "2026-03-27T22:55:00-07:00",
+  "type": "steering_decision",
+  "decision_id": "010",
+  "topic": "scale_analysis_page_and_memory_sync",
+  "decision": "Preserve the latest four-turn exchange as durable memory and training data because it captures live-state styling rules, queued training-readiness gaps, Linux-first GPU bring-up, and a fine-tune-first scale-analysis decision.",
+  "highest_training_value": true
+}

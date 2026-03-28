@@ -1,0 +1,8 @@
+{
+  "timestamp": "2026-03-27T22:23:33-07:00",
+  "decision": {
+    "question": "How should the latest layout correction about steering visibility and scrollable event history be preserved for future retrieval and training?",
+    "chosen": "Persist it as a compact dialog-memory bundle across MEMORY.md, vector store, training data, retrieval log, and iteration artifacts.",
+    "rationale": "These turns encode a useful UI-truth correction: steering influence should be visually tied to model state and event-heavy panels need readable scrollable history to support training diagnostics."
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "timestamp": "2026-03-27T23:18:00-07:00",
+  "type": "session_memory",
+  "topic": "shared_task_ids_steering_count_loop_metric",
+  "session_focus": "Preserve the latest 4 user directives and 4 assistant responses around why two visible surfaces shared T01, syncing the latest memory block, fixing the steering-log count mismatch, and clarifying why steering count greatly exceeds autonomous loop count.",
+  "user_directives": [
+    "Questioned why both the Orchestrator left-rail item and the gui-nav-panels DAG row were labeled T01.",
+    "Requested that the latest 4 back-and-forth turns be committed into the memory and training pipeline.",
+    "Reported that the steering log count was not a running count because 11 instances existed while only 6 were showing.",
+    "Questioned the metric criteria because only 1 autonomous loop has been logged while nearly everything else is being counted as steering."
+  ],
+  "assistant_responses": [
+    "Clarified that both visible surfaces shared T01 because the repo currently models sidebar navigation as one coarse task, not one unique task per left-rail button.",
+    "Persisted the latest dialog turns into memory, vector, data, retrieval, iteration, and decision artifacts.",
+    "Removed the backend caps that truncated the steering log to 6 events and normalized newer steering-decision schemas so the visible log now matches the full 11 steering traces.",
+    "Identified the real metric distinction: steering count is driven by preserved decision and steering artifacts, while autonomous loop count is only incremented by actual completed loop cycles recorded in repo state."
+  ],
+  "training_value": [
+    "Visible task labels must be interpreted against task granularity, and coarse task IDs can confuse operators even when technically consistent.",
+    "Counts shown in the UI must share the same source of truth and windowing logic, otherwise the operator will correctly distrust the dashboard."
+  ],
+  "top_hits": [
+    "SPAWN/STOP/MEMORY.md",
+    "SPAWN/STOP/state/design_graph.json",
+    "SPAWN/STOP/state/tasks.json",
+    "SPAWN/STOP/.orchestrator/dashboard_state.py",
+    "SPAWN/STOP/web/app.py"
+  ]
+}

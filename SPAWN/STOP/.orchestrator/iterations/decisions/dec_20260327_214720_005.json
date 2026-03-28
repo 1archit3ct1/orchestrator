@@ -1,0 +1,8 @@
+{
+  "timestamp": "2026-03-27T21:47:20-07:00",
+  "decision": {
+    "question": "How should the latest dialog turns about misses and 24B-goal progress be preserved for future retrieval and training?",
+    "chosen": "Persist them as a dedicated dialog-memory bundle across MEMORY.md, vector store, training data, retrieval log, and iteration artifacts.",
+    "rationale": "These turns encode useful steering about truthful observability, miss visibility, and realistic goal-based progress math, so they should become first-class engine memory instead of remaining only in transient chat."
+  }
+}

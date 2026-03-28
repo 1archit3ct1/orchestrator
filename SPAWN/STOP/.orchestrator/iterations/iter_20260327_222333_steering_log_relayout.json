@@ -1,0 +1,22 @@
+{
+  "timestamp": "2026-03-27T22:23:33-07:00",
+  "iteration_type": "memory_sync",
+  "focus": "steering_log_relayout_and_scrollable_event_panels",
+  "inputs": {
+    "recent_user_directives": [
+      "Move the steering log under the model panel.",
+      "Make event-heavy panels scrollable so steering influence is readable."
+    ],
+    "recent_assistant_responses": [
+      "The steering feed was moved into the open model-panel space and the old side card was hidden.",
+      "The steering, audit, and trace panels were rendered as scrollable event logs."
+    ]
+  },
+  "outputs": {
+    "memory_md_updated": true,
+    "vector_memory_written": "SPAWN/STOP/.orchestrator/vector_store/session_20260327_222333_steering_log_relayout.json",
+    "training_data_written": "SPAWN/STOP/.orchestrator/data/session_20260327_222333_steering_log_relayout.jsonl",
+    "retrieval_log_updated": true
+  },
+  "notes": "This iteration preserves the decision to colocate steering influence with model context and keep event-heavy diagnostic panels scrollable."
+}

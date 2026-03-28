@@ -11,7 +11,7 @@
 D:\NextAura\orchestrator\
 ├── SPAWN/                          ← NEW: Forced LLM spawn point
 │   ├── START/                      ← Bootstrap (moved from root)
-│   │   └── bootstrap.sh
+│   │   └── prompt.md
 │   └── STOP/                       ← Runtime (moved from root)
 │       ├── .orchestrator/
 │       │   ├── security_manager.py
@@ -78,7 +78,7 @@ D:\NextAura\orchestrator\
 ### Bootstrap (First Time):
 ```bash
 cd D:\NextAura\orchestrator\SPAWN\START
-./bootstrap.sh
+Read `./prompt.md`
 ```
 
 ### Runtime (Ongoing):

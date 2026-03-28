@@ -1,0 +1,58 @@
+{
+  "id": "session_20260327_220500_stray_lock_denials",
+  "timestamp": "2026-03-27T22:05:00-07:00",
+  "type": "stray_event_batch_upload",
+  "topic": "task_001_lock_denials",
+  "summary": [
+    "Uploaded the 4 currently visible stray-monitor lock-denial events for task_001 into durable engine memory.",
+    "These events represent repeated lock contention while the GUI DAG task was active.",
+    "After upload, the exact same live stray events can be cleared from the monitor queue without losing their training value."
+  ],
+  "events": [
+    {
+      "timestamp": "2026-03-27T21:14:33.324916",
+      "action": "Global write lock denied",
+      "actor": "task_001",
+      "details": {
+        "reason": "lock held by another task"
+      }
+    },
+    {
+      "timestamp": "2026-03-27T21:14:33.328661",
+      "action": "Task lock_denied: task_001",
+      "actor": "task_001",
+      "details": {
+        "repo": null,
+        "reason": "Lock held by another task"
+      }
+    },
+    {
+      "timestamp": "2026-03-27T21:19:07.007404",
+      "action": "Global write lock denied",
+      "actor": "task_001",
+      "details": {
+        "reason": "lock held by another task"
+      }
+    },
+    {
+      "timestamp": "2026-03-27T21:19:07.011462",
+      "action": "Task lock_denied: task_001",
+      "actor": "task_001",
+      "details": {
+        "repo": null,
+        "reason": "Lock held by another task"
+      }
+    }
+  ],
+  "source_files": [
+    "SPAWN/STOP/.orchestrator/logs/security/security_audit.log",
+    "SPAWN/STOP/MEMORY.md"
+  ],
+  "tags": [
+    "stray-events",
+    "lock-denial",
+    "task-001",
+    "training",
+    "memory-sync"
+  ]
+}

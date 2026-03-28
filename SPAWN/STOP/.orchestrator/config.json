@@ -8,5 +8,14 @@
   "training_config": {
     "integrated": false,
     "output_dir": "SPAWN/STOP/.orchestrator/models/finetuned"
+  },
+  "maintenance": {
+    "duplicate_parse": {
+      "enabled": true,
+      "cron_schedule": "*/15 * * * *",
+      "token_threshold": 3000,
+      "last_requested_tokens": 4300,
+      "last_completed_tokens": 0
+    }
   }
 }

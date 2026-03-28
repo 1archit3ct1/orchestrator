@@ -1,0 +1,43 @@
+{
+  "timestamp": "2026-03-27T21:59:17.380081",
+  "job": "parse_duplicates",
+  "status": "completed",
+  "duplicates_found": false,
+  "removed": {
+    "vector_store": [],
+    "iterations": [],
+    "decisions": []
+  },
+  "jsonl": {
+    "data_files": {
+      "D:\\NextAura\\orchestrator\\SPAWN\\STOP\\.orchestrator\\data\\miss_20260327_213456_dc411c7eaf9e.jsonl": {
+        "kept": 1,
+        "deleted": 0
+      },
+      "D:\\NextAura\\orchestrator\\SPAWN\\STOP\\.orchestrator\\data\\session_20260327_214720_recent_dialog_memory.jsonl": {
+        "kept": 1,
+        "deleted": 0
+      },
+      "D:\\NextAura\\orchestrator\\SPAWN\\STOP\\.orchestrator\\data\\session_20260327_core_goals.jsonl": {
+        "kept": 1,
+        "deleted": 0
+      },
+      "D:\\NextAura\\orchestrator\\SPAWN\\STOP\\.orchestrator\\data\\session_20260327_miss_capture_pilot.jsonl": {
+        "kept": 1,
+        "deleted": 0
+      },
+      "D:\\NextAura\\orchestrator\\SPAWN\\STOP\\.orchestrator\\data\\session_20260327_queue_and_operational_panels.jsonl": {
+        "kept": 1,
+        "deleted": 0
+      }
+    },
+    "retrieval_log": {
+      "kept": 5,
+      "deleted": 0
+    }
+  },
+  "memory_md": {
+    "kept": 6,
+    "deleted": 0
+  }
+}

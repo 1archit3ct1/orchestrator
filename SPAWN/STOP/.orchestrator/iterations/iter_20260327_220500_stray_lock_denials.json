@@ -1,0 +1,22 @@
+{
+  "timestamp": "2026-03-27T22:05:00-07:00",
+  "iteration_type": "memory_sync",
+  "focus": "stray_lock_denial_batch_upload",
+  "inputs": {
+    "stray_event_count": 4,
+    "actors": [
+      "task_001"
+    ],
+    "actions": [
+      "Global write lock denied",
+      "Task lock_denied: task_001"
+    ]
+  },
+  "outputs": {
+    "memory_md_updated": true,
+    "vector_memory_written": "SPAWN/STOP/.orchestrator/vector_store/session_20260327_220500_stray_lock_denials.json",
+    "training_data_written": "SPAWN/STOP/.orchestrator/data/session_20260327_220500_stray_lock_denials.jsonl",
+    "retrieval_log_updated": true
+  },
+  "notes": "Uploaded the visible stray lock-denial queue into durable memory so those exact events can be cleared from the live monitor."
+}

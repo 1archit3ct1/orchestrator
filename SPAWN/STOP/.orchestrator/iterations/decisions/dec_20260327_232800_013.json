@@ -1,0 +1,8 @@
+{
+  "timestamp": "2026-03-27T23:28:00-07:00",
+  "type": "steering_decision",
+  "decision_id": "013",
+  "topic": "flask_reload_mismatch_recovery",
+  "decision": "Preserve the latest four-turn exchange because it captures a real runtime trust issue where the live Flask traceback diverged from current source, reinforcing the need to verify stale reload state before assuming the repo still contains a crash.",
+  "highest_training_value": true
+}

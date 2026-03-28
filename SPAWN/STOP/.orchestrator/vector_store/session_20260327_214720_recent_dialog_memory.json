@@ -1,0 +1,39 @@
+{
+  "id": "session_20260327_214720_recent_dialog_memory",
+  "timestamp": "2026-03-27T21:47:20-07:00",
+  "type": "dialog_memory_sync",
+  "topic": "recent_ui_metrics_and_miss_logging",
+  "summary": [
+    "The user required the stray monitor to show all individual miss events in a scrollable log instead of only the latest event.",
+    "The user required the model panel to show collected MB/GB against both the minimum tuning threshold and the full 24B corpus target.",
+    "The user corrected arbitrary progress math and required model-data collection to be derived from the 24B goal rather than file counts.",
+    "The latest 4 user directives and 4 assistant responses should be preserved as engine memory and training data."
+  ],
+  "captured_user_directives": [
+    "Render the stray monitor as a scrollable log of all individual miss events.",
+    "Represent model-data progress in exact MB/GB and compare current data with the amount needed to begin training or tuning.",
+    "Derive model-data progress from the 24B goal instead of arbitrary percentages.",
+    "Commit the latest 4 user and 4 assistant responses into the memory engine and training-data pipeline."
+  ],
+  "captured_assistant_responses": [
+    "Implemented the stray monitor as a scrollable event log backed by live stray-event payloads.",
+    "Added storage-based model metrics showing collected bytes, minimum tuning bytes, and full target bytes.",
+    "Corrected model-progress derivation to use 24B params, 20 target tokens per param, and 4 bytes per token.",
+    "Prepared a new memory bundle so the recent dialog is persisted into repo-backed memory and training artifacts."
+  ],
+  "source_files": [
+    "SPAWN/STOP/MEMORY.md",
+    "SPAWN/STOP/web/app.py",
+    "SPAWN/STOP/.orchestrator/dashboard_state.py",
+    "SPAWN/START/prompt.md"
+  ],
+  "tags": [
+    "dialog",
+    "memory-sync",
+    "ui-truth",
+    "stray-monitor",
+    "24b-goal",
+    "training-data",
+    "steering"
+  ]
+}

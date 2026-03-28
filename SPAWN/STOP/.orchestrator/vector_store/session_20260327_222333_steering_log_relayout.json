@@ -1,0 +1,33 @@
+{
+  "id": "session_20260327_222333_steering_log_relayout",
+  "timestamp": "2026-03-27T22:23:33-07:00",
+  "type": "dialog_memory_sync",
+  "topic": "steering_log_relayout_and_scrollable_event_panels",
+  "summary": [
+    "The user asked to move the steering log into the open space below the model panel.",
+    "The user asked to make event-heavy sections scrollable so steering influence on training is readable.",
+    "The assistant moved the steering log into the model area and hid the older side steering card.",
+    "The assistant made the steering, audit, and trace panels render as scrollable event logs."
+  ],
+  "captured_user_directives": [
+    "Move the steering log below the model panel.",
+    "Make event-heavy panels scrollable so steering influence is readable."
+  ],
+  "captured_assistant_responses": [
+    "The steering feed was moved into the open model-panel space.",
+    "The steering, audit, and trace panels were made scrollable for readable history."
+  ],
+  "source_files": [
+    "SPAWN/STOP/MEMORY.md",
+    "SPAWN/STOP/web/app.py"
+  ],
+  "tags": [
+    "dialog",
+    "memory-sync",
+    "steering-log",
+    "layout",
+    "scrollable-events",
+    "training-visibility",
+    "ui-truth"
+  ]
+}

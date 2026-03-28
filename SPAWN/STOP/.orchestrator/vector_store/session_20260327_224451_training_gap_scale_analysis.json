@@ -1,0 +1,41 @@
+{
+  "id": "session_20260327_224451_training_gap_scale_analysis",
+  "timestamp": "2026-03-27T22:44:51-07:00",
+  "type": "dialog_memory_sync",
+  "topic": "model_live_styling_training_gaps_linux_bringup_scale_analysis",
+  "summary": [
+    "The user required the whole model-status section to render green when it is live.",
+    "The user asked for training-readiness questions to be checked against the repo and converted into queue items where gaps remained.",
+    "The user required Linux/WSL bring-up to become step 1 in the loop prompt for GPU efficiency.",
+    "The user asked for a new scale-analysis page explaining fine-tune scaling, data integrity, and why training from scratch is not currently justified."
+  ],
+  "captured_user_directives": [
+    "Make the full model-status section render green when live.",
+    "Analyze training-readiness questions against the repo and queue any real gaps.",
+    "Add Linux/WSL bring-up as step 1 in the prompt loop.",
+    "Add a new scale-analysis button/page with its own repo-backed metrics."
+  ],
+  "captured_assistant_responses": [
+    "The model card and nested sections were given live operational styling.",
+    "Real training-readiness gaps were mapped into task_queue.json.",
+    "The prompt loop now brings up Linux/WSL first for GPU-backed work.",
+    "A new scale-analysis panel now renders repo-backed readiness metrics and a fine-tune-first recommendation."
+  ],
+  "source_files": [
+    "SPAWN/STOP/MEMORY.md",
+    "SPAWN/STOP/.orchestrator/task_queue.json",
+    "SPAWN/START/prompt.md",
+    "SPAWN/STOP/.orchestrator/dashboard_state.py",
+    "SPAWN/STOP/state/design.html",
+    "SPAWN/STOP/web/app.py"
+  ],
+  "tags": [
+    "dialog",
+    "memory-sync",
+    "training-gaps",
+    "scale-analysis",
+    "linux-bringup",
+    "ui-live-state",
+    "fine-tune-readiness"
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "timestamp": "2026-03-27T23:05:00-07:00",
+  "type": "steering_decision",
+  "decision_id": "011",
+  "topic": "task_mapping_queue_coverage_green_metrics",
+  "decision": "Preserve the latest three-turn exchange because it records the distinction between GUI-surface DAG tasks and readiness-queue tasks, plus the requirement that live model metrics render green inside an operational panel.",
+  "highest_training_value": true
+}

@@ -1,0 +1,27 @@
+{
+  "timestamp": "2026-03-27T23:05:00-07:00",
+  "type": "session_memory",
+  "topic": "task_mapping_queue_coverage_green_metrics",
+  "session_focus": "Preserve the latest 3 user directives and 3 assistant responses around mapping visible UI surfaces to DAG task IDs, ensuring training-readiness items exist in the queue, and correcting live model metrics to render green when the section is operational.",
+  "user_directives": [
+    "Map the visible UI surfaces to task numbers and display those task IDs directly beside the interface because the dashboard appears to expose more functions than the task list currently explains.",
+    "Confirm whether the D01/D02/D03/D04/C01/C02/C03/T01/T02/T03/T04 training-readiness findings are actually represented as queued work and add any missing ones.",
+    "The core model metrics inside the model-status panel should render green as part of the live operational section rather than keeping red text inside a green card."
+  ],
+  "assistant_responses": [
+    "Added the missing tracked GUI tasks for MODEL STATUS and SCALE ANALYSIS, bringing the visible dashboard surface map to 23 GUI tasks and rendering red T## labels beside nav items and panel titles.",
+    "Confirmed that most readiness gaps were already queued, then added explicit queue tasks for D01, D03, and C01 so the full visible training-readiness list is now represented in task_queue.json.",
+    "Extended the operational styling so the model headline, big token count, collection percent, and lower metric-box values switch to green when the model-status surface is live."
+  ],
+  "training_value": [
+    "The GUI DAG and the training-readiness queue are separate layers, and the interface should explain that mapping directly to the operator.",
+    "When a section is live, both its container and its key metrics should visually read as live rather than mixing green chrome with red critical values."
+  ],
+  "top_hits": [
+    "SPAWN/STOP/MEMORY.md",
+    "SPAWN/STOP/state/design_graph.json",
+    "SPAWN/STOP/state/tasks.json",
+    "SPAWN/STOP/.orchestrator/task_queue.json",
+    "SPAWN/STOP/web/app.py"
+  ]
+}

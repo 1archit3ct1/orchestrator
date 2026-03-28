@@ -1,0 +1,8 @@
+{
+  "timestamp": "2026-03-27T22:10:21-07:00",
+  "decision": {
+    "question": "How should the latest storage-budget clarification and possible 9B pivot be preserved for future retrieval and training?",
+    "chosen": "Persist it as a compact dialog-memory bundle across MEMORY.md, vector store, training data, retrieval log, and iteration artifacts.",
+    "rationale": "These turns encode a concrete hardware constraint and a model-size planning correction, making them useful steering for future target-setting and dashboard interpretation."
+  }
+}

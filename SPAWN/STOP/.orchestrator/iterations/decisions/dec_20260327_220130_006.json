@@ -1,0 +1,8 @@
+{
+  "timestamp": "2026-03-27T22:01:30-07:00",
+  "decision": {
+    "question": "How should the latest clarification about left-rail task coverage and 24B-scale dataset size be preserved for future retrieval and training?",
+    "chosen": "Persist it as a compact dialog-memory bundle across MEMORY.md, vector store, training data, retrieval log, and iteration artifacts.",
+    "rationale": "These turns correct ambiguity in GUI task coverage and in the interpretation of full-corpus versus tuning-start storage thresholds, making them high-value steering material for future runs."
+  }
+}

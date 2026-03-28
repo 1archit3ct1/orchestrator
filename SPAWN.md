@@ -21,7 +21,7 @@ All LLM interactions **MUST** originate from within `SPAWN/`. This is a forced c
 orchestrator/
 ├── SPAWN/                      ← LLMs spawn ONLY here
 │   ├── START/                  ← Bootstrap (run once)
-│   │   └── bootstrap.sh
+│   │   └── prompt.md
 │   └── STOP/                   ← Runtime (work happens here)
 │       ├── .orchestrator/      ← Core systems
 │       ├── web/                ← Dashboard
@@ -40,7 +40,7 @@ orchestrator/
 ## Flow
 
 ```
-Clone → SPAWN/START/bootstrap.sh → [Initialized] → SPAWN/STOP/ [Work Here]
+Clone → SPAWN/START/prompt.md → [Initialized] → SPAWN/STOP/ [Work Here]
 ```
 
 ---
@@ -73,7 +73,7 @@ cd D:\NextAura\orchestrator  ← WRONG
 ```bash
 # From orchestrator root
 cd SPAWN/START
-./bootstrap.sh
+Read `./prompt.md`
 
 # After bootstrap:
 # - START/ becomes read-only

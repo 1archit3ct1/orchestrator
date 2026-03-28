@@ -1,0 +1,28 @@
+{
+  "timestamp": "2026-03-27T23:28:00-07:00",
+  "type": "session_memory",
+  "topic": "flask_reload_mismatch_recovery",
+  "session_focus": "Preserve the latest 4 user directives and 4 assistant responses around the temporary Flask NameError, the already-fixed reload state, and syncing that recovery context into the engine memory pipeline.",
+  "user_directives": [
+    "Reported a Flask crash showing NameError: name 'warnings' is not defined coming from the readiness payload path in dashboard_state.py.",
+    "Interrupted the prior turn because the crash context was already changing during investigation.",
+    "Confirmed that the issue was already fixed on the running system.",
+    "Requested that the latest 4 back-and-forth turns be added to engine memory and training data."
+  ],
+  "assistant_responses": [
+    "Traced the crash to the readiness payload call site in dashboard_state.py and verified the repo file had already been corrected to use state_warnings.",
+    "Acknowledged the user's confirmation that the crash was already fixed, which implied the earlier Flask failure likely came from a stale reload path rather than the current file contents.",
+    "Offered to do a further hard verification pass if needed so stale Flask and reloader mismatches would not remain hidden.",
+    "Synced this latest recovery exchange into durable memory, vector, data, retrieval, iteration, and decision artifacts."
+  ],
+  "training_value": [
+    "Flask debug and reloader behavior can temporarily serve stale code paths even after a local file is fixed, so runtime verification must distinguish current repo truth from a stale in-memory process.",
+    "Verify the live traceback against current file contents before assuming the repo still contains the bug."
+  ],
+  "top_hits": [
+    "SPAWN/STOP/MEMORY.md",
+    "SPAWN/STOP/.orchestrator/dashboard_state.py",
+    "SPAWN/STOP/web/app.py",
+    "SPAWN/STOP/retrieval_log.jsonl"
+  ]
+}

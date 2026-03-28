@@ -11,6 +11,7 @@ from __future__ import annotations
 import json
 import math
 import re
+import hashlib
 from datetime import datetime
 from pathlib import Path
 
@@ -248,6 +249,42 @@ def verify_dashboard_integrations(runtime_dir: Path):
             if 'data-readiness-key="' in design_text and "function renderReadinessTracker" in app_text
             else "readiness tracker is still mostly static text and not a live function surface",
         },
+        "gui_training_run_details": {
+            "live": 'data-panel="training-run"' in design_text and "/api/training/run" in app_text,
+            "reason": "training run section opens detailed repo-backed training state"
+            if 'data-panel="training-run"' in design_text and "/api/training/run" in app_text
+            else "training run panel is not wired to detailed repo-backed training state",
+        },
+        "gui_dataset_details": {
+            "live": 'data-panel="dataset"' in design_text and "/api/dataset/details" in app_text,
+            "reason": "dataset section opens detailed repo-backed dataset state"
+            if 'data-panel="dataset"' in design_text and "/api/dataset/details" in app_text
+            else "dataset panel is not wired to detailed repo-backed dataset state",
+        },
+        "gui_eta_tracker_live": {
+            "live": 'data-panel="eta-tracker"' in design_text and "function renderEtaTracker" in app_text,
+            "reason": "ETA tracker renders detailed canonical ETA state"
+            if 'data-panel="eta-tracker"' in design_text and "function renderEtaTracker" in app_text
+            else "ETA tracker is not wired to canonical repo-backed ETA detail rendering",
+        },
+        "gui_trace_capture_details": {
+            "live": 'data-panel="trace-capture"' in design_text and "/api/traces" in app_text,
+            "reason": "trace capture section opens detailed repo-backed trace history"
+            if 'data-panel="trace-capture"' in design_text and "/api/traces" in app_text
+            else "trace capture section is not wired to detailed repo-backed trace history",
+        },
+        "gui_steering_log_details": {
+            "live": 'data-panel="steering-log"' in design_text and "/api/steering/events" in app_text,
+            "reason": "steering log section opens detailed repo-backed steering events"
+            if 'data-panel="steering-log"' in design_text and "/api/steering/events" in app_text
+            else "steering log section is not wired to detailed repo-backed steering events",
+        },
+        "gui_mutex_lock_details": {
+            "live": 'data-panel="mutex-lock"' in design_text and "/api/repo-freeze/state" in app_text,
+            "reason": "mutex status box opens detailed live lock ownership and gating state"
+            if 'data-panel="mutex-lock"' in design_text and "/api/repo-freeze/state" in app_text
+            else "mutex status box is not wired to detailed live lock state",
+        },
     }
     return checks
 
@@ -388,22 +425,34 @@ def parse_trace_entries(log_paths, limit=6):
 
 
 def parse_security_events(log_paths, limit=6):
+    processed = set()
+    for path in log_paths:
+        processed_path = path.parent / "processed_stray_events.json"
+        payload = load_json(processed_path, [])
+        if isinstance(payload, list):
+            processed.update(str(item) for item in payload)
+
     events = []
     interesting = ("stray", "blocked", "policy", "outside", "halt", "denied")
     for path in log_paths:
         for line in tail_lines(path, limit * 3):
             lowered = line.lower()
-            if any(token in lowered for token in interesting):
+            signature = hashlib.sha1(line.strip().encode("utf-8")).hexdigest()
+            if any(token in lowered for token in interesting) and signature not in processed:
                 events.append(line)
     return events[-limit:]
 
 
-def parse_steering_events(decisions_dir: Path, limit=6):
+def parse_steering_events(decisions_dir: Path, limit=None):
     events = []
     if not decisions_dir.exists():
         return events
 
-    for path in sorted(decisions_dir.glob("dec_*.json"))[-limit:]:
+    paths = sorted(decisions_dir.glob("dec_*.json"))
+    if limit is not None:
+        paths = paths[-limit:]
+
+    for path in paths:
         payload = load_json(path, {})
         if isinstance(payload, dict):
             decision = payload.get("decision") if isinstance(payload.get("decision"), dict) else payload
@@ -412,12 +461,14 @@ def parse_steering_events(decisions_dir: Path, limit=6):
                 summary = f"{decision.get('question')} Chosen: {decision.get('chosen')}."
                 if rationale:
                     summary += f" {rationale}"
+            elif payload.get("type") == "steering_decision":
+                summary = payload.get("decision") or payload.get("topic") or payload.get("title") or path.stem
             else:
                 summary = payload.get("summary") or decision.get("summary") or decision.get("title") or path.stem
             events.append(str(summary))
         else:
             events.append(path.stem)
-    return events[-limit:]
+    return events
 
 
 def lock_is_active(lock_path: Path):
@@ -497,29 +548,102 @@ def build_memory_files(runtime_dir: Path, task_md: Path, memory_md: Path, vector
     return files
 
 
+def build_repo_structure(runtime_dir: Path, start_dir: Path):
+    start_items = []
+    stop_items = []
+
+    for name in ["prompt.md", "AGENTS.md"]:
+        path = start_dir / name
+        if path.exists():
+            start_items.append({"name": name, "detail": format_bytes(path.stat().st_size)})
+    for name in ["01-init", "02-config", "03-templates", "04-hooks", "05-validation"]:
+        path = start_dir / name
+        if path.exists():
+            start_items.append({"name": name, "detail": "dir"})
+
+    stop_map = [
+        (".orchestrator/loop.py", runtime_dir / ".orchestrator" / "loop.py"),
+        (".orchestrator/planner.sh", runtime_dir / ".orchestrator" / "planner.sh"),
+        (".orchestrator/vector_store/", runtime_dir / ".orchestrator" / "vector_store"),
+        ("TASK.md", runtime_dir / "TASK.md"),
+        ("MEMORY.md", runtime_dir / "MEMORY.md"),
+        ("AGENTS.md", runtime_dir / "AGENTS.md"),
+    ]
+    for label, path in stop_map:
+        if path.exists():
+            stop_items.append({"name": label, "detail": "dir" if path.is_dir() else format_bytes(path.stat().st_size)})
+
+    return {"start": start_items, "stop": stop_items}
+
+
+def build_readiness_state(model_integrated: bool, graph: dict, task_md: dict | None, warnings: list[str], verification: dict):
+    controls_live = bool(
+        verification.get("gui_spawn_loop_controls", {}).get("live")
+        and verification.get("gui_repo_freeze_toggle", {}).get("live")
+    )
+    task_md_aligned = bool(task_md and any(node.get("id") == task_md.get("dag_node_id") for node in graph.get("nodes", [])))
+    return [
+        {
+            "label": "Canonical State",
+            "value": "LIVE",
+            "status": "live",
+        },
+        {
+            "label": "Model Integrated",
+            "value": "LIVE" if model_integrated else "PENDING",
+            "status": "live" if model_integrated else "pending",
+        },
+        {
+            "label": "Flask Controls Live",
+            "value": "LIVE" if controls_live else "PENDING",
+            "status": "live" if controls_live else "pending",
+        },
+        {
+            "label": "TASK.md Alignment",
+            "value": "ALIGNED" if task_md_aligned and not warnings else ("ATTENTION" if warnings else "PENDING"),
+            "status": "live" if task_md_aligned and not warnings else ("warn" if warnings else "pending"),
+        },
+    ]
+
+
 def build_memory_progress(memory_path: Path, retrieval_log: Path, vector_dir: Path, data_dir: Path, iterations_dir: Path, config: dict):
     target_model_params = int(config.get("training_config", {}).get("target_model_params", 24_000_000_000) or 24_000_000_000)
     target_tokens = int(config.get("training_config", {}).get("target_data_tokens", target_model_params * 20) or (target_model_params * 20))
+    estimated_bytes_per_token = float(config.get("training_config", {}).get("estimated_bytes_per_token", 4.0) or 4.0)
+    minimum_tuning_tokens = int(config.get("training_config", {}).get("minimum_tuning_tokens", max(50_000_000, target_model_params // 10)) or max(50_000_000, target_model_params // 10))
     events = []
+    collected_bytes = 0
 
     if memory_path.exists():
-        events.append({"ts": memory_path.stat().st_mtime, "type": "memory", "tokens": estimate_text_tokens(memory_path)})
+        file_bytes = memory_path.stat().st_size
+        collected_bytes += file_bytes
+        events.append({"ts": memory_path.stat().st_mtime, "type": "memory", "tokens": estimate_text_tokens(memory_path), "bytes": file_bytes})
     if retrieval_log.exists():
-        events.append({"ts": retrieval_log.stat().st_mtime, "type": "retrieval", "tokens": estimate_text_tokens(retrieval_log)})
+        file_bytes = retrieval_log.stat().st_size
+        collected_bytes += file_bytes
+        events.append({"ts": retrieval_log.stat().st_mtime, "type": "retrieval", "tokens": estimate_text_tokens(retrieval_log), "bytes": file_bytes})
     if vector_dir.exists():
         for path in vector_dir.glob("*.json"):
-            events.append({"ts": path.stat().st_mtime, "type": "vector", "tokens": estimate_text_tokens(path)})
+            file_bytes = path.stat().st_size
+            collected_bytes += file_bytes
+            events.append({"ts": path.stat().st_mtime, "type": "vector", "tokens": estimate_text_tokens(path), "bytes": file_bytes})
     if data_dir.exists():
         for path in data_dir.glob("*"):
             if path.is_file():
-                events.append({"ts": path.stat().st_mtime, "type": "data", "tokens": estimate_text_tokens(path)})
+                file_bytes = path.stat().st_size
+                collected_bytes += file_bytes
+                events.append({"ts": path.stat().st_mtime, "type": "data", "tokens": estimate_text_tokens(path), "bytes": file_bytes})
     if iterations_dir.exists():
         for path in iterations_dir.glob("iter_*.json"):
-            events.append({"ts": path.stat().st_mtime, "type": "iteration", "tokens": estimate_text_tokens(path)})
+            file_bytes = path.stat().st_size
+            collected_bytes += file_bytes
+            events.append({"ts": path.stat().st_mtime, "type": "iteration", "tokens": estimate_text_tokens(path), "bytes": file_bytes})
         decisions_dir = iterations_dir / "decisions"
         if decisions_dir.exists():
             for path in decisions_dir.glob("dec_*.json"):
-                events.append({"ts": path.stat().st_mtime, "type": "decision", "tokens": estimate_text_tokens(path)})
+                file_bytes = path.stat().st_size
+                collected_bytes += file_bytes
+                events.append({"ts": path.stat().st_mtime, "type": "decision", "tokens": estimate_text_tokens(path), "bytes": file_bytes})
 
     events.sort(key=lambda item: item["ts"])
     points = []
@@ -550,8 +674,74 @@ def build_memory_progress(memory_path: Path, retrieval_log: Path, vector_dir: Pa
         "collected_tokens": collected_tokens,
         "target_tokens": target_tokens,
         "target_model_params": target_model_params,
+        "collected_bytes": int(collected_bytes),
+        "target_bytes": int(target_tokens * estimated_bytes_per_token),
+        "minimum_tuning_bytes": int(minimum_tuning_tokens * estimated_bytes_per_token),
+        "minimum_tuning_tokens": minimum_tuning_tokens,
         "retrieval_lines": retrieval_lines,
         "points": points[-24:],
+    }
+
+
+def build_scale_analysis(config: dict, data_dir: Path, vector_dir: Path, iterations_dir: Path, training_dir: Path, memory_progress: dict):
+    jsonl_files = sorted(data_dir.glob("*.jsonl")) if data_dir.exists() else []
+    training_scripts = sorted(training_dir.rglob("*")) if training_dir.exists() else []
+    decision_files = sorted((iterations_dir / "decisions").glob("dec_*.json")) if (iterations_dir / "decisions").exists() else []
+
+    known = {
+        "D01": "Mixed storage today: JSONL training artifacts plus JSON vector/iteration files and MEMORY.md.",
+        "D03": "All traces are stored on local repo disk under SPAWN/STOP/.orchestrator and MEMORY.md.",
+        "C01": "Dedup uses canonical content signatures, not timestamps alone.",
+        "T03": "No smoke-test fine-tune run is present yet.",
+    }
+    partial = {
+        "D02": "Current JSONL records include timestamp/type/instruction/input/output, but no enforced global schema with signal, node_id, and session_id.",
+        "D04": "Steering traces are partly separated in iterations/decisions, but the training dataset is not fully partitioned or weighted yet.",
+        "C03": "Raw collected artifacts are visible, but a clean post-filter training metric is not yet computed.",
+    }
+    unknown = {
+        "C02": "No acceptance/rejection quality thresholds are codified yet.",
+        "T01": "No fine-tuning framework is selected in repo config.",
+        "T02": "Base model choice is still unresolved, including 24B vs 9B direction.",
+        "T04": "No live VRAM profiling or RTX 5090 headroom metric exists yet.",
+    }
+
+    nine_b_target_bytes = int(9_000_000_000 * 20 * 4)
+    nine_b_minimum_tuning_bytes = int(max(50_000_000, 9_000_000_000 // 10) * 4)
+    current_bytes = int(memory_progress.get("collected_bytes", 0))
+    current_tokens = int(memory_progress.get("collected_tokens", 0))
+    clean_dataset_ready = False
+    framework_ready = False
+    training_scripts_present = any(item.is_file() for item in training_scripts)
+    can_train_from_scratch = False
+    fine_tune_path_ready = bool(jsonl_files)
+
+    recommendation = "Fine-tune-first path is realistic; from-scratch training is not justified by current repo readiness."
+    if not fine_tune_path_ready:
+        recommendation = "Data pipeline still needs normalization before even a fine-tune-first path is reliable."
+
+    return {
+        "questions_scanned": 11,
+        "known_count": len(known),
+        "partial_count": len(partial),
+        "unknown_count": len(unknown),
+        "known": known,
+        "partial": partial,
+        "unknown": unknown,
+        "current_collected_bytes": current_bytes,
+        "current_collected_tokens": current_tokens,
+        "current_jsonl_files": len(jsonl_files),
+        "current_decision_files": len(decision_files),
+        "training_scripts_present": training_scripts_present,
+        "clean_dataset_ready": clean_dataset_ready,
+        "framework_ready": framework_ready,
+        "fine_tune_path_ready": fine_tune_path_ready,
+        "can_train_from_scratch": can_train_from_scratch,
+        "target_24b_bytes": int(memory_progress.get("target_bytes", 0)),
+        "target_24b_minimum_tuning_bytes": int(memory_progress.get("minimum_tuning_bytes", 0)),
+        "target_9b_bytes": nine_b_target_bytes,
+        "target_9b_minimum_tuning_bytes": nine_b_minimum_tuning_bytes,
+        "recommendation": recommendation,
     }
 
 
@@ -572,6 +762,7 @@ def sync_dashboard_state(runtime_dir: Path):
     logs_dir = orchestrator_dir / "logs"
     iterations_dir = orchestrator_dir / "iterations"
     repos_dir = runtime_dir / "repos"
+    training_dir = runtime_dir / "training"
     locks_dir = orchestrator_dir / "locks"
     locks_path = locks_dir / "repo_locks"
     security_log = logs_dir / "security" / "security_audit.log"
@@ -631,7 +822,7 @@ def sync_dashboard_state(runtime_dir: Path):
     error_traces = len(list((iterations_dir / "errors").glob("err_*.json"))) if (iterations_dir / "errors").exists() else 0
     steering_traces = len(list((iterations_dir / "decisions").glob("dec_*.json"))) if (iterations_dir / "decisions").exists() else 0
     total_training_traces = success_traces + error_traces + steering_traces
-    steering_events = parse_steering_events(iterations_dir / "decisions", limit=6)
+    steering_events = parse_steering_events(iterations_dir / "decisions")
 
     vector_entries = count_files(vector_dir, "*.json")
     vector_size = directory_size(vector_dir)
@@ -658,6 +849,14 @@ def sync_dashboard_state(runtime_dir: Path):
         data_dir,
         iterations_dir,
         config,
+    )
+    scale_analysis = build_scale_analysis(
+        config,
+        data_dir,
+        vector_dir,
+        iterations_dir,
+        training_dir,
+        memory_progress,
     )
 
     dashboard_state = {
@@ -718,10 +917,15 @@ def sync_dashboard_state(runtime_dir: Path):
             "memory_graph": memory_progress["points"],
             "memory_collected_tokens": memory_progress["collected_tokens"],
             "memory_target_tokens": memory_progress["target_tokens"],
+            "memory_collected_bytes": memory_progress["collected_bytes"],
+            "memory_target_bytes": memory_progress["target_bytes"],
+            "minimum_tuning_bytes": memory_progress["minimum_tuning_bytes"],
+            "minimum_tuning_tokens": memory_progress["minimum_tuning_tokens"],
             "target_model_params": memory_progress["target_model_params"],
             "collection_percent_display": memory_progress["percent_display"],
             "retrieval_lines": memory_progress["retrieval_lines"],
         },
+        "scale_analysis": scale_analysis,
         "logs": [
             {
                 "source": "orchestrator.log",
@@ -735,6 +939,7 @@ def sync_dashboard_state(runtime_dir: Path):
         "steering_events": steering_events,
         "repos": repos,
         "bootstrap_steps": build_bootstrap_steps(start_dir),
+        "repo_structure": build_repo_structure(runtime_dir, start_dir),
         "vector_phases": build_vector_phases(vector_dir, iterations_dir),
         "memory_files": build_memory_files(
             runtime_dir,
@@ -753,6 +958,7 @@ def sync_dashboard_state(runtime_dir: Path):
             "lock_path": str(locks_dir),
             "allowed_paths": task_md.get("allowed_paths", []) if task_md else [],
         },
+        "readiness": build_readiness_state(model_integrated, graph, task_md, state_warnings, verification),
         "task_queue": load_json(task_queue_path, []),
     }
 

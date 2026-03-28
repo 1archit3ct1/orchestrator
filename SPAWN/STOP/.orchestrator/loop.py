@@ -27,7 +27,8 @@ from pathlib import Path
 # Import security system
 import security_manager
 from security_manager import CredentialType, SecurityManager
-from dashboard_state import verify_dashboard_integrations
+from dashboard_state import sync_dashboard_state, verify_dashboard_integrations
+from maintenance import run_duplicate_parse
 
 logging.basicConfig(
     level=logging.INFO,
@@ -275,6 +276,68 @@ class OrchestratorLoop:
                 return task
         return None
 
+    def _save_config(self) -> bool:
+        return self._save_json(self.config_path, self.config)
+
+    def _current_memory_tokens(self) -> int:
+        dashboard_state = sync_dashboard_state(self.root / 'SPAWN' / 'STOP')
+        model = dashboard_state.get('model', {})
+        return int(model.get('memory_collected_tokens', 0) or 0)
+
+    def _queue_has_task(self, task_id: str) -> bool:
+        queue = self._load_json(self.task_queue_path)
+        if not isinstance(queue, list):
+            queue = queue.get('pending', [])
+        return any(task.get('id') == task_id for task in queue)
+
+    def _schedule_duplicate_parse_job_if_needed(self) -> bool:
+        maintenance_cfg = self.config.setdefault('maintenance', {}).setdefault('duplicate_parse', {})
+        if not maintenance_cfg.get('enabled', True):
+            return False
+
+        current_tokens = self._current_memory_tokens()
+        threshold = int(maintenance_cfg.get('token_threshold', 3000) or 3000)
+        last_requested = int(maintenance_cfg.get('last_requested_tokens', 0) or 0)
+        task_id = 'maintenance_parse_duplicates'
+
+        if current_tokens < threshold or (current_tokens - last_requested) < threshold:
+            return False
+        if self._queue_has_task(task_id):
+            return False
+
+        queue = self._load_json(self.task_queue_path)
+        if not isinstance(queue, list):
+            queue = queue.get('pending', [])
+
+        queue.append({
+            'id': task_id,
+            'repo': 'orchestrator',
+            'job': 'parse_duplicates',
+            'description': 'Parse memory/training artifacts for duplicates and delete exact duplicates when found.',
+            'allowed_paths': [
+                'SPAWN/STOP/MEMORY.md',
+                'SPAWN/STOP/retrieval_log.jsonl',
+                'SPAWN/STOP/.orchestrator/vector_store/',
+                'SPAWN/STOP/.orchestrator/data/',
+                'SPAWN/STOP/.orchestrator/iterations/',
+                'SPAWN/STOP/.orchestrator/logs/maintenance/',
+            ],
+            'priority': 999,
+            'status': 'pending',
+            'trigger': {
+                'type': 'token_threshold',
+                'memory_collected_tokens': current_tokens,
+                'threshold': threshold,
+                'cron_schedule': maintenance_cfg.get('cron_schedule', '*/15 * * * *'),
+            },
+            'prompt_load_path': 'SPAWN/STOP/.orchestrator/task_queue.json',
+        })
+        maintenance_cfg['last_requested_tokens'] = current_tokens
+        self._save_json(self.task_queue_path, queue)
+        self._save_config()
+        logger.info(f"  Scheduled duplicate-parse maintenance task at {current_tokens} tokens")
+        return True
+
     def _promote_next_task(self) -> bool:
         next_task = self._find_next_runnable_task()
         if not next_task:
@@ -513,6 +576,7 @@ class OrchestratorLoop:
     def step_1_read_task_queue(self) -> list:
         """Step 1: Read task_queue.json (priority-ordered child tasks)"""
         logger.info("Step 1: Reading task_queue.json")
+        self._schedule_duplicate_parse_job_if_needed()
         tasks = self._load_json(self.task_queue_path)
         if isinstance(tasks, list):
             logger.info(f"  Found {len(tasks)} tasks in queue")
@@ -548,6 +612,18 @@ class OrchestratorLoop:
         logger.info("Step 4: Dispatching tasks to child repos")
         results = {}
         for task in state.get('tasks', []):
+            if task.get('repo') == 'orchestrator' and task.get('job') == 'parse_duplicates':
+                report = run_duplicate_parse(self.root / 'SPAWN' / 'STOP')
+                self.config.setdefault('maintenance', {}).setdefault('duplicate_parse', {})['last_completed_tokens'] = self._current_memory_tokens()
+                self._save_config()
+                results[task.get('id', 'maintenance_parse_duplicates')] = {
+                    'status': 'dispatched',
+                    'task': task,
+                    'report': report,
+                }
+                logger.info("  Ran duplicate-parse maintenance task")
+                continue
+
             repo_name = task.get('repo', 'unknown')
             repo_path = self.repos_dir / repo_name
             if repo_path.exists():
@@ -615,8 +691,8 @@ class OrchestratorLoop:
         logger.info("Step 8: Updating task queue with next priorities")
         remaining = []
         for task in state.get('tasks', []):
-            repo_name = task.get('repo', 'unknown')
-            result = dispatch_results.get(repo_name, {})
+            result_key = task.get('id') if task.get('repo') == 'orchestrator' else task.get('repo', 'unknown')
+            result = dispatch_results.get(result_key, {})
             if result.get('status') != 'dispatched':
                 remaining.append(task)
         return self._save_json(self.task_queue_path, remaining)

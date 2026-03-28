@@ -1,0 +1,21 @@
+{
+  "job_id": "maintenance_parse_duplicates",
+  "description": "Queue and run duplicate parsing for memory/training artifacts once accumulated memory tokens cross the configured threshold.",
+  "trigger": {
+    "type": "token_threshold",
+    "source_metric": "model.memory_collected_tokens",
+    "threshold": 3000,
+    "cron_schedule": "*/15 * * * *"
+  },
+  "prompt_load_path": "SPAWN/STOP/.orchestrator/task_queue.json",
+  "cron_request_runner": "SPAWN/STOP/.orchestrator/maintenance.py --job queue_duplicate_parse_if_needed --runtime-dir SPAWN/STOP",
+  "task_runner": "SPAWN/STOP/.orchestrator/maintenance.py --job parse_duplicates --runtime-dir SPAWN/STOP",
+  "allowed_paths": [
+    "SPAWN/STOP/MEMORY.md",
+    "SPAWN/STOP/retrieval_log.jsonl",
+    "SPAWN/STOP/.orchestrator/vector_store/",
+    "SPAWN/STOP/.orchestrator/data/",
+    "SPAWN/STOP/.orchestrator/iterations/",
+    "SPAWN/STOP/.orchestrator/logs/maintenance/"
+  ]
+}

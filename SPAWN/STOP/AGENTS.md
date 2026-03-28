@@ -147,6 +147,6 @@ The orchestrator will read `state/design_graph.json` and execute tasks in depend
 
 ---
 
-**Bootstrap script**: `Start/bootstrap.sh`
+**Bootstrap prompt**: `Start/prompt.md`
 **Reduced runtime version**: `Stop/AGENTS.md` (created by bootstrap)
 **Questions?**: Check `Stop/MEMORY.md` for past decisions and logs in `Stop/.orchestrator/logs/`

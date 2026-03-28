@@ -40,23 +40,26 @@ For every task, produce concrete GUI-visible deliverables that the repo can read
 - control work must leave real Flask control endpoints plus matching front-end bindings
 - readiness work must render from canonical repo state rather than static placeholder text
 - miss analysis work must leave repo-visible memory artifacts in `MEMORY.md`, `.orchestrator/vector_store/`, `.orchestrator/data/`, `.orchestrator/iterations/`, and `retrieval_log.jsonl`
+- maintenance work must enqueue itself in `SPAWN/STOP/.orchestrator/task_queue.json`, run from repo-backed thresholds or schedules, and leave a log/report artifact on disk
 
 If a task does not leave behind verifiable repo data, do not advance the DAG.
 
 ## Active Orchestration Loop
 
 ```text
-1. Read task_queue.json (priority-ordered child tasks)
-2. Query vector store for relevant context (past child task results, embeddings)
-3. Call loop.py with state + child repo requirements
-4. Dispatch tasks to child repos via their allowed_paths (task-scoped coordination)
-5. Collect logs/outputs from child repos into SPAWN/STOP/.orchestrator/logs/
-6. Train/update models if training data available
-7. Check for misses: verifier failures, lock denials, stray writes, wrong assumptions, and user-corrected mistakes
-8. Dump useful misses into MEMORY.md, vector store, data pipeline, iteration artifacts, and retrieval log
-9. Update task_queue.json with next batch of task priorities
-10. If orchestration complete, finalize state
-11. Repeat until all coordinated tasks complete
+1. Bring up the Linux/WSL runtime first whenever GPU-backed work, training, or heavy token processing is involved so CUDA access and memory behavior stay optimized
+2. Read task_queue.json (priority-ordered child tasks)
+3. Query vector store for relevant context (past child task results, embeddings)
+4. Call loop.py with state + child repo requirements
+5. Dispatch tasks to child repos via their allowed_paths (task-scoped coordination)
+6. Collect logs/outputs from child repos into SPAWN/STOP/.orchestrator/logs/
+7. Train/update models if training data available
+8. Check for misses: verifier failures, lock denials, stray writes, wrong assumptions, and user-corrected mistakes
+9. Dump useful misses into MEMORY.md, vector store, data pipeline, iteration artifacts, and retrieval log
+10. Queue threshold-triggered maintenance jobs, including duplicate parsing for memory artifacts when token accumulation crosses its threshold
+11. Update task_queue.json with next batch of task priorities
+12. If orchestration complete, finalize state
+13. Repeat until all coordinated tasks complete
 ```
 
 ## Current Expected DAG
@@ -76,6 +79,12 @@ If a task does not leave behind verifiable repo data, do not advance the DAG.
 - `T13 gui-audit-log-details`
 - `T14 gui-stray-monitor-details`
 - `T15 gui-readiness-tracker-live`
+- `T16 gui-training-run-details`
+- `T17 gui-dataset-details`
+- `T18 gui-eta-tracker-live`
+- `T19 gui-trace-capture-details`
+- `T20 gui-steering-log-details`
+- `T21 gui-mutex-lock-details`
 
 ## Bootstrap Output
 
@@ -103,6 +112,12 @@ Do not complete a task unless it delivers the following:
 - `T13`: audit log panel opens detailed audit events
 - `T14`: stray monitor panel opens detailed stray events
 - `T15`: readiness tracker rows render from canonical repo state
+- `T16`: training run section opens detailed repo-backed training state
+- `T17`: dataset section opens detailed repo-backed dataset state
+- `T18`: ETA tracker renders canonical ETA details instead of static text
+- `T19`: trace capture section opens detailed repo-backed trace history
+- `T20`: steering log section opens detailed repo-backed steering events
+- `T21`: mutex status box opens detailed live lock ownership and gating state
 
 ## Operator Use
 

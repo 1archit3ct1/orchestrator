@@ -1,0 +1,22 @@
+{
+  "timestamp": "2026-03-27T22:10:21-07:00",
+  "iteration_type": "memory_sync",
+  "focus": "model_scale_constraint_and_9b_pivot",
+  "inputs": {
+    "recent_user_directives": [
+      "The full 24B corpus estimate is too large for the available drives.",
+      "A 9B model may be necessary and the labels should make the size tiers much clearer."
+    ],
+    "recent_assistant_responses": [
+      "The panel currently uses a pretraining-scale assumption and should separate minimum tuning size from full corpus ambition.",
+      "A 9B model would bring the full target down to about 670.55 GB and the minimum tuning threshold to about 3.35 GB."
+    ]
+  },
+  "outputs": {
+    "memory_md_updated": true,
+    "vector_memory_written": "SPAWN/STOP/.orchestrator/vector_store/session_20260327_221021_model_scale_constraint.json",
+    "training_data_written": "SPAWN/STOP/.orchestrator/data/session_20260327_221021_model_scale_constraint.jsonl",
+    "retrieval_log_updated": true
+  },
+  "notes": "This iteration preserves a practical storage-budget correction and a possible target-model pivot from 24B to 9B."
+}

@@ -1,16 +1,16 @@
 ---
-task_id: task_002
-dag_node_id: gui_dag_task_details
+task_id: task_003
+dag_node_id: gui_spawn_loop_controls
 allowed_paths:
   - SPAWN/STOP/state/design.html
   - SPAWN/STOP/web/app.py
-priority: 2
+priority: 3
 ---
 
-# Task: gui-dag-task-details
+# Task: gui-spawn-loop
 
 ## Description
-Make DAG rows open live task details, dependencies, allowed paths, and verification reasons from repo state.
+Wire the spawn loop controls to a real Flask control plane so start, pause, and related actions work from the GUI.
 
 ## Allowed Paths
 You may ONLY write to: `SPAWN/STOP/state/design.html`, `SPAWN/STOP/web/app.py`

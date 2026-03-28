@@ -1,0 +1,30 @@
+{
+  "timestamp": "2026-03-27T22:55:00-07:00",
+  "type": "session_memory",
+  "topic": "scale_analysis_page_and_memory_sync",
+  "session_focus": "Preserve the latest 4 user directives and 4 assistant responses around live model-panel state, queued training-readiness gaps, Linux-first GPU bring-up, and the dedicated scale-analysis dashboard page.",
+  "user_directives": [
+    "The full model-status section should render green when it is live and operational.",
+    "Open training-readiness questions should be checked against the repo and any unknowns should become queued tasks.",
+    "Linux/WSL bring-up should be step 1 in the loop prompt to maximize GPU gains during heavy work.",
+    "A new dashboard page should explain scale decisions, data-integrity constraints, and whether fine-tuning is realistic versus training from scratch at the current storage level."
+  ],
+  "assistant_responses": [
+    "The model-status surface and its nested live blocks were updated to render as one green operational section when canonical repo data is available.",
+    "The visible training-readiness questions were analyzed against the repo and the real unresolved work was added to task_queue.json as explicit engineering tasks.",
+    "The prompt loop was updated so Linux/WSL bring-up now appears as step 1 before GPU-backed work or heavy token processing.",
+    "A new Scale Analysis left-rail page and repo-backed payload were added to explain known, partial, and unknown answers plus the current recommendation that fine-tune-first is realistic while training from scratch is not yet justified."
+  ],
+  "training_value": [
+    "Scaling decisions should be derived from real collected data, quality gates, and storage limits rather than aspirational model size alone.",
+    "The dashboard should explain not only collection progress but also why the current stack favors fine-tuning over from-scratch training."
+  ],
+  "top_hits": [
+    "SPAWN/STOP/MEMORY.md",
+    "SPAWN/STOP/.orchestrator/dashboard_state.py",
+    "SPAWN/STOP/.orchestrator/task_queue.json",
+    "SPAWN/START/prompt.md",
+    "SPAWN/STOP/state/design.html",
+    "SPAWN/STOP/web/app.py"
+  ]
+}

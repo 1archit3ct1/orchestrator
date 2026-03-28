@@ -1214,6 +1214,166 @@ body::after {
   box-shadow: 0 0 0 1px rgba(255,32,32,0.2);
   pointer-events: none;
 }
+
+/* ── TASK DRILLDOWN MODAL ───────────────────────────────── */
+.task-drilldown-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(5, 5, 7, 0.85);
+  backdrop-filter: blur(8px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.task-drilldown-content {
+  width: min(700px, 90vw);
+  max-height: 80vh;
+  background: linear-gradient(135deg, rgba(255,255,255,0.035), rgba(255,255,255,0.02));
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.6), 0 0 40px rgba(255,32,32,0.1);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.task-drilldown-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(8, 8, 12, 0.6);
+}
+
+.task-drilldown-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.task-drilldown-id {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--red);
+  letter-spacing: 1.5px;
+  padding: 4px 10px;
+  border: 1px solid var(--red);
+  border-radius: 4px;
+  background: var(--red-dim);
+}
+
+.task-drilldown-label {
+  font-size: 10px;
+  color: var(--text);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.task-drilldown-close {
+  background: transparent;
+  border: none;
+  color: var(--text-dim);
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 8px;
+  transition: color 0.2s;
+}
+
+.task-drilldown-close:hover {
+  color: var(--red);
+}
+
+.task-drilldown-body {
+  padding: 20px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.task-detail-section {
+  margin-bottom: 18px;
+}
+
+.task-detail-section:last-child {
+  margin-bottom: 0;
+}
+
+.detail-label {
+  font-size: 8px;
+  letter-spacing: 2px;
+  color: var(--text-ghost);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+}
+
+.detail-value {
+  font-size: 9px;
+  color: var(--text);
+  line-height: 1.7;
+  padding: 10px 12px;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid var(--border-dim);
+  border-radius: 5px;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 8px;
+  letter-spacing: 1px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.status-badge.complete {
+  background: var(--green-dim);
+  color: var(--green);
+  border: 1px solid var(--green-b);
+}
+
+.status-badge.active {
+  background: var(--amber);
+  color: #000;
+  border: 1px solid var(--amber);
+}
+
+.status-badge.pending {
+  background: var(--red-dim);
+  color: var(--red);
+  border: 1px solid var(--red-b);
+}
+
+.task-detail-verified {
+  margin-left: 10px;
+  font-size: 8px;
+  color: var(--text-dim);
+}
+
+.task-detail-verified.verified {
+  color: var(--green);
+}
+
+.task-detail-allowed-paths code,
+.task-detail-dependencies code,
+.task-detail-dependents code {
+  display: block;
+  margin: 4px 0;
+  padding: 6px 8px;
+  background: rgba(255,32,32,0.08);
+  border-radius: 3px;
+  font-size: 8px;
+  color: var(--text);
+}
 </style>
 </head>
 <body>
@@ -1292,6 +1452,9 @@ body::after {
       </div>
       <div class="nav-item" data-nav="eta-tracker">
         <span class="nav-icon">◷</span> ETA Tracker
+      </div>
+      <div class="nav-item" data-nav="scale-analysis">
+        <span class="nav-icon">≈</span> Scale Analysis
       </div>
     </div>
 
@@ -1552,6 +1715,17 @@ body::after {
     </div>
 
     <!-- ── BENTO ROW 2 ─────────────────────────────────────── -->
+    <div class="card" data-panel="scale-analysis">
+      <div class="panel-hdr">
+        <span class="panel-icon">≈</span>
+        <span class="panel-title">FINE-TUNE SCALE ANALYSIS</span>
+        <span class="panel-badge">repo-backed</span>
+      </div>
+      <div class="scale-analysis-body" style="padding:14px 16px 18px;">
+        <div style="font-size:9px;color:var(--text-dim);letter-spacing:1px;">Loading canonical training-readiness analysis...</div>
+      </div>
+    </div>
+
     <div class="bento2">
 
       <!-- BOOTSTRAP / REPO STRUCTURE -->
@@ -1884,6 +2058,48 @@ body::after {
 
     </div>
 
+    <!-- ── TASK DRILLDOWN MODAL ─────────────────────────────────────── -->
+    <div id="task-drilldown-modal" class="task-drilldown-modal" style="display:none;">
+      <div class="task-drilldown-content">
+        <div class="task-drilldown-header">
+          <div class="task-drilldown-title">
+            <span class="task-drilldown-id"></span>
+            <span class="task-drilldown-label"></span>
+          </div>
+          <button class="task-drilldown-close" title="Close">×</button>
+        </div>
+        <div class="task-drilldown-body">
+          <div class="task-detail-section">
+            <div class="detail-label">DESCRIPTION</div>
+            <div class="detail-value task-detail-description"></div>
+          </div>
+          <div class="task-detail-section">
+            <div class="detail-label">STATUS</div>
+            <div class="detail-value">
+              <span class="task-detail-status status-badge"></span>
+              <span class="task-detail-verified"></span>
+            </div>
+          </div>
+          <div class="task-detail-section">
+            <div class="detail-label">DEPENDENCIES</div>
+            <div class="detail-value task-detail-dependencies"></div>
+          </div>
+          <div class="task-detail-section">
+            <div class="detail-label">DEPENDENTS</div>
+            <div class="detail-value task-detail-dependents"></div>
+          </div>
+          <div class="task-detail-section">
+            <div class="detail-label">ALLOWED PATHS</div>
+            <div class="detail-value task-detail-allowed-paths"></div>
+          </div>
+          <div class="task-detail-section">
+            <div class="detail-label">VERIFICATION</div>
+            <div class="detail-value task-detail-verification"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
   </div>
 </div>
 
@@ -1923,10 +2139,148 @@ function tick() {
 setInterval(tick, 1000);
 tick();
 
-// all buttons clickable but not wired — subtle visual feedback only
-document.querySelectorAll('.nav-item, .dag-task, .boot-step, .vec-phase, .export-btn, .mem-file, .toggle-wrap').forEach(el => {
+// ── TASK DRILLDOWN MODAL ──────────────────────────────────
+let currentDrilldownTask = null;
+
+function openTaskDrilldown(taskId) {
+  fetch('/api/task/' + taskId)
+    .then(function(response) {
+      if (!response.ok) {
+        console.error('[drilldown] task not found:', taskId);
+        return null;
+      }
+      return response.json();
+    })
+    .then(function(data) {
+      if (!data) return;
+      currentDrilldownTask = data;
+      renderDrilldownModal(data);
+      document.getElementById('task-drilldown-modal').style.display = 'flex';
+    })
+    .catch(function(error) {
+      console.error('[drilldown] fetch failed', error);
+    });
+}
+
+function closeTaskDrilldown() {
+  document.getElementById('task-drilldown-modal').style.display = 'none';
+  currentDrilldownTask = null;
+}
+
+function renderDrilldownModal(data) {
+  const node = data.node || {};
+  const taskRecord = data.task_record || {};
+  
+  // Title
+  document.querySelector('.task-drilldown-id').textContent = data.task_id || 'UNKNOWN';
+  document.querySelector('.task-drilldown-label').textContent = node.label || taskRecord.label || 'Unknown Task';
+  
+  // Description
+  document.querySelector('.task-detail-description').textContent = node.description || taskRecord.description || 'No description available.';
+  
+  // Status
+  const statusEl = document.querySelector('.task-detail-status');
+  const status = node.status || taskRecord.status || 'pending';
+  statusEl.className = 'status-badge ' + status;
+  statusEl.textContent = status;
+  
+  // Verification
+  const verifiedEl = document.querySelector('.task-detail-verified');
+  const verifiedLive = node.verified_live || false;
+  verifiedEl.textContent = verifiedLive ? '✓ VERIFIED LIVE' : '○ NOT VERIFIED';
+  verifiedEl.className = 'task-detail-verified' + (verifiedLive ? ' verified' : '');
+  
+  // Dependencies
+  const depsContainer = document.querySelector('.task-detail-dependencies');
+  if (data.dependencies && data.dependencies.length > 0) {
+    depsContainer.innerHTML = data.dependencies.map(function(dep) {
+      return '<code>' + escapeHtml(dep) + '</code>';
+    }).join('');
+  } else {
+    depsContainer.innerHTML = '<span style="color:var(--text-ghost);">None</span>';
+  }
+  
+  // Dependents
+  const dependentsContainer = document.querySelector('.task-detail-dependents');
+  if (data.dependents && data.dependents.length > 0) {
+    dependentsContainer.innerHTML = data.dependents.map(function(dep) {
+      return '<code>' + escapeHtml(dep) + '</code>';
+    }).join('');
+  } else {
+    dependentsContainer.innerHTML = '<span style="color:var(--text-ghost);">None</span>';
+  }
+  
+  // Allowed paths
+  const pathsContainer = document.querySelector('.task-detail-allowed-paths');
+  const allowedPaths = data.allowed_paths || [];
+  if (allowedPaths.length > 0) {
+    pathsContainer.innerHTML = allowedPaths.map(function(path) {
+      return '<code>' + escapeHtml(path) + '</code>';
+    }).join('');
+  } else {
+    pathsContainer.innerHTML = '<span style="color:var(--text-ghost);">No restrictions</span>';
+  }
+  
+  // Verification reason
+  const verificationContainer = document.querySelector('.task-detail-verification');
+  const verificationReason = node.verification_reason || 'No verification data available.';
+  verificationContainer.textContent = verificationReason;
+}
+
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+// Close modal on backdrop click or close button
+document.addEventListener('DOMContentLoaded', function() {
+  const modal = document.getElementById('task-drilldown-modal');
+  const closeBtn = modal.querySelector('.task-drilldown-close');
+  
+  closeBtn.addEventListener('click', closeTaskDrilldown);
+  
+  modal.addEventListener('click', function(e) {
+    if (e.target === modal) {
+      closeTaskDrilldown();
+    }
+  });
+  
+  // Close on Escape key
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && modal.style.display !== 'none') {
+      closeTaskDrilldown();
+    }
+  });
+});
+
+// all buttons clickable — DAG tasks open drilldown, others visual only
+document.querySelectorAll('.nav-item, .boot-step, .vec-phase, .export-btn, .mem-file, .toggle-wrap').forEach(el => {
   el.addEventListener('click', function(e) {
     // ripple effect on click — visual only
+    const r = document.createElement('span');
+    r.style.cssText = `
+      position:absolute;pointer-events:none;border-radius:inherit;
+      background:rgba(255,32,32,0.12);inset:0;
+      animation:rippleFade 0.35s ease-out forwards;
+    `;
+    this.style.position = this.style.position || 'relative';
+    this.style.overflow = 'hidden';
+    this.appendChild(r);
+    setTimeout(() => r.remove(), 400);
+  });
+});
+
+// DAG tasks — open drilldown on click
+document.querySelectorAll('.dag-task').forEach(el => {
+  el.addEventListener('click', function(e) {
+    e.stopPropagation();
+    const taskIdEl = this.querySelector('.task-id');
+    if (taskIdEl) {
+      const taskId = taskIdEl.textContent.trim();
+      openTaskDrilldown(taskId);
+    }
+    // also add ripple
     const r = document.createElement('span');
     r.style.cssText = `
       position:absolute;pointer-events:none;border-radius:inherit;

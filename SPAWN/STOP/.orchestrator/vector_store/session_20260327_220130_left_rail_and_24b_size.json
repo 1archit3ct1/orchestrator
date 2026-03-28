@@ -1,0 +1,34 @@
+{
+  "id": "session_20260327_220130_left_rail_and_24b_size",
+  "timestamp": "2026-03-27T22:01:30-07:00",
+  "type": "dialog_memory_sync",
+  "topic": "left_rail_task_coverage_and_24b_size_clarification",
+  "summary": [
+    "The user asked whether all left-rail GUI sections are represented on the DAG task list.",
+    "The user asked whether the large dataset-size figure was 17 GB or 1788 GB and flagged that the larger number felt huge.",
+    "The assistant clarified that several left-rail sections are still not explicitly represented on the DAG.",
+    "The assistant clarified that the full 24B-goal corpus estimate is about 1788.14 GB, while the minimum tuning-start estimate is about 8.94 GB."
+  ],
+  "captured_user_directives": [
+    "Check whether all left-rail GUI sections are on the task list.",
+    "Clarify the meaning of the displayed GB figures for the 24B goal."
+  ],
+  "captured_assistant_responses": [
+    "The current DAG only partially covers the left rail and still misses Training Run, Dataset, ETA Tracker, Trace Capture, Steering Log, and Mutex Open/Held.",
+    "1788.14 GB is the intended full corpus estimate, while 8.94 GB is only the estimated minimum to begin training or tuning."
+  ],
+  "source_files": [
+    "SPAWN/STOP/MEMORY.md",
+    "SPAWN/STOP/state/design_graph.json",
+    "SPAWN/STOP/.orchestrator/dashboard_state.py"
+  ],
+  "tags": [
+    "dialog",
+    "memory-sync",
+    "left-rail",
+    "dag-coverage",
+    "24b-goal",
+    "dataset-size",
+    "steering"
+  ]
+}

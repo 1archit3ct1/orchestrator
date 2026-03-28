@@ -1,0 +1,8 @@
+{
+  "timestamp": "2026-03-27T23:18:00-07:00",
+  "type": "steering_decision",
+  "decision_id": "012",
+  "topic": "shared_task_ids_steering_count_loop_metric",
+  "decision": "Preserve the latest four-turn exchange because it captures an operator trust problem around shared task IDs, a source-of-truth mismatch in steering counts, and the difference between steering-artifact totals and actual completed autonomous loop cycles.",
+  "highest_training_value": true
+}

@@ -336,8 +336,35 @@ LIVE_DASHBOARD_SCRIPT = r"""
       .card-operational .stat-delta {
         color: var(--green) !important;
       }
+      .card-operational .model-name,
+      .card-operational .eta-num,
+      .card-operational .trace-box-val,
+      .card-operational .coll-pct {
+        color: var(--green) !important;
+        text-shadow: 0 0 22px var(--green-glow) !important;
+      }
+      .card-operational .model-sub,
+      .card-operational .eta-unit,
+      .card-operational .eta-label,
+      .card-operational .coll-row span,
+      .card-operational .trace-box-label,
+      .card-operational .memory-graph-caption {
+        color: rgba(140,255,180,0.62) !important;
+      }
       .card-operational .stat-val {
         text-shadow: 0 0 22px var(--green-glow) !important;
+      }
+      .card-operational .trace-box,
+      .card-operational .storage-meter,
+      .card-operational .memory-graph,
+      .card-operational .steering-log-panel {
+        border-color: rgba(34,197,94,0.24) !important;
+        background: rgba(34,197,94,0.05) !important;
+        box-shadow: inset 0 0 18px rgba(34,197,94,0.03);
+      }
+      .card-operational .prog-track {
+        border-color: rgba(34,197,94,0.18) !important;
+        background: rgba(34,197,94,0.05) !important;
       }
       .memory-graph {
         margin-top: 12px;
@@ -362,6 +389,187 @@ LIVE_DASHBOARD_SCRIPT = r"""
         font-size: 8px;
         letter-spacing: 1.2px;
         color: var(--text-dim);
+      }
+      .storage-meter {
+        margin-top: 10px;
+        border: 1px solid var(--border-dim);
+        border-radius: 8px;
+        background: rgba(34,197,94,0.03);
+        padding: 10px 12px;
+      }
+      .storage-meter-label {
+        font-size: 8px;
+        letter-spacing: 1.8px;
+        color: rgba(140,255,180,0.62);
+        margin-bottom: 6px;
+      }
+      .storage-meter-line {
+        font-size: 9px;
+        color: var(--text);
+        line-height: 1.7;
+      }
+      .storage-meter-line strong {
+        color: var(--green);
+        font-weight: 700;
+      }
+      .stray-log {
+        margin-top: 10px;
+        max-height: 220px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        padding-right: 4px;
+      }
+      .stray-log::-webkit-scrollbar {
+        width: 6px;
+      }
+      .stray-log::-webkit-scrollbar-thumb {
+        background: rgba(255,107,32,0.28);
+        border-radius: 999px;
+      }
+      .event-log {
+        margin-top: 10px;
+        max-height: 220px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        padding-right: 4px;
+      }
+      .event-log::-webkit-scrollbar {
+        width: 6px;
+      }
+      .event-log::-webkit-scrollbar-thumb {
+        background: rgba(34,197,94,0.25);
+        border-radius: 999px;
+      }
+      .steering-log-panel {
+        margin-top: 12px;
+        border: 1px solid var(--border-dim);
+        border-radius: 8px;
+        background: rgba(34,197,94,0.04);
+        padding: 10px 12px;
+      }
+      .steering-log-panel .panel-title-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        margin-bottom: 8px;
+      }
+      .steering-log-panel .panel-badge {
+        position: static;
+      }
+      .steering-log-panel .steering-entry,
+      .audit-log-panel .audit-entry {
+        border: 1px solid var(--border-dim);
+        border-radius: 8px;
+        background: rgba(255,255,255,0.02);
+        padding: 10px 12px;
+      }
+      .audit-log-panel {
+        margin-top: 8px;
+      }
+      .trace-body {
+        max-height: 260px;
+        overflow-y: auto;
+        padding-right: 4px;
+      }
+      .trace-body::-webkit-scrollbar {
+        width: 6px;
+      }
+      .trace-body::-webkit-scrollbar-thumb {
+        background: rgba(34,197,94,0.25);
+        border-radius: 999px;
+      }
+      .scale-analysis-grid {
+        display: grid;
+        grid-template-columns: 1.1fr 0.9fr;
+        gap: 12px;
+      }
+      .scale-analysis-col {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .scale-box {
+        border: 1px solid var(--border-dim);
+        border-radius: 8px;
+        background: rgba(255,255,255,0.02);
+        padding: 12px;
+      }
+      .scale-box-title {
+        font-size: 8px;
+        letter-spacing: 2px;
+        color: rgba(140,255,180,0.62);
+        margin-bottom: 8px;
+      }
+      .scale-kpi {
+        font-family: var(--sans);
+        font-size: 28px;
+        color: var(--green);
+        line-height: 1;
+        letter-spacing: -1px;
+        margin-bottom: 6px;
+      }
+      .scale-line {
+        font-size: 9px;
+        line-height: 1.7;
+        color: var(--text);
+      }
+      .scale-line strong {
+        color: var(--green);
+      }
+      .scale-list {
+        max-height: 260px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        padding-right: 4px;
+      }
+      .scale-list::-webkit-scrollbar {
+        width: 6px;
+      }
+      .scale-list::-webkit-scrollbar-thumb {
+        background: rgba(34,197,94,0.25);
+        border-radius: 999px;
+      }
+      .scale-item {
+        border: 1px solid var(--border-dim);
+        border-radius: 8px;
+        background: rgba(255,255,255,0.02);
+        padding: 10px 12px;
+      }
+      .scale-item-key {
+        font-size: 8px;
+        letter-spacing: 1.8px;
+        color: rgba(140,255,180,0.62);
+        margin-bottom: 5px;
+      }
+      .scale-item-val {
+        font-size: 9px;
+        line-height: 1.6;
+        color: var(--text);
+      }
+      .task-map-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2px 6px;
+        border-radius: 999px;
+        border: 1px solid rgba(255,32,32,0.28);
+        background: rgba(255,32,32,0.08);
+        color: var(--red);
+        font-size: 8px;
+        letter-spacing: 1.4px;
+        line-height: 1;
+        margin-left: 8px;
+        white-space: nowrap;
+      }
+      .task-map-badge.nav-task-badge {
+        margin-left: auto;
       }
     `;
     document.head.appendChild(style);
@@ -419,6 +627,15 @@ LIVE_DASHBOARD_SCRIPT = r"""
     if (num >= 1e3) return (num / 1e3).toFixed(2) + 'K';
     return num.toLocaleString();
   }
+  function formatStorageBytes(value) {
+    const num = Number(value || 0);
+    const gb = 1024 * 1024 * 1024;
+    const mb = 1024 * 1024;
+    if (num >= gb) return (num / gb).toFixed(2) + ' GB';
+    if (num >= mb) return (num / mb).toFixed(2) + ' MB';
+    if (num >= 1024) return (num / 1024).toFixed(2) + ' KB';
+    return num.toFixed(0) + ' B';
+  }
   function buildMemoryGraph(points) {
     const series = Array.isArray(points) ? points : [];
     if (!series.length) {
@@ -447,6 +664,165 @@ LIVE_DASHBOARD_SCRIPT = r"""
       + '</svg>'
       + '<div class="memory-graph-caption">Latest injected memory unit: ' + escapeHtml(String(latest.count || 0)) + '</div>'
       + '</div>';
+  }
+  function buildStorageMeter(model) {
+    return ''
+      + '<div class="storage-meter">'
+      + '<div class="storage-meter-label">DATASET SIZE TOWARD TUNING START</div>'
+      + '<div class="storage-meter-line"><strong>' + escapeHtml(formatStorageBytes(model && model.memory_collected_bytes)) + '</strong> collected so far</div>'
+      + '<div class="storage-meter-line"><strong>' + escapeHtml(formatStorageBytes(model && model.minimum_tuning_bytes)) + '</strong> needed to begin training/tuning</div>'
+      + '<div class="storage-meter-line"><strong>' + escapeHtml(formatStorageBytes(model && model.memory_target_bytes)) + '</strong> full 24B goal corpus estimate</div>'
+      + '</div>';
+  }
+  function buildSteeringLogPanel(data) {
+    const steeringEvents = Array.isArray(data.steering_events) ? data.steering_events : [];
+    const body = steeringEvents.length
+      ? steeringEvents.map(function (entry, index) {
+          return ''
+            + '<div class="steering-entry">'
+            + '<div class="steering-tags"><span class="stag stag-arch">LIVE</span><span class="stag stag-resolved">STATE</span><span class="stag">EVENT ' + escapeHtml(String(index + 1).padStart(2, '0')) + '</span></div>'
+            + '<div class="steering-text">' + escapeHtml(entry) + '</div>'
+            + '<div class="steering-note">Trace: NEXTAURA // ORCHESTRATOR · ' + escapeHtml(formatClock(data.generated_at)) + '</div>'
+            + '</div>';
+        }).join('')
+      : '<div class="steering-entry"><div class="steering-text">No high-priority steering trace has been captured yet.</div></div>';
+
+    return ''
+      + '<div class="steering-log-panel">'
+      + '<div class="panel-title-row"><div class="panel-title"><span class="panel-icon">...</span>STEERING EVENT LOG</div><div class="panel-badge">LIVE TRAINING SIGNAL</div></div>'
+      + '<div class="event-log">' + body + '</div>'
+      + '</div>';
+  }
+  function buildScaleItems(items) {
+    return Object.keys(items || {}).map(function (key) {
+      return ''
+        + '<div class="scale-item">'
+        + '<div class="scale-item-key">' + escapeHtml(key) + '</div>'
+        + '<div class="scale-item-val">' + escapeHtml(items[key]) + '</div>'
+        + '</div>';
+    }).join('');
+  }
+  function renderScaleAnalysis(data) {
+    const body = qs('.scale-analysis-body');
+    if (!body) return;
+    const analysis = data.scale_analysis || {};
+    body.innerHTML = ''
+      + '<div class="scale-analysis-grid">'
+      + '<div class="scale-analysis-col">'
+      + '<div class="scale-box">'
+      + '<div class="scale-box-title">READINESS SNAPSHOT</div>'
+      + '<div class="scale-kpi">' + escapeHtml(String((analysis.known_count || 0) + '/' + (analysis.questions_scanned || 0))) + '</div>'
+      + '<div class="scale-line"><strong>Known:</strong> ' + escapeHtml(String(analysis.known_count || 0)) + ' · <strong>Partial:</strong> ' + escapeHtml(String(analysis.partial_count || 0)) + ' · <strong>Unknown:</strong> ' + escapeHtml(String(analysis.unknown_count || 0)) + '</div>'
+      + '<div class="scale-line"><strong>Current collected:</strong> ' + escapeHtml(formatStorageBytes(analysis.current_collected_bytes)) + ' · ' + escapeHtml(compactNumber(analysis.current_collected_tokens || 0)) + ' tokens</div>'
+      + '<div class="scale-line"><strong>Current JSONL files:</strong> ' + escapeHtml(String(analysis.current_jsonl_files || 0)) + ' · <strong>Decision files:</strong> ' + escapeHtml(String(analysis.current_decision_files || 0)) + '</div>'
+      + '</div>'
+      + '<div class="scale-box">'
+      + '<div class="scale-box-title">MODEL SCALE DECISION</div>'
+      + '<div class="scale-line"><strong>24B minimum tune start:</strong> ' + escapeHtml(formatStorageBytes(analysis.target_24b_minimum_tuning_bytes)) + '</div>'
+      + '<div class="scale-line"><strong>24B full corpus:</strong> ' + escapeHtml(formatStorageBytes(analysis.target_24b_bytes)) + '</div>'
+      + '<div class="scale-line"><strong>9B minimum tune start:</strong> ' + escapeHtml(formatStorageBytes(analysis.target_9b_minimum_tuning_bytes)) + '</div>'
+      + '<div class="scale-line"><strong>9B full corpus:</strong> ' + escapeHtml(formatStorageBytes(analysis.target_9b_bytes)) + '</div>'
+      + '<div class="scale-line"><strong>Fine-tune path ready:</strong> ' + escapeHtml(analysis.fine_tune_path_ready ? 'PARTIAL / DATA EXISTS' : 'NOT YET') + '</div>'
+      + '<div class="scale-line"><strong>Train from scratch:</strong> ' + escapeHtml(analysis.can_train_from_scratch ? 'SUPPORTED' : 'NOT JUSTIFIED BY CURRENT REPO STATE') + '</div>'
+      + '</div>'
+      + '<div class="scale-box">'
+      + '<div class="scale-box-title">RECOMMENDATION</div>'
+      + '<div class="scale-line">' + escapeHtml(analysis.recommendation || 'No recommendation available.') + '</div>'
+      + '</div>'
+      + '</div>'
+      + '<div class="scale-analysis-col">'
+      + '<div class="scale-box">'
+      + '<div class="scale-box-title">KNOWN / PARTIAL / UNKNOWN</div>'
+      + '<div class="scale-list">'
+      + buildScaleItems(analysis.known || {})
+      + buildScaleItems(analysis.partial || {})
+      + buildScaleItems(analysis.unknown || {})
+      + '</div>'
+      + '</div>'
+      + '</div>'
+      + '</div>';
+    setOperational(body.closest('.card'), !!data.canonical);
+  }
+  function taskMapConfig() {
+    return {
+      nav: {
+        'dag-view': 'T02',
+        'spawn-loop': 'T03',
+        'training-run': 'T04',
+        'dataset': 'T05',
+        'eta-tracker': 'T06',
+        'scale-analysis': 'T07',
+        'audit-log': 'T08',
+        'repo-freeze': 'T09',
+        'stray-monitor': 'T10',
+        'trace-capture': 'T11',
+        'steering-log': 'T12',
+        'export': 'T17-T20',
+        'orchestrator': 'T01'
+      },
+      panels: {
+        'TASK DAG': 'T02',
+        'MODEL STATUS': 'T23',
+        'LLM AUDIT & SECURITY LOG': 'T08',
+        'SPAWN LOOP': 'T03',
+        'FINE-TUNE SCALE ANALYSIS': 'T07',
+        'BOOTSTRAP ZONE': 'T13',
+        'REPO STRUCTURE': 'T14',
+        'VECTOR MEMORY': 'T15',
+        'REPO FREEZE': 'T09',
+        'TASK-SCOPED WRITE POLICY': 'T22',
+        'STRAY MONITOR': 'T10',
+        'TRACE CAPTURE': 'T11',
+        'MEMORY FILES': 'T16',
+        'EXPORT': 'T17-T20',
+        'READINESS TRACKER': 'T21',
+        'STEERING EVENT LOG': 'T12'
+      },
+      special: {
+        repoLock: 'T22'
+      },
+      itemGroups: {
+        bootStep: 'T13',
+        repoZone: 'T14',
+        vecPhase: 'T15',
+        memFile: 'T16',
+        readiness: 'T21'
+      }
+    };
+  }
+  function ensureTaskBadge(host, text, extraClass) {
+    if (!host || !text) return;
+    let badge = host.querySelector('.' + (extraClass || 'task-map-badge'));
+    if (!badge) {
+      badge = document.createElement('span');
+      badge.className = 'task-map-badge' + (extraClass ? (' ' + extraClass) : '');
+      host.appendChild(badge);
+    }
+    badge.textContent = text;
+  }
+  function renderTaskSurfaceMap() {
+    const config = taskMapConfig();
+    qsa('#sidebar .nav-item[data-nav]').forEach(function (item) {
+      const key = item.getAttribute('data-nav');
+      const value = config.nav[key];
+      if (!value) return;
+      ensureTaskBadge(item, value, 'nav-task-badge');
+    });
+
+    qsa('.panel-title').forEach(function (title) {
+      const label = (title.textContent || '').trim();
+      const value = config.panels[label];
+      if (!value) return;
+      ensureTaskBadge(title, value, 'panel-task-badge');
+    });
+
+    const repoLock = qs('.repo-lock-label');
+    if (repoLock) ensureTaskBadge(repoLock, config.special.repoLock, 'panel-task-badge');
+    qsa('.boot-step').forEach(function (el) { ensureTaskBadge(el, config.itemGroups.bootStep, 'panel-task-badge'); });
+    qsa('.zone-box').forEach(function (el) { ensureTaskBadge(el.querySelector('.zone-title') || el, config.itemGroups.repoZone, 'panel-task-badge'); });
+    qsa('.vec-phase').forEach(function (el) { ensureTaskBadge(el.querySelector('.vec-phase-name') || el, config.itemGroups.vecPhase, 'panel-task-badge'); });
+    qsa('.mem-file').forEach(function (el) { ensureTaskBadge(el, config.itemGroups.memFile, 'panel-task-badge'); });
+    qsa('.readiness-row').forEach(function (el) { ensureTaskBadge(el, config.itemGroups.readiness, 'panel-task-badge'); });
   }
   function handleNavPanel(panelKey) {
     const selected = panelKey || 'orchestrator';
@@ -523,6 +899,7 @@ LIVE_DASHBOARD_SCRIPT = r"""
   }
 
   function renderModelPanel(data) {
+    const modelCard = qs('.model-name') ? qs('.model-name').closest('.card') : null;
     setText(qs('.model-name'), textOr(data.model.name, '0.0000% OF 24B GOAL DATA COLLECTED'));
     setText(qs('.model-sub'), textOr(data.model.sub, 'LIVE MEMORY INJECTION TOWARD 24B CODING MODEL TARGET'));
     setText(qs('.eta-num'), compactNumber((data.model && data.model.memory_collected_tokens) || 0));
@@ -550,21 +927,32 @@ LIVE_DASHBOARD_SCRIPT = r"""
     if (traceSplit) {
       let graph = qs('.memory-graph');
       if (graph) graph.remove();
+      let storageMeter = qs('.storage-meter');
+      if (storageMeter) storageMeter.remove();
+      let steeringPanel = qs('.steering-log-panel');
+      if (steeringPanel) steeringPanel.remove();
       traceSplit.insertAdjacentHTML('afterend', buildMemoryGraph(data.model && data.model.memory_graph));
+      qs('.memory-graph').insertAdjacentHTML('afterend', buildStorageMeter(data.model || {}));
+      qs('.storage-meter').insertAdjacentHTML('afterend', buildSteeringLogPanel(data));
     }
+
+    setOperational(modelCard, !!(data.canonical && data.model));
   }
 
   function renderAuditPanels(data) {
     const auditBody = qs('.audit-body');
     if (auditBody) {
-      const message = data.stray_events[0] || 'No stray writes detected in recent security logs.';
-      auditBody.innerHTML = ''
-        + '<div class="stray-alert">'
-        + '<div class="stray-hdr"><span class="stray-icon">!</span> '
-        + escapeHtml(data.summary.stray_count ? 'STRAY EVENT DETECTED' : 'AUDIT LOG CLEAR')
-        + '</div>'
-        + '<div class="stray-body">' + escapeHtml(message) + '</div>'
-        + '</div>';
+      const events = Array.isArray(data.stray_events) ? data.stray_events : [];
+      const body = events.length
+        ? events.map(function (eventText, index) {
+            return ''
+              + '<div class="audit-entry">'
+              + '<div class="stray-hdr"><span class="stray-icon">!</span> ' + escapeHtml(index === 0 ? 'STRAY EVENT DETECTED' : ('EVENT ' + String(index + 1).padStart(2, '0'))) + '</div>'
+              + '<div class="stray-body">' + escapeHtml(eventText) + '</div>'
+              + '</div>';
+          }).join('')
+        : '<div class="audit-entry"><div class="stray-hdr"><span class="stray-icon">!</span> AUDIT LOG CLEAR</div><div class="stray-body">No stray writes detected in recent security logs.</div></div>';
+      auditBody.innerHTML = '<div class="audit-log-panel"><div class="event-log">' + body + '</div></div>';
     }
 
     setOperational(auditBody ? auditBody.closest('.card') : null, Array.isArray(data.stray_events));
@@ -572,17 +960,10 @@ LIVE_DASHBOARD_SCRIPT = r"""
     const warnBadge = qs('.panel-badge.warn');
     if (warnBadge) setText(warnBadge, String((data.summary.stray_count || 0) + ' ALERT'));
 
-    const steeringBody = qs('.steering-body');
-    if (steeringBody) {
-      const steeringText = (data.steering_events && data.steering_events[0]) || 'No high-priority steering trace has been captured yet.';
-      steeringBody.innerHTML = ''
-        + '<div class="steering-entry">'
-        + '<div class="steering-tags"><span class="stag stag-arch">LIVE</span><span class="stag stag-resolved">STATE</span></div>'
-        + '<div class="steering-text">' + escapeHtml(steeringText) + '</div>'
-        + '<div class="steering-note">Trace: NEXTAURA // ORCHESTRATOR · ' + escapeHtml(formatClock(data.generated_at)) + '</div>'
-        + '</div>';
+    const steeringCard = qs('.steering-body') ? qs('.steering-body').closest('.card') : null;
+    if (steeringCard) {
+      steeringCard.style.display = 'none';
     }
-    setOperational(steeringBody ? steeringBody.closest('.card') : null, Array.isArray(data.steering_events));
   }
 
   function renderSpawnPanel(data) {
@@ -654,6 +1035,28 @@ LIVE_DASHBOARD_SCRIPT = r"""
     }
   }
 
+  function renderStrayLog(data) {
+    const strayMonBody = qs('.stray-mon-body');
+    if (!strayMonBody) return;
+
+    const header = strayMonBody.querySelector('.stray-stat-row');
+    const strayEvents = Array.isArray(data.stray_events) ? data.stray_events : [];
+    const logHtml = strayEvents.length
+      ? strayEvents.map(function (eventText, index) {
+          const timestamp = index === 0 ? (formatClock(data.generated_at) + ' LIVE') : ('EVENT ' + String(index + 1).padStart(2, '0'));
+          return ''
+            + '<div class="stray-event-item">'
+            + '<div class="stray-event-time">' + escapeHtml(timestamp) + '</div>'
+            + '<div class="stray-event-desc">' + escapeHtml(eventText) + '</div>'
+            + '</div>';
+        }).join('')
+      : '<div class="stray-event-item"><div class="stray-event-time">LIVE</div><div class="stray-event-desc">No stray write attempts were found in the latest security scan.</div></div>';
+
+    strayMonBody.innerHTML = ''
+      + (header ? header.outerHTML : '')
+      + '<div class="stray-log">' + logHtml + '</div>';
+  }
+
   function renderTraceCapture(data) {
     const traceBody = qs('.trace-body');
     if (!traceBody) return;
@@ -681,6 +1084,98 @@ LIVE_DASHBOARD_SCRIPT = r"""
         + '<span class="mem-file-size">' + escapeHtml(item.size) + '</span>'
         + '</div>';
     }).join('');
+  }
+
+  function renderBootstrapPanel(data) {
+    const bootBody = qs('.boot-body');
+    if (bootBody && Array.isArray(data.bootstrap_steps)) {
+      bootBody.innerHTML = data.bootstrap_steps.map(function (step) {
+        const live = step.status === 'complete';
+        return ''
+          + '<div class="boot-step">'
+          + '<span class="boot-step-num">' + escapeHtml(step.id) + '</span>'
+          + '<span class="boot-step-name">' + escapeHtml(step.name + (step.has_prompt ? ' / prompt' : '')) + '</span>'
+          + '<div class="boot-step-status" style="background:' + (live ? 'var(--green)' : 'var(--red)') + ';box-shadow:0 0 8px ' + (live ? 'var(--green-glow)' : 'var(--red-glow)') + ';"></div>'
+          + '</div>';
+      }).join('');
+    }
+    const flow = qs('.repo-flow');
+    if (flow) {
+      flow.innerHTML = '<span>Clone</span><span class="flow-arrow">→</span><span>prompt.md</span><span class="flow-arrow">→</span><span>SPAWN/START</span><span class="flow-arrow">→</span><span>SPAWN/STOP</span>';
+    }
+  }
+
+  function renderRepoStructurePanel(data) {
+    const zoneBoxes = qsa('.repo-zone .zone-box');
+    const structure = data.repo_structure || {};
+    if (zoneBoxes[0]) {
+      zoneBoxes[0].innerHTML = '<div class="zone-title">START/ (BOOTSTRAP)</div>' + (structure.start || []).map(function (item) {
+        return '<div class="zone-item">' + escapeHtml(item.name) + (item.detail ? ' <span style="color:var(--text-ghost)">· ' + escapeHtml(item.detail) + '</span>' : '') + '</div>';
+      }).join('');
+    }
+    if (zoneBoxes[1]) {
+      zoneBoxes[1].innerHTML = '<div class="zone-title">STOP/ (AGENT ZONE)</div>' + (structure.stop || []).map(function (item) {
+        return '<div class="zone-item">' + escapeHtml(item.name) + (item.detail ? ' <span style="color:var(--text-ghost)">· ' + escapeHtml(item.detail) + '</span>' : '') + '</div>';
+      }).join('');
+    }
+  }
+
+  function renderVectorMemoryPanel(data) {
+    const phases = qs('.vec-phases');
+    if (!phases || !Array.isArray(data.vector_phases)) return;
+    phases.innerHTML = data.vector_phases.map(function (phase) {
+      const live = phase.status === 'complete';
+      return ''
+        + '<div class="vec-phase">'
+        + '<div class="vec-phase-hdr"><span class="vec-phase-name">' + escapeHtml(phase.name) + '</span><span class="vec-phase-badge">' + escapeHtml(live ? 'LIVE' : 'PENDING') + '</span></div>'
+        + '<div class="vec-phase-desc">' + escapeHtml(phase.detail || '') + '</div>'
+        + '</div>';
+    }).join('');
+  }
+
+  function renderExportPanel(data) {
+    const exportBody = qs('.export-body');
+    if (!exportBody) return;
+    const verification = data.verification || {};
+    const exportItems = [
+      { task: 'T07', key: 'gui_export_jsonl', title: 'EXPORT JSONL' },
+      { task: 'T08', key: 'gui_export_alpaca', title: 'EXPORT ALPACA' },
+      { task: 'T09', key: 'gui_export_sharegpt', title: 'EXPORT SHAREGPT' },
+      { task: 'T10', key: 'gui_export_steering', title: 'EXPORT STEERING ONLY' }
+    ];
+    exportBody.innerHTML = exportItems.map(function (item) {
+      const live = !!(verification[item.key] && verification[item.key].live);
+      const detail = live ? 'Repo-backed export endpoint is live.' : 'Pending repo-backed export endpoint.';
+      return ''
+        + '<button class="export-btn" type="button">'
+        + '<span class="export-btn-icon">' + escapeHtml(item.task) + '</span>'
+        + '<div>'
+        + '<div>' + escapeHtml(item.title) + '</div>'
+        + '<div class="export-desc">' + escapeHtml(detail) + '</div>'
+        + '</div>'
+        + '</button>';
+    }).join('');
+  }
+
+  function renderReadinessTracker(data) {
+    const trackerCard = qsa('.bento2 .card').find(function (card) {
+      const title = card.querySelector('.panel-title');
+      return title && title.textContent.trim() === 'READINESS TRACKER';
+    });
+    if (!trackerCard) return;
+    const body = trackerCard.querySelector('div[style*="padding:14px 16px"]');
+    if (!body || !Array.isArray(data.readiness)) return;
+    const rows = data.readiness.map(function (item) {
+      let color = 'var(--text-dim)';
+      if (item.status === 'live') color = 'var(--green)';
+      if (item.status === 'warn') color = 'var(--amber)';
+      return ''
+        + '<div class="readiness-row" data-readiness-key="' + escapeHtml(item.label) + '" style="display:flex;justify-content:space-between;font-size:9px;padding:7px 9px;border:1px solid var(--border-dim);border-radius:5px;background:rgba(255,255,255,0.02);">'
+        + '<span style="color:var(--text-dim);">' + escapeHtml(item.label) + '</span>'
+        + '<span style="color:' + color + ';">' + escapeHtml(item.value) + '</span>'
+        + '</div>';
+    }).join('');
+    body.innerHTML = '<div style="font-size:8px;letter-spacing:2px;color:var(--text-ghost);margin-bottom:8px;">CURRENT READINESS</div><div style="display:flex;flex-direction:column;gap:6px;">' + rows + '</div>';
   }
 
   function renderStatusbar(data) {
@@ -714,9 +1209,17 @@ LIVE_DASHBOARD_SCRIPT = r"""
     renderSpawnPanel(data);
     renderRepoFreeze(data);
     renderPolicyAndStray(data);
+    renderStrayLog(data);
     renderTraceCapture(data);
+    renderBootstrapPanel(data);
+    renderRepoStructurePanel(data);
+    renderVectorMemoryPanel(data);
     renderMemoryFiles(data);
+    renderExportPanel(data);
+    renderReadinessTracker(data);
+    renderScaleAnalysis(data);
     renderStatusbar(data);
+    renderTaskSurfaceMap();
     const activeNav = qs('#sidebar .nav-item.active[data-nav]');
     handleNavPanel(activeNav ? activeNav.getAttribute('data-nav') : 'orchestrator');
   }
@@ -756,6 +1259,51 @@ LIVE_DASHBOARD_SCRIPT = r"""
 })();
 </script>
 """
+
+
+@app.route("/api/task/<task_id>")
+def api_task_details(task_id):
+    """Return detailed information for a specific task by ID (e.g., T02, task_002)."""
+    graph = load_json(DESIGN_GRAPH_PATH, {"nodes": [], "edges": []})
+    tasks = load_json(TASKS_PATH, [])
+
+    node = None
+    task_record = None
+
+    for n in graph.get("nodes", []):
+        if n.get("id") == task_id or n.get("task_id") == task_id:
+            node = n
+            break
+
+    for t in tasks:
+        if t.get("id") == task_id or t.get("task_id") == task_id:
+            task_record = t
+            break
+
+    if not node and not task_record:
+        return jsonify({"error": f"Task {task_id} not found"}), 404
+
+    result = {
+        "task_id": task_id,
+        "node": node,
+        "task_record": task_record,
+        "dependencies": [],
+        "dependents": [],
+        "allowed_paths": node.get("allowed_paths", []) if node else task_record.get("allowed_paths", []),
+        "verification": {
+            "verified_live": node.get("verified_live", False) if node else False,
+            "verification_reason": node.get("verification_reason", "") if node else "",
+        },
+    }
+
+    edges = graph.get("edges", [])
+    for edge in edges:
+        if edge.get("from") == (node.get("id") if node else ""):
+            result["dependents"].append(edge.get("to"))
+        if edge.get("to") == (node.get("id") if node else ""):
+            result["dependencies"].append(edge.get("from"))
+
+    return jsonify(result)
 
 
 def render_live_design_html():

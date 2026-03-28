@@ -3,7 +3,7 @@
     "id": "task_001",
     "task_id": "T01",
     "dag_node_id": "gui_nav_panels",
-    "label": "gui-nav-panels",
+    "label": "gui-orchestrator-view",
     "description": "Wire the sidebar nav so the design dashboard switches live panel state from repo-backed data instead of visual-only clicks.",
     "allowed_paths": [
       "SPAWN/STOP/state/design.html",
@@ -18,7 +18,7 @@
     "id": "task_002",
     "task_id": "T02",
     "dag_node_id": "gui_dag_task_details",
-    "label": "gui-dag-task-details",
+    "label": "gui-dag-view",
     "description": "Make DAG rows open live task details, dependencies, allowed paths, and verification reasons from repo state.",
     "allowed_paths": [
       "SPAWN/STOP/state/design.html",
@@ -27,16 +27,16 @@
     "dependencies": [
       "gui_nav_panels"
     ],
-    "status": "in_progress",
+    "status": "completed",
     "priority": 2,
     "progress": null
   },
   {
     "id": "task_003",
     "task_id": "T03",
-    "dag_node_id": "gui_bootstrap_step_details",
-    "label": "gui-bootstrap-step-details",
-    "description": "Make bootstrap rows open live step details and status sourced from repo state.",
+    "dag_node_id": "gui_spawn_loop_controls",
+    "label": "gui-spawn-loop",
+    "description": "Wire the spawn loop controls to a real Flask control plane so start, pause, and related actions work from the GUI.",
     "allowed_paths": [
       "SPAWN/STOP/state/design.html",
       "SPAWN/STOP/web/app.py"
@@ -44,16 +44,16 @@
     "dependencies": [
       "gui_nav_panels"
     ],
-    "status": "pending",
+    "status": "in_progress",
     "priority": 3,
     "progress": null
   },
   {
     "id": "task_004",
     "task_id": "T04",
-    "dag_node_id": "gui_repo_structure_details",
-    "label": "gui-repo-structure-details",
-    "description": "Make repo structure rows clickable with live detail panels backed by actual repo paths and state.",
+    "dag_node_id": "gui_training_run_details",
+    "label": "gui-training-run",
+    "description": "Make the Training Run section open live training-run details, status, and artifacts from canonical repo state.",
     "allowed_paths": [
       "SPAWN/STOP/state/design.html",
       "SPAWN/STOP/web/app.py"
@@ -68,9 +68,9 @@
   {
     "id": "task_005",
     "task_id": "T05",
-    "dag_node_id": "gui_vector_phase_details",
-    "label": "gui-vector-phase-details",
-    "description": "Make vector phase rows open repo-backed phase details instead of acting like decorative cards.",
+    "dag_node_id": "gui_dataset_details",
+    "label": "gui-dataset",
+    "description": "Make the Dataset section open live dataset details, formats, counts, and export-ready state from canonical repo data.",
     "allowed_paths": [
       "SPAWN/STOP/state/design.html",
       "SPAWN/STOP/web/app.py"
@@ -85,9 +85,9 @@
   {
     "id": "task_006",
     "task_id": "T06",
-    "dag_node_id": "gui_memory_file_open",
-    "label": "gui-memory-file-open",
-    "description": "Make memory file rows open real repo file details and context instead of static labels.",
+    "dag_node_id": "gui_eta_tracker_live",
+    "label": "gui-eta-tracker",
+    "description": "Make the ETA Tracker section render live ETA thresholds and progress tiers from canonical repo-backed planning state.",
     "allowed_paths": [
       "SPAWN/STOP/state/design.html",
       "SPAWN/STOP/web/app.py"
@@ -102,12 +102,13 @@
   {
     "id": "task_007",
     "task_id": "T07",
-    "dag_node_id": "gui_export_jsonl",
-    "label": "gui-export-jsonl",
-    "description": "Wire the JSONL export button to a real Flask endpoint that emits repo-backed export output.",
+    "dag_node_id": "gui_scale_analysis_page",
+    "label": "gui-scale-analysis",
+    "description": "Make the Scale Analysis nav/page a fully tracked GUI function with repo-backed scale recommendations, storage thresholds, and fine-tune viability guidance.",
     "allowed_paths": [
       "SPAWN/STOP/state/design.html",
-      "SPAWN/STOP/web/app.py"
+      "SPAWN/STOP/web/app.py",
+      "SPAWN/STOP/.orchestrator/dashboard_state.py"
     ],
     "dependencies": [
       "gui_nav_panels"
@@ -119,9 +120,9 @@
   {
     "id": "task_008",
     "task_id": "T08",
-    "dag_node_id": "gui_export_alpaca",
-    "label": "gui-export-alpaca",
-    "description": "Wire the Alpaca export button to a real Flask endpoint that emits canonical dataset output.",
+    "dag_node_id": "gui_audit_log_details",
+    "label": "gui-audit-log",
+    "description": "Make the audit log panel open detailed repo-backed audit events instead of a single summary card.",
     "allowed_paths": [
       "SPAWN/STOP/state/design.html",
       "SPAWN/STOP/web/app.py"
@@ -136,9 +137,9 @@
   {
     "id": "task_009",
     "task_id": "T09",
-    "dag_node_id": "gui_export_sharegpt",
-    "label": "gui-export-sharegpt",
-    "description": "Wire the ShareGPT export button to a real Flask endpoint that emits conversation-format data.",
+    "dag_node_id": "gui_repo_freeze_toggle",
+    "label": "gui-repo-freeze",
+    "description": "Wire the repo freeze toggle to a real Flask control endpoint so the dashboard can mutate live freeze state.",
     "allowed_paths": [
       "SPAWN/STOP/state/design.html",
       "SPAWN/STOP/web/app.py"
@@ -153,9 +154,9 @@
   {
     "id": "task_010",
     "task_id": "T10",
-    "dag_node_id": "gui_export_steering",
-    "label": "gui-export-steering",
-    "description": "Wire the steering-only export button to a real Flask endpoint that emits steering traces only.",
+    "dag_node_id": "gui_stray_monitor_details",
+    "label": "gui-stray-monitor",
+    "description": "Make the stray monitor panel open detailed repo-backed stray event history and diagnostics.",
     "allowed_paths": [
       "SPAWN/STOP/state/design.html",
       "SPAWN/STOP/web/app.py"
@@ -170,9 +171,9 @@
   {
     "id": "task_011",
     "task_id": "T11",
-    "dag_node_id": "gui_repo_freeze_toggle",
-    "label": "gui-repo-freeze-toggle",
-    "description": "Wire the repo freeze toggle to a real Flask control endpoint so the dashboard can mutate live freeze state.",
+    "dag_node_id": "gui_trace_capture_details",
+    "label": "gui-trace-capture",
+    "description": "Make the Trace Capture section open detailed trace history and artifact views from repo-backed logs and iterations.",
     "allowed_paths": [
       "SPAWN/STOP/state/design.html",
       "SPAWN/STOP/web/app.py"
@@ -187,9 +188,9 @@
   {
     "id": "task_012",
     "task_id": "T12",
-    "dag_node_id": "gui_spawn_loop_controls",
-    "label": "gui-spawn-loop-controls",
-    "description": "Wire the spawn loop controls to a real Flask control plane so start, pause, and related actions work from the GUI.",
+    "dag_node_id": "gui_steering_log_details",
+    "label": "gui-steering-log",
+    "description": "Make the Steering Log section open detailed steering-event history and reasoning from repo-backed decision artifacts.",
     "allowed_paths": [
       "SPAWN/STOP/state/design.html",
       "SPAWN/STOP/web/app.py"
@@ -204,9 +205,9 @@
   {
     "id": "task_013",
     "task_id": "T13",
-    "dag_node_id": "gui_audit_log_details",
-    "label": "gui-audit-log-details",
-    "description": "Make the audit log panel open detailed repo-backed audit events instead of a single summary card.",
+    "dag_node_id": "gui_bootstrap_step_details",
+    "label": "gui-bootstrap-step-details",
+    "description": "Make bootstrap rows open live step details and status sourced from repo state.",
     "allowed_paths": [
       "SPAWN/STOP/state/design.html",
       "SPAWN/STOP/web/app.py"
@@ -221,9 +222,9 @@
   {
     "id": "task_014",
     "task_id": "T14",
-    "dag_node_id": "gui_stray_monitor_details",
-    "label": "gui-stray-monitor-details",
-    "description": "Make the stray monitor panel open detailed repo-backed stray event history and diagnostics.",
+    "dag_node_id": "gui_repo_structure_details",
+    "label": "gui-repo-structure-details",
+    "description": "Make repo structure rows clickable with live detail panels backed by actual repo paths and state.",
     "allowed_paths": [
       "SPAWN/STOP/state/design.html",
       "SPAWN/STOP/web/app.py"
@@ -238,9 +239,9 @@
   {
     "id": "task_015",
     "task_id": "T15",
-    "dag_node_id": "gui_readiness_tracker_live",
-    "label": "gui-readiness-tracker-live",
-    "description": "Replace the static readiness tracker rows with canonical repo-backed readiness rendering.",
+    "dag_node_id": "gui_vector_phase_details",
+    "label": "gui-vector-phase-details",
+    "description": "Make vector phase rows open repo-backed phase details instead of acting like decorative cards.",
     "allowed_paths": [
       "SPAWN/STOP/state/design.html",
       "SPAWN/STOP/web/app.py"
@@ -250,6 +251,143 @@
     ],
     "status": "pending",
     "priority": 15,
+    "progress": null
+  },
+  {
+    "id": "task_016",
+    "task_id": "T16",
+    "dag_node_id": "gui_memory_file_open",
+    "label": "gui-memory-file-open",
+    "description": "Make memory file rows open real repo file details and context instead of static labels.",
+    "allowed_paths": [
+      "SPAWN/STOP/state/design.html",
+      "SPAWN/STOP/web/app.py"
+    ],
+    "dependencies": [
+      "gui_nav_panels"
+    ],
+    "status": "pending",
+    "priority": 16,
+    "progress": null
+  },
+  {
+    "id": "task_017",
+    "task_id": "T17",
+    "dag_node_id": "gui_export_jsonl",
+    "label": "gui-export-jsonl",
+    "description": "Wire the JSONL export button to a real Flask endpoint that emits repo-backed export output.",
+    "allowed_paths": [
+      "SPAWN/STOP/state/design.html",
+      "SPAWN/STOP/web/app.py"
+    ],
+    "dependencies": [
+      "gui_nav_panels"
+    ],
+    "status": "pending",
+    "priority": 17,
+    "progress": null
+  },
+  {
+    "id": "task_018",
+    "task_id": "T18",
+    "dag_node_id": "gui_export_alpaca",
+    "label": "gui-export-alpaca",
+    "description": "Wire the Alpaca export button to a real Flask endpoint that emits canonical dataset output.",
+    "allowed_paths": [
+      "SPAWN/STOP/state/design.html",
+      "SPAWN/STOP/web/app.py"
+    ],
+    "dependencies": [
+      "gui_nav_panels"
+    ],
+    "status": "pending",
+    "priority": 18,
+    "progress": null
+  },
+  {
+    "id": "task_019",
+    "task_id": "T19",
+    "dag_node_id": "gui_export_sharegpt",
+    "label": "gui-export-sharegpt",
+    "description": "Wire the ShareGPT export button to a real Flask endpoint that emits conversation-format data.",
+    "allowed_paths": [
+      "SPAWN/STOP/state/design.html",
+      "SPAWN/STOP/web/app.py"
+    ],
+    "dependencies": [
+      "gui_nav_panels"
+    ],
+    "status": "pending",
+    "priority": 19,
+    "progress": null
+  },
+  {
+    "id": "task_020",
+    "task_id": "T20",
+    "dag_node_id": "gui_export_steering",
+    "label": "gui-export-steering",
+    "description": "Wire the steering-only export button to a real Flask endpoint that emits steering traces only.",
+    "allowed_paths": [
+      "SPAWN/STOP/state/design.html",
+      "SPAWN/STOP/web/app.py"
+    ],
+    "dependencies": [
+      "gui_nav_panels"
+    ],
+    "status": "pending",
+    "priority": 20,
+    "progress": null
+  },
+  {
+    "id": "task_021",
+    "task_id": "T21",
+    "dag_node_id": "gui_readiness_tracker_live",
+    "label": "gui-readiness-tracker",
+    "description": "Replace the static readiness tracker rows with canonical repo-backed readiness rendering.",
+    "allowed_paths": [
+      "SPAWN/STOP/state/design.html",
+      "SPAWN/STOP/web/app.py"
+    ],
+    "dependencies": [
+      "gui_nav_panels"
+    ],
+    "status": "pending",
+    "priority": 21,
+    "progress": null
+  },
+  {
+    "id": "task_022",
+    "task_id": "T22",
+    "dag_node_id": "gui_mutex_lock_details",
+    "label": "gui-mutex-lock",
+    "description": "Make the mutex status box open detailed live lock ownership, expiry, and gating state from repo-backed lock files.",
+    "allowed_paths": [
+      "SPAWN/STOP/state/design.html",
+      "SPAWN/STOP/web/app.py"
+    ],
+    "dependencies": [
+      "gui_nav_panels"
+    ],
+    "status": "pending",
+    "priority": 22,
+    "progress": null
+  },
+  {
+    "id": "task_023",
+    "task_id": "T23",
+    "dag_node_id": "gui_model_status_panel",
+    "label": "gui-model-status-panel",
+    "description": "Make the full model status surface a first-class tracked GUI function with explicit repo-backed readiness, graph rendering, and training-scale state.",
+    "allowed_paths": [
+      "SPAWN/STOP/state/design.html",
+      "SPAWN/STOP/web/app.py",
+      "SPAWN/STOP/.orchestrator/dashboard_state.py"
+    ],
+    "dependencies": [
+      "gui_nav_panels"
+    ],
+    "status": "pending",
+    "priority": 23,
     "progress": null
   }
 ]

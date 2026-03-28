@@ -1,0 +1,19 @@
+{
+  "framework": "axolotl",
+  "base_model": "mistralai/Mistral-Small-24B-Instruct-2501",
+  "parameter_class": "24B",
+  "dataset_path": "SPAWN/STOP/.orchestrator/data/canonical_traces.jsonl",
+  "smoke_dataset_path": "SPAWN/STOP/.orchestrator/data/smoke_subset.jsonl",
+  "output_dir": "SPAWN/STOP/.orchestrator/models/finetuned",
+  "micro_batch_size": 1,
+  "gradient_accumulation_steps": 16,
+  "num_epochs": 1,
+  "learning_rate": 0.0002,
+  "adapter": "qlora",
+  "target_modules": [
+    "q_proj",
+    "k_proj",
+    "v_proj",
+    "o_proj"
+  ]
+}

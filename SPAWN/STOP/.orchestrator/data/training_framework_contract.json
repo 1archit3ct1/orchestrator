@@ -1,0 +1,7 @@
+{
+  "generated_at": "2026-03-28T14:36:07.548756",
+  "framework": "axolotl",
+  "dataset_format": "jsonl instruction-tuning with explicit signal labels",
+  "launch_contract": "python SPAWN/STOP/training/train_stack.py --config SPAWN/STOP/training/train_stack_config.json --dataset SPAWN/STOP/.orchestrator/data/canonical_traces.jsonl",
+  "smoke_test_contract": "python SPAWN/STOP/training/train_stack.py --smoke-test --dataset SPAWN/STOP/.orchestrator/data/smoke_subset.jsonl"
+}

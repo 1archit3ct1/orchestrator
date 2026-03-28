@@ -1,0 +1,39 @@
+{
+  "task_id": "goal_repo_runtime_scaffold",
+  "verified_at": "2026-03-28T14:13:49.557420",
+  "evidence": {
+    "runtime_dirs": [
+      "GITHUB_SETUP_STATUS.md",
+      "ITERATION_LOGGING_PROOF.md",
+      "SECURITY_INTEGRATION_COMPLETE.md",
+      "SECURITY_PROOF.md",
+      "__pycache__",
+      "config.json",
+      "cron",
+      "dashboard.pid",
+      "dashboard_state.py",
+      "data",
+      "iteration_logger.py",
+      "iterations",
+      "locks",
+      "logs",
+      "loop.py",
+      "maintenance.py",
+      "models",
+      "projection_feedback.py",
+      "projection_promoter.py",
+      "security",
+      "security_manager.py",
+      "spawn_runner.py",
+      "task_queue.json",
+      "test_task_processing.py",
+      "vault",
+      "vector_store"
+    ],
+    "state_files": [
+      "state/design_graph.json",
+      "state/tasks.json"
+    ],
+    "repo_truth_template": "D:\\NextAura\\orchestrator\\SPAWN\\STOP\\web\\templates\\repo_truth.html"
+  }
+}

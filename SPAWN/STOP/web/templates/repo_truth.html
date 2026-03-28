@@ -368,7 +368,7 @@
     const items = (data.queue && data.queue.items) || [];
     const counts = (data.queue && data.queue.queue_counts) || {};
     qs('#queue-count').textContent = items.length;
-    qs('#queue-meta').textContent = (counts.pending || 0) + ' pending / ' + (counts.completed || 0) + ' completed';
+    qs('#queue-meta').textContent = (counts.pending || 0) + ' pending / ' + ((data.queue && data.queue.total_items) || items.length) + ' total queue items';
     qs('#queue-pill').className = pillClass(items.length ? 'pending' : 'live');
     qs('#queue-pill').textContent = items.length ? 'queued' : 'clear';
     qs('#goal-pill').textContent = Object.keys((data.queue && data.queue.goals) || {}).length + ' goals';
@@ -447,13 +447,23 @@
     const memory = data.memory || {};
     const training = data.training || {};
     const model = training.model || {};
+    const dataset = training.dataset || {};
+    const quality = (training.training_run && training.training_run.quality) || {};
+    const framework = training.framework || {};
+    const smoke = (training.training_run && training.training_run.smoke_test) || {};
+    const vram = (training.training_run && training.training_run.vram_profile) || {};
     qs('#training-pill').textContent = (training.training_run && training.training_run.training_config && training.training_run.training_config.integrated) ? 'integrated' : 'pending';
     qs('#memory-training-kv').innerHTML = [
       ['Memory tokens', model.memory_collected_tokens || 0],
       ['Retrieval lines', memory.retrieval_lines || 0],
       ['Vector entries', memory.vector_entries || 0],
       ['Training traces', (training.summary && training.summary.training_traces) || 0],
-      ['Dataset files', (training.dataset && training.dataset.counts && training.dataset.counts.dataset_files) || 0],
+      ['Clean rows', (dataset.counts && dataset.counts.clean_records) || 0],
+      ['Duplicates removed', (dataset.counts && dataset.counts.duplicate_count) || 0],
+      ['Framework', framework.name || 'pending'],
+      ['Base model', framework.parameter_class ? ((framework.parameter_class || '') + ' · ' + (framework.base_model || 'pending')) : (framework.base_model || 'pending')],
+      ['Smoke test', smoke.status || (smoke.validated ? 'validated' : 'pending')],
+      ['VRAM free MB', vram.memory_free_mb || 0],
       ['Training blockers', ((training.training_run && training.training_run.blockers) || []).length],
     ].map(function (row) {
       return '<div class="kv-item"><strong>' + esc(row[0]) + '</strong><span>' + esc(row[1]) + '</span></div>';

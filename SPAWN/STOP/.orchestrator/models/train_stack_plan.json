@@ -1,0 +1,11 @@
+{
+  "generated_at": "2026-03-28T14:36:07.005297",
+  "status": "configured",
+  "framework": "axolotl",
+  "base_model": "mistralai/Mistral-Small-24B-Instruct-2501",
+  "parameter_class": "24B",
+  "dataset": "SPAWN/STOP/.orchestrator/data/canonical_traces.jsonl",
+  "launch_command": "python SPAWN/STOP/training/train_stack.py --config SPAWN\\STOP\\training\\train_stack_config.json --dataset SPAWN\\STOP\\.orchestrator\\data\\canonical_traces.jsonl",
+  "checkpoint_dir": "SPAWN/STOP/.orchestrator/models/finetuned",
+  "evaluation_hook": "python SPAWN/STOP/training/eval_harness.py --candidate latest_checkpoint --baseline frontier_gpt_baseline"
+}

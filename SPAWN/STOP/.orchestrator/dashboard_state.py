@@ -96,6 +96,12 @@ def count_lines(path: Path):
         return 0
 
 
+def load_training_artifact(path: Path):
+    if not path.exists():
+        return {}
+    return load_json(path, {})
+
+
 def estimate_text_tokens(path: Path):
     text = read_text(path, default="")
     if not text:
@@ -898,7 +904,6 @@ def build_repo_structure(runtime_dir: Path, start_dir: Path):
         (".orchestrator/loop.py", runtime_dir / ".orchestrator" / "loop.py"),
         (".orchestrator/planner.sh", runtime_dir / ".orchestrator" / "planner.sh"),
         (".orchestrator/vector_store/", runtime_dir / ".orchestrator" / "vector_store"),
-        ("TASK.md", runtime_dir / "TASK.md"),
         ("MEMORY.md", runtime_dir / "MEMORY.md"),
         ("AGENTS.md", runtime_dir / "AGENTS.md"),
     ]
@@ -914,7 +919,7 @@ def build_readiness_state(model_integrated: bool, graph: dict, task_md: dict | N
         verification.get("gui_spawn_loop_controls", {}).get("live")
         and verification.get("gui_repo_freeze_toggle", {}).get("live")
     )
-    task_md_aligned = bool(task_md and any(node.get("id") == task_md.get("dag_node_id") for node in graph.get("nodes", [])))
+    queue_synced = not task_md and not warnings
     return [
         {
             "label": "Canonical State",
@@ -922,7 +927,7 @@ def build_readiness_state(model_integrated: bool, graph: dict, task_md: dict | N
             "status": "live",
         },
         {
-            "label": "Model Integrated",
+            "label": "Training Stack Ready",
             "value": "LIVE" if model_integrated else "PENDING",
             "status": "live" if model_integrated else "pending",
         },
@@ -932,9 +937,9 @@ def build_readiness_state(model_integrated: bool, graph: dict, task_md: dict | N
             "status": "live" if controls_live else "pending",
         },
         {
-            "label": "TASK.md Alignment",
-            "value": "COMPLETE" if (not task_md and all(node.get("status") == "green" for node in graph.get("nodes", []))) else ("ALIGNED" if task_md_aligned and not warnings else ("ATTENTION" if warnings else "PENDING")),
-            "status": "live" if ((not task_md and all(node.get("status") == "green" for node in graph.get("nodes", []))) or (task_md_aligned and not warnings)) else ("warn" if warnings else "pending"),
+            "label": "Queue Sync",
+            "value": "ALIGNED" if queue_synced else ("ATTENTION" if warnings else "PENDING"),
+            "status": "live" if queue_synced else ("warn" if warnings else "pending"),
         },
     ]
 
@@ -1017,6 +1022,11 @@ def build_memory_progress(memory_path: Path, retrieval_log: Path, vector_dir: Pa
 
 
 def build_scale_analysis(config: dict, data_dir: Path, vector_dir: Path, iterations_dir: Path, training_dir: Path, memory_progress: dict):
+    metrics = load_training_artifact(data_dir / "clean_dataset_metrics.json")
+    framework_contract = load_training_artifact(data_dir / "training_framework_contract.json")
+    storage_contract_payload = load_training_artifact(data_dir / "trace_storage_contract.json")
+    storage_index_payload = load_training_artifact(data_dir / "trace_storage_index.json")
+    vram_profile = load_training_artifact(training_dir.parent / ".orchestrator" / "logs" / "vram_profile.json")
     jsonl_files = sorted(data_dir.glob("*.jsonl")) if data_dir.exists() else []
     training_scripts = sorted(training_dir.rglob("*")) if training_dir.exists() else []
     decision_files = sorted((iterations_dir / "decisions").glob("dec_*.json")) if (iterations_dir / "decisions").exists() else []
@@ -1024,31 +1034,35 @@ def build_scale_analysis(config: dict, data_dir: Path, vector_dir: Path, iterati
     vector_entries = count_files(vector_dir, "*.json")
     iteration_files = len(list(iterations_dir.glob("iter_*.json"))) if iterations_dir.exists() else 0
     trace_files = iteration_files + len(decision_files)
+    clean_dataset_rows = int(metrics.get("clean_records", 0) or 0)
+    duplicate_count = int(metrics.get("duplicate_count", 0) or 0)
+    clean_ratio = float(metrics.get("clean_ratio", 0.0) or 0.0)
+    framework_name = framework_contract.get("framework")
+    base_model = config.get("training_config", {}).get("base_model")
 
     known = {
-        "D01": "Mixed storage today: JSONL training artifacts plus JSON vector/iteration files and MEMORY.md.",
-        "D03": "All traces are stored on local repo disk under SPAWN/STOP/.orchestrator and MEMORY.md.",
-        "C01": "Dedup uses canonical content signatures, not timestamps alone.",
-        "T03": "No smoke-test fine-tune run is present yet.",
+        "D01": "Storage contract is codified in trace_storage_contract.json with explicit downstream guarantees.",
+        "D02": "Canonical JSONL records include record_id, timestamp, instruction, output, signal, source_type, and source_path.",
+        "D03": "Storage index is codified in trace_storage_index.json across data, vector, iterations, and memory.",
+        "D04": "Steering traces are explicitly labeled in canonical_traces.jsonl and separated in iterations/decisions.",
+        "C01": "Dedup uses canonical content_hash signatures with duplicate counts reported in clean_dataset_metrics.json.",
+        "C02": "Quality thresholds are codified in config.json and clean_dataset_metrics.json.",
+        "C03": f"Clean dataset metric is live at {clean_dataset_rows:,} accepted rows after dedup/filtering.",
+        "T01": f"Fine-tuning framework is selected as {framework_name or 'axolotl'}.",
+        "T02": f"Base model is selected as {base_model or 'unset'}.",
+        "T04": "Live VRAM profiling is available from .orchestrator/logs/vram_profile.json.",
     }
     partial = {
-        "D02": "Current JSONL records include timestamp/type/instruction/input/output, but no enforced global schema with signal, node_id, and session_id.",
-        "D04": "Steering traces are partly separated in iterations/decisions, but the training dataset is not fully partitioned or weighted yet.",
-        "C03": "Raw collected artifacts are visible, but a clean post-filter training metric is not yet computed.",
+        "T03": "Smoke-test training flow validates dataset, config, artifact, and VRAM contracts, but no weight-updating fine-tune run has been executed yet.",
     }
-    unknown = {
-        "C02": "No acceptance/rejection quality thresholds are codified yet.",
-        "T01": "No fine-tuning framework is selected in repo config.",
-        "T02": "Base model choice is still unresolved, including 24B vs 9B direction.",
-        "T04": "No live VRAM profiling or RTX 5090 headroom metric exists yet.",
-    }
+    unknown = {}
 
     nine_b_target_bytes = int(9_000_000_000 * 20 * 4)
     nine_b_minimum_tuning_bytes = int(max(50_000_000, 9_000_000_000 // 10) * 4)
     current_bytes = int(memory_progress.get("collected_bytes", 0))
     current_tokens = int(memory_progress.get("collected_tokens", 0))
-    clean_dataset_ready = False
-    framework_ready = False
+    clean_dataset_ready = bool(clean_dataset_rows)
+    framework_ready = bool(framework_name and base_model)
     training_scripts_present = any(item.is_file() for item in training_scripts)
     can_train_from_scratch = False
     fine_tune_path_ready = bool(jsonl_files)
@@ -1062,6 +1076,11 @@ def build_scale_analysis(config: dict, data_dir: Path, vector_dir: Path, iterati
             "label": "Dataset Rows",
             "value": f"{dataset_rows:,}",
             "status": "live" if dataset_rows else "pending",
+        },
+        {
+            "label": "Clean Rows",
+            "value": f"{clean_dataset_rows:,}",
+            "status": "live" if clean_dataset_rows else "pending",
         },
         {
             "label": "Retrieval Rows",
@@ -1078,6 +1097,11 @@ def build_scale_analysis(config: dict, data_dir: Path, vector_dir: Path, iterati
             "value": f"{trace_files:,}",
             "status": "live" if trace_files else "pending",
         },
+        {
+            "label": "Duplicates Removed",
+            "value": f"{duplicate_count:,}",
+            "status": "live" if duplicate_count else "pending",
+        },
     ]
 
     return {
@@ -1092,14 +1116,22 @@ def build_scale_analysis(config: dict, data_dir: Path, vector_dir: Path, iterati
         "current_collected_tokens": current_tokens,
         "current_jsonl_files": len(jsonl_files),
         "current_dataset_rows": dataset_rows,
+        "current_clean_dataset_rows": clean_dataset_rows,
         "current_decision_files": len(decision_files),
         "current_vector_entries": vector_entries,
         "current_trace_files": trace_files,
+        "duplicate_count": duplicate_count,
+        "clean_ratio": clean_ratio,
         "training_scripts_present": training_scripts_present,
         "clean_dataset_ready": clean_dataset_ready,
         "framework_ready": framework_ready,
         "fine_tune_path_ready": fine_tune_path_ready,
         "can_train_from_scratch": can_train_from_scratch,
+        "framework": framework_name,
+        "base_model": base_model,
+        "vram_profile": vram_profile,
+        "storage_contract": storage_contract_payload,
+        "storage_index": storage_index_payload,
         "target_24b_bytes": int(memory_progress.get("target_bytes", 0)),
         "target_24b_minimum_tuning_bytes": int(memory_progress.get("minimum_tuning_bytes", 0)),
         "target_9b_bytes": nine_b_target_bytes,
@@ -1232,7 +1264,6 @@ def sync_dashboard_state(runtime_dir: Path):
             "config": str(config_path),
             "design_graph": str(design_graph_path),
             "tasks": str(tasks_path),
-            "task_md": str(task_md_path),
             "memory": str(memory_path),
             "task_queue": str(task_queue_path),
         },

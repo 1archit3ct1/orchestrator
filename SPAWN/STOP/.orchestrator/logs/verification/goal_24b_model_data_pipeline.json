@@ -1,0 +1,11 @@
+{
+  "verified_at": "2026-03-28T14:38:03.274030",
+  "artifacts": [
+    "SPAWN/STOP/training/trace_pipeline.py",
+    "SPAWN/STOP/training/build_datasets.py",
+    "SPAWN/STOP/.orchestrator/data/canonical_traces.jsonl",
+    "SPAWN/STOP/.orchestrator/data/smoke_subset.jsonl",
+    "SPAWN/STOP/.orchestrator/data/clean_dataset_metrics.json"
+  ],
+  "status": "completed"
+}

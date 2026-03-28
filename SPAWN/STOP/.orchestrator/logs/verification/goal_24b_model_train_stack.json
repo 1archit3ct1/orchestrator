@@ -1,0 +1,10 @@
+{
+  "verified_at": "2026-03-28T14:38:03.274030",
+  "artifacts": [
+    "SPAWN/STOP/training/train_stack.py",
+    "SPAWN/STOP/training/train_stack_config.json",
+    "SPAWN/STOP/.orchestrator/models/train_stack_plan.json",
+    "SPAWN/STOP/.orchestrator/models/smoke_test/manifest.json"
+  ],
+  "status": "completed"
+}

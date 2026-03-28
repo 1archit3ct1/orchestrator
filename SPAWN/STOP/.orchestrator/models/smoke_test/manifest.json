@@ -1,0 +1,17 @@
+{
+  "generated_at": "2026-03-28T14:36:08.423777",
+  "dataset": "SPAWN/STOP/.orchestrator/data/smoke_subset.jsonl",
+  "dataset_exists": true,
+  "preview_lines": 8,
+  "vram_profile": {
+    "available": true,
+    "gpu_name": "NVIDIA GeForce RTX 5090",
+    "memory_total_mb": 32607,
+    "memory_free_mb": 29571
+  },
+  "status": "smoke_test_validated",
+  "notes": [
+    "Smoke test validates dataset visibility, config presence, and artifact flow.",
+    "No checkpoint weights are fabricated by this validation pass."
+  ]
+}

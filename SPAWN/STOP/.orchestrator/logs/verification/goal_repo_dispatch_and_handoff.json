@@ -1,0 +1,10 @@
+{
+  "task_id": "goal_repo_dispatch_and_handoff",
+  "verified_at": "2026-03-28T14:13:49.557420",
+  "evidence": {
+    "loop_mode": "local_runtime_only",
+    "dashboard_route": "2026-03-28T14:13:41.592364",
+    "repo_freeze_endpoint": true,
+    "export_jsonl_endpoint": true
+  }
+}

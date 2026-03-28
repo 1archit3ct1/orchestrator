@@ -1,0 +1,34 @@
+{
+  "task_id": "goal_orchestrator_gui_complete",
+  "verified_at": "2026-03-28T14:13:49.557420",
+  "evidence": {
+    "dashboard_status": "complete",
+    "frontend_route_canonical": true,
+    "repo_truth_views": [],
+    "verification_keys": [
+      "gui_audit_log_details",
+      "gui_bootstrap_step_details",
+      "gui_dag_task_details",
+      "gui_dataset_details",
+      "gui_eta_tracker_live",
+      "gui_export_alpaca",
+      "gui_export_jsonl",
+      "gui_export_sharegpt",
+      "gui_export_steering",
+      "gui_memory_file_open",
+      "gui_model_status_panel",
+      "gui_mutex_lock_details",
+      "gui_nav_panels",
+      "gui_readiness_tracker_live",
+      "gui_repo_freeze_toggle",
+      "gui_repo_structure_details",
+      "gui_scale_analysis_page",
+      "gui_spawn_loop_controls",
+      "gui_steering_log_details",
+      "gui_stray_monitor_details",
+      "gui_trace_capture_details",
+      "gui_training_run_details",
+      "gui_vector_phase_details"
+    ]
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "verified_at": "2026-03-28T14:38:03.274030",
+  "artifacts": [
+    "SPAWN/STOP/training/eval_harness.py",
+    "SPAWN/STOP/.orchestrator/data/eval_suite.json",
+    "SPAWN/STOP/.orchestrator/iterations/eval_harness_bootstrap.json"
+  ],
+  "status": "completed"
+}

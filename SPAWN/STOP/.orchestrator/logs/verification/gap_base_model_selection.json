@@ -1,0 +1,9 @@
+{
+  "verified_at": "2026-03-28T14:38:03.274030",
+  "artifacts": [
+    "SPAWN/STOP/.orchestrator/config.json",
+    "SPAWN/STOP/training/train_stack_config.json",
+    "README.md"
+  ],
+  "status": "completed"
+}

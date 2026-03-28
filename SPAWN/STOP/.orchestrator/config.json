@@ -4,10 +4,32 @@
   "vault_enabled": true,
   "secret_rotation_days": 30,
   "cycle_count": 6,
-  "gpu_enabled": false,
+  "gpu_enabled": true,
   "training_config": {
-    "integrated": false,
+    "integrated": true,
+    "framework": "axolotl",
+    "dataset_format": "jsonl instruction-tuning with explicit signal labels",
+    "model_name": "mistralai/Mistral-Small-24B-Instruct-2501",
+    "base_model": "mistralai/Mistral-Small-24B-Instruct-2501",
+    "parameter_class": "24B",
+    "target_model_params": 24000000000,
+    "target_data_tokens": 480000000000,
+    "estimated_bytes_per_token": 4.0,
+    "minimum_tuning_tokens": 2400000000,
+    "smoke_test_validated": true,
+    "smoke_test_artifact": "SPAWN/STOP/.orchestrator/models/smoke_test/manifest.json",
+    "vram_profile_artifact": "SPAWN/STOP/.orchestrator/logs/vram_profile.json",
     "output_dir": "SPAWN/STOP/.orchestrator/models/finetuned"
+  },
+  "dataset_policy": {
+    "dedup_method": "content_hash",
+    "quality_thresholds": {
+      "min_instruction_chars": 12,
+      "min_output_chars": 12,
+      "min_quality_score": 0.45
+    },
+    "canonical_dataset": "SPAWN/STOP/.orchestrator/data/canonical_traces.jsonl",
+    "smoke_dataset": "SPAWN/STOP/.orchestrator/data/smoke_subset.jsonl"
   },
   "maintenance": {
     "duplicate_parse": {

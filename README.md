@@ -61,3 +61,57 @@ python scripts/git_serial.py add SPAWN/STOP/web/app.py
 python scripts/git_serial.py commit -m "Update repo-truth frontend"
 python scripts/git_serial.py push origin main
 ```
+
+## 24B Training Stack
+
+The repo now carries a concrete local training stack contract under `SPAWN/STOP/training/`.
+
+Current canonical artifacts:
+
+- dataset builder: `SPAWN/STOP/training/build_datasets.py`
+- trace normalizer and dedup logic: `SPAWN/STOP/training/trace_pipeline.py`
+- eval harness: `SPAWN/STOP/training/eval_harness.py`
+- train stack launcher: `SPAWN/STOP/training/train_stack.py`
+- train stack config: `SPAWN/STOP/training/train_stack_config.json`
+
+Current selected framework and base model:
+
+- framework: `axolotl`
+- base model: `mistralai/Mistral-Small-24B-Instruct-2501`
+- parameter class: `24B`
+- adapter mode: `qlora`
+
+Canonical dataset and validation artifacts:
+
+- canonical dataset: `SPAWN/STOP/.orchestrator/data/canonical_traces.jsonl`
+- smoke subset: `SPAWN/STOP/.orchestrator/data/smoke_subset.jsonl`
+- clean dataset metrics: `SPAWN/STOP/.orchestrator/data/clean_dataset_metrics.json`
+- storage contract: `SPAWN/STOP/.orchestrator/data/trace_storage_contract.json`
+- storage index: `SPAWN/STOP/.orchestrator/data/trace_storage_index.json`
+- framework contract: `SPAWN/STOP/.orchestrator/data/training_framework_contract.json`
+- eval suite: `SPAWN/STOP/.orchestrator/data/eval_suite.json`
+- smoke-test manifest: `SPAWN/STOP/.orchestrator/models/smoke_test/manifest.json`
+- VRAM profile: `SPAWN/STOP/.orchestrator/logs/vram_profile.json`
+
+Launch contracts:
+
+```powershell
+python SPAWN/STOP/training/build_datasets.py
+python SPAWN/STOP/training/eval_harness.py --candidate candidate_24b --baseline frontier_gpt_baseline
+python SPAWN/STOP/training/train_stack.py --config SPAWN/STOP/training/train_stack_config.json --dataset SPAWN/STOP/.orchestrator/data/canonical_traces.jsonl
+python SPAWN/STOP/training/train_stack.py --smoke-test --dataset SPAWN/STOP/.orchestrator/data/smoke_subset.jsonl
+```
+
+## Dataset Policy
+
+Canonical training data is repo-backed and governed by explicit quality and dedup rules.
+
+- dedup method: `content_hash`
+- minimum instruction chars: `12`
+- minimum output chars: `12`
+- minimum quality score: `0.45`
+- steering traces remain labeled as `signal: steering`
+- misses remain labeled as `signal: miss`
+
+The clean dataset metric is the truthful readiness signal.
+Use `clean_records` from `SPAWN/STOP/.orchestrator/data/clean_dataset_metrics.json`, not only raw trace or token totals.

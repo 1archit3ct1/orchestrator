@@ -1,0 +1,29 @@
+{
+  "generated_at": "2026-03-28T14:36:06.944005",
+  "suite_name": "nextaura_repo_coding_eval",
+  "scoring": {
+    "pass_rate_weight": 0.55,
+    "repair_weight": 0.25,
+    "repo_truth_weight": 0.2
+  },
+  "tasks": [
+    {
+      "id": "routing_truth_001",
+      "prompt": "Keep repo-truth frontend state aligned with canonical dashboard payloads.",
+      "expected_artifact": "repo-truth frontend remains hydrated from /api/repo-truth/dashboard",
+      "category": "frontend_truth"
+    },
+    {
+      "id": "training_pipeline_001",
+      "prompt": "Normalize runtime traces into a canonical JSONL dataset with signal labels and quality gates.",
+      "expected_artifact": "canonical_traces.jsonl and clean_dataset_metrics.json are produced",
+      "category": "training_data"
+    },
+    {
+      "id": "runtime_security_001",
+      "prompt": "Preserve task-scoped lock and audit behavior while updating local runtime flows.",
+      "expected_artifact": "repo-freeze and mutex state remain visible from live endpoints",
+      "category": "security"
+    }
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "generated_at": "2026-03-28T14:36:07.548371",
+  "thresholds": {
+    "min_instruction_chars": 12,
+    "min_output_chars": 12,
+    "min_quality_score": 0.45
+  },
+  "raw_records": 3907,
+  "unique_records": 1333,
+  "clean_records": 1333,
+  "duplicate_count": 2574,
+  "clean_ratio": 1.0,
+  "signal_counts": {
+    "steering": 35,
+    "success": 1044,
+    "miss": 5,
+    "data": 22,
+    "retrieval": 200,
+    "memory": 27
+  },
+  "source_counts": {
+    "iteration": 1082,
+    "data": 24,
+    "retrieval": 200,
+    "memory": 27
+  },
+  "dataset_paths": {
+    "canonical": ".orchestrator/data/canonical_traces.jsonl",
+    "smoke_subset": ".orchestrator/data/smoke_subset.jsonl",
+    "contract": ".orchestrator/data/trace_storage_contract.json",
+    "storage_index": ".orchestrator/data/trace_storage_index.json"
+  }
+}

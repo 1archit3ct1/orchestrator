@@ -167,10 +167,17 @@ def build_training_run_payload(dashboard=None):
     config = load_json(CONFIG_PATH, {})
     dashboard = dashboard or build_dashboard_payload()
     training_config = config.get("training_config", {}) if isinstance(config, dict) else {}
+    dataset_policy = config.get("dataset_policy", {}) if isinstance(config, dict) else {}
     output_dir = training_config.get("output_dir")
     output_path = Path(output_dir) if output_dir else None
     if output_path and not output_path.is_absolute():
         output_path = RUNTIME_DIR.parent.parent / output_path
+
+    metrics = load_json(DATA_DIR / "clean_dataset_metrics.json", {})
+    framework_contract = load_json(DATA_DIR / "training_framework_contract.json", {})
+    vram_profile = load_json(LOGS_DIR / "vram_profile.json", {})
+    storage_contract = load_json(DATA_DIR / "trace_storage_contract.json", {})
+    smoke_manifest = load_json(MODELS_DIR / "smoke_test" / "manifest.json", {})
 
     training_scripts = collect_recent_files(TRAINING_DIR, ["*.py", "*.sh", "*.yaml", "*.yml", "*.json"], limit=8)
     model_artifacts = collect_recent_files(MODELS_DIR, ["*.pt", "*.bin", "*.safetensors", "*.json", "*.ckpt"], limit=8)
@@ -194,6 +201,12 @@ def build_training_run_payload(dashboard=None):
         blockers.append("No model checkpoints are present under SPAWN/STOP/.orchestrator/models/.")
     if not training_config.get("integrated"):
         blockers.append("training_config.integrated is false in .orchestrator/config.json.")
+    if not framework_contract.get("framework"):
+        blockers.append("No fine-tuning framework contract is present under .orchestrator/data/.")
+    if not training_config.get("base_model"):
+        blockers.append("No base model is selected in .orchestrator/config.json.")
+    if not vram_profile.get("available"):
+        blockers.append("No live VRAM profile is available for smoke-test planning.")
 
     memory_model = dashboard.get("model", {})
     return {
@@ -204,6 +217,9 @@ def build_training_run_payload(dashboard=None):
         "training_config": {
             "integrated": bool(training_config.get("integrated", False)),
             "model_name": training_config.get("model_name"),
+            "framework": training_config.get("framework") or framework_contract.get("framework"),
+            "base_model": training_config.get("base_model"),
+            "parameter_class": training_config.get("parameter_class"),
             "output_dir": output_dir,
         },
         "runtime": {
@@ -214,6 +230,24 @@ def build_training_run_payload(dashboard=None):
             "models_dir_exists": MODELS_DIR.exists(),
             "data_dir_exists": DATA_DIR.exists(),
         },
+        "quality": {
+            "clean_records": int(metrics.get("clean_records", 0) or 0),
+            "raw_records": int(metrics.get("raw_records", 0) or 0),
+            "duplicate_count": int(metrics.get("duplicate_count", 0) or 0),
+            "clean_ratio": float(metrics.get("clean_ratio", 0.0) or 0.0),
+        },
+        "policy": {
+            "dedup_method": dataset_policy.get("dedup_method"),
+            "quality_thresholds": dataset_policy.get("quality_thresholds", {}),
+            "storage_roles": storage_contract.get("roles", {}),
+        },
+        "smoke_test": {
+            "validated": bool(training_config.get("smoke_test_validated", False)),
+            "status": smoke_manifest.get("status"),
+            "dataset_exists": smoke_manifest.get("dataset_exists"),
+            "artifact_path": training_config.get("smoke_test_artifact"),
+        },
+        "vram_profile": vram_profile,
         "artifacts": {
             "training_scripts": training_scripts,
             "dataset_files": dataset_artifacts,
@@ -239,6 +273,10 @@ def build_training_run_payload(dashboard=None):
 
 def build_dataset_payload(dashboard=None):
     dashboard = dashboard or build_dashboard_payload()
+    config = load_json(CONFIG_PATH, {})
+    metrics = load_json(DATA_DIR / "clean_dataset_metrics.json", {})
+    storage_contract = load_json(DATA_DIR / "trace_storage_contract.json", {})
+    storage_index = load_json(DATA_DIR / "trace_storage_index.json", {})
     queue = load_json(TASK_QUEUE_PATH, [])
     dataset_files = collect_recent_files(DATA_DIR, ["*.jsonl", "*.json", "*.csv"], limit=12)
     export_targets = {
@@ -269,10 +307,16 @@ def build_dataset_payload(dashboard=None):
             "dataset_files": len(dataset_files),
             "retrieval_lines": int(model.get("retrieval_lines", 0) or 0),
             "training_traces": int(dashboard.get("summary", {}).get("training_traces", 0) or 0),
+            "clean_records": int(metrics.get("clean_records", 0) or 0),
+            "duplicate_count": int(metrics.get("duplicate_count", 0) or 0),
         },
         "files": dataset_files,
         "export_targets": export_targets,
         "queue": dataset_queue[:8],
+        "quality": metrics,
+        "policy": config.get("dataset_policy", {}),
+        "storage_contract": storage_contract,
+        "storage_index": storage_index,
         "paths": {
             "data_dir": rel_runtime_path(DATA_DIR),
             "retrieval_log": rel_runtime_path(RUNTIME_DIR / "retrieval_log.jsonl"),
@@ -732,9 +776,12 @@ def build_execution_view_payload(dashboard=None):
 def build_task_queue_view_payload(dashboard=None):
     dashboard = dashboard or build_dashboard_payload()
     queue = load_task_queue()
+    actionable_statuses = {"pending", "in_progress", "active"}
+    actionable = [item for item in queue if item.get("status", "pending") in actionable_statuses]
+    actionable.sort(key=lambda item: (item.get("priority", 9999), item.get("id", "")))
     counts = {}
     grouped = {}
-    for item in queue:
+    for item in actionable:
         status = item.get("status", "pending")
         goal = item.get("goal", "ungrouped")
         counts[status] = counts.get(status, 0) + 1
@@ -745,7 +792,8 @@ def build_task_queue_view_payload(dashboard=None):
         "active_task": dashboard.get("active_task"),
         "queue_counts": counts,
         "goals": grouped,
-        "items": queue,
+        "items": actionable,
+        "total_items": len(queue),
     }
 
 
@@ -767,6 +815,7 @@ def build_memory_overview_payload(dashboard=None):
 
 def build_training_state_payload(dashboard=None):
     dashboard = dashboard or build_dashboard_payload()
+    config = load_json(CONFIG_PATH, {})
     return {
         "canonical": True,
         "generated_at": dashboard.get("generated_at"),
@@ -775,6 +824,11 @@ def build_training_state_payload(dashboard=None):
         "scale_analysis": dashboard.get("scale_analysis", {}),
         "training_run": build_training_run_payload(dashboard),
         "dataset": build_dataset_payload(dashboard),
+        "framework": {
+            "name": config.get("training_config", {}).get("framework"),
+            "base_model": config.get("training_config", {}).get("base_model"),
+            "parameter_class": config.get("training_config", {}).get("parameter_class"),
+        },
     }
 
 

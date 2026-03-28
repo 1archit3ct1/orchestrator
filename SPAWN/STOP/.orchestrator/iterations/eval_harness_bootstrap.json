@@ -1,0 +1,12 @@
+{
+  "generated_at": "2026-03-28T14:36:06.944030",
+  "candidate": "candidate_24b",
+  "baseline": "frontier_gpt_baseline",
+  "suite_name": "nextaura_repo_coding_eval",
+  "status": "bootstrap_ready",
+  "task_count": 3,
+  "notes": [
+    "Harness definitions are live and repo-backed.",
+    "No candidate checkpoints were executed during bootstrap."
+  ]
+}

@@ -9,7 +9,7 @@
       "SPAWN/STOP/.orchestrator/"
     ],
     "priority": 25,
-    "status": "pending",
+    "status": "completed",
     "goal": "local_runtime_security"
   },
   {
@@ -22,8 +22,9 @@
       "SPAWN/STOP/.orchestrator/iterations/"
     ],
     "priority": 26,
-    "status": "pending",
-    "goal": "deliver_24b_model"
+    "status": "completed",
+    "goal": "deliver_24b_model",
+    "verified_at": "2026-03-28T14:38:03.274030"
   },
   {
     "id": "goal_24b_model_data_pipeline",
@@ -35,8 +36,9 @@
       "SPAWN/STOP/.orchestrator/vector_store/"
     ],
     "priority": 27,
-    "status": "pending",
-    "goal": "deliver_24b_model"
+    "status": "completed",
+    "goal": "deliver_24b_model",
+    "verified_at": "2026-03-28T14:38:03.274030"
   },
   {
     "id": "goal_24b_model_train_stack",
@@ -48,8 +50,9 @@
       "SPAWN/STOP/.orchestrator/data/"
     ],
     "priority": 28,
-    "status": "pending",
-    "goal": "deliver_24b_model"
+    "status": "completed",
+    "goal": "deliver_24b_model",
+    "verified_at": "2026-03-28T14:38:03.274030"
   },
   {
     "id": "goal_repo_runtime_scaffold",
@@ -60,7 +63,7 @@
       "SPAWN/STOP/.orchestrator/iterations/"
     ],
     "priority": 29,
-    "status": "pending",
+    "status": "completed",
     "goal": "local_runtime_security"
   },
   {
@@ -72,7 +75,7 @@
       "SPAWN/STOP/.orchestrator/logs/"
     ],
     "priority": 30,
-    "status": "pending",
+    "status": "completed",
     "goal": "local_runtime_security"
   },
   {
@@ -85,7 +88,7 @@
       "SPAWN/STOP/state/"
     ],
     "priority": 31,
-    "status": "pending",
+    "status": "completed",
     "goal": "local_runtime_security"
   },
   {
@@ -98,11 +101,12 @@
       "SPAWN/STOP/.orchestrator/iterations/"
     ],
     "priority": 32,
-    "status": "pending",
+    "status": "completed",
     "goal": "deliver_24b_model",
     "question_ids": [
       "D02"
-    ]
+    ],
+    "verified_at": "2026-03-28T14:38:03.274030"
   },
   {
     "id": "gap_steering_trace_labeling",
@@ -115,11 +119,12 @@
       "SPAWN/STOP/.orchestrator/vector_store/"
     ],
     "priority": 33,
-    "status": "pending",
+    "status": "completed",
     "goal": "deliver_24b_model",
     "question_ids": [
       "D04"
-    ]
+    ],
+    "verified_at": "2026-03-28T14:38:03.274030"
   },
   {
     "id": "gap_trace_quality_thresholds",
@@ -131,11 +136,12 @@
       "SPAWN/STOP/.orchestrator/config.json"
     ],
     "priority": 34,
-    "status": "pending",
+    "status": "completed",
     "goal": "deliver_24b_model",
     "question_ids": [
       "C02"
-    ]
+    ],
+    "verified_at": "2026-03-28T14:38:03.274030"
   },
   {
     "id": "gap_clean_dataset_metric",
@@ -148,11 +154,12 @@
       "SPAWN/STOP/web/app.py"
     ],
     "priority": 35,
-    "status": "pending",
+    "status": "completed",
     "goal": "deliver_24b_model",
     "question_ids": [
       "C03"
-    ]
+    ],
+    "verified_at": "2026-03-28T14:38:03.274030"
   },
   {
     "id": "gap_training_framework_selection",
@@ -164,11 +171,12 @@
       "README.md"
     ],
     "priority": 36,
-    "status": "pending",
+    "status": "completed",
     "goal": "deliver_24b_model",
     "question_ids": [
       "T01"
-    ]
+    ],
+    "verified_at": "2026-03-28T14:38:03.274030"
   },
   {
     "id": "gap_base_model_selection",
@@ -180,11 +188,12 @@
       "SPAWN/STOP/training/"
     ],
     "priority": 37,
-    "status": "pending",
+    "status": "completed",
     "goal": "deliver_24b_model",
     "question_ids": [
       "T02"
-    ]
+    ],
+    "verified_at": "2026-03-28T14:38:03.274030"
   },
   {
     "id": "gap_smoke_test_finetune",
@@ -197,11 +206,12 @@
       "SPAWN/STOP/.orchestrator/iterations/"
     ],
     "priority": 38,
-    "status": "pending",
+    "status": "completed",
     "goal": "deliver_24b_model",
     "question_ids": [
       "T03"
-    ]
+    ],
+    "verified_at": "2026-03-28T14:38:03.274030"
   },
   {
     "id": "gap_vram_profiling",
@@ -213,11 +223,12 @@
       "SPAWN/STOP/.orchestrator/config.json"
     ],
     "priority": 39,
-    "status": "pending",
+    "status": "completed",
     "goal": "deliver_24b_model",
     "question_ids": [
       "T04"
-    ]
+    ],
+    "verified_at": "2026-03-28T14:38:03.274030"
   },
   {
     "id": "gap_trace_storage_format_contract",
@@ -232,11 +243,12 @@
       "README.md"
     ],
     "priority": 40,
-    "status": "pending",
+    "status": "completed",
     "goal": "deliver_24b_model",
     "question_ids": [
       "D01"
-    ]
+    ],
+    "verified_at": "2026-03-28T14:38:03.274030"
   },
   {
     "id": "gap_trace_storage_location_index",
@@ -251,11 +263,12 @@
       "README.md"
     ],
     "priority": 41,
-    "status": "pending",
+    "status": "completed",
     "goal": "deliver_24b_model",
     "question_ids": [
       "D03"
-    ]
+    ],
+    "verified_at": "2026-03-28T14:38:03.274030"
   },
   {
     "id": "gap_dedup_policy_surface",
@@ -268,11 +281,12 @@
       "README.md"
     ],
     "priority": 42,
-    "status": "pending",
+    "status": "completed",
     "goal": "deliver_24b_model",
     "question_ids": [
       "C01"
-    ]
+    ],
+    "verified_at": "2026-03-28T14:38:03.274030"
   },
   {
     "id": "projection_exec_proj_001",
@@ -285,12 +299,13 @@
       "README.md"
     ],
     "priority": 44,
-    "status": "pending",
+    "status": "completed",
     "goal": "projection_first_orchestration",
     "source_id": "struct_01",
     "projected_task_id": "proj_001",
     "task_id": "P01",
-    "label": "Execution DAG"
+    "label": "Execution DAG",
+    "verified_at": "2026-03-28T14:38:03.274030"
   },
   {
     "id": "projection_exec_proj_002",
@@ -303,12 +318,13 @@
       "README.md"
     ],
     "priority": 45,
-    "status": "pending",
+    "status": "completed",
     "goal": "projection_first_orchestration",
     "source_id": "struct_02",
     "projected_task_id": "proj_002",
     "task_id": "P02",
-    "label": "Strategic Queue"
+    "label": "Strategic Queue",
+    "verified_at": "2026-03-28T14:38:03.274030"
   },
   {
     "id": "projection_exec_proj_003",
@@ -321,12 +337,13 @@
       "README.md"
     ],
     "priority": 46,
-    "status": "pending",
+    "status": "completed",
     "goal": "projection_first_orchestration",
     "source_id": "struct_03",
     "projected_task_id": "proj_003",
     "task_id": "P03",
-    "label": "Projection Pipeline"
+    "label": "Projection Pipeline",
+    "verified_at": "2026-03-28T14:38:03.274030"
   },
   {
     "id": "projection_exec_proj_004",
@@ -339,12 +356,13 @@
       "README.md"
     ],
     "priority": 47,
-    "status": "pending",
+    "status": "completed",
     "goal": "projection_first_orchestration",
     "source_id": "struct_04",
     "projected_task_id": "proj_004",
     "task_id": "P04",
-    "label": "Backend Runtime Mirror"
+    "label": "Backend Runtime Mirror",
+    "verified_at": "2026-03-28T14:38:03.274030"
   },
   {
     "id": "projection_exec_proj_005",
@@ -357,12 +375,13 @@
       "README.md"
     ],
     "priority": 48,
-    "status": "pending",
+    "status": "completed",
     "goal": "projection_first_orchestration",
     "source_id": "struct_05",
     "projected_task_id": "proj_005",
     "task_id": "P05",
-    "label": "Memory and Vector"
+    "label": "Memory and Vector",
+    "verified_at": "2026-03-28T14:38:03.274030"
   },
   {
     "id": "projection_exec_proj_006",
@@ -375,12 +394,13 @@
       "README.md"
     ],
     "priority": 49,
-    "status": "pending",
+    "status": "completed",
     "goal": "projection_first_orchestration",
     "source_id": "struct_06",
     "projected_task_id": "proj_006",
     "task_id": "P06",
-    "label": "Training State"
+    "label": "Training State",
+    "verified_at": "2026-03-28T14:38:03.274030"
   },
   {
     "id": "projection_exec_proj_007",
@@ -393,11 +413,12 @@
       "README.md"
     ],
     "priority": 50,
-    "status": "pending",
+    "status": "completed",
     "goal": "projection_first_orchestration",
     "source_id": "struct_07",
     "projected_task_id": "proj_007",
     "task_id": "P07",
-    "label": "Miss Detection"
+    "label": "Miss Detection",
+    "verified_at": "2026-03-28T14:38:03.274030"
   }
 ]

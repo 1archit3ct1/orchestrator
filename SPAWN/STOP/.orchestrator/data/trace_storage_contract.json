@@ -1,0 +1,44 @@
+{
+  "generated_at": "2026-03-28T14:36:07.254685",
+  "roles": {
+    "data_jsonl": "Canonical line-oriented training and replay records derived from runtime traces.",
+    "vector_json": "Ranked retrieval memory entries and session/miss summaries for semantic context lookup.",
+    "iteration_json": "Raw iteration, decision, and miss artifacts preserving per-event provenance.",
+    "memory_markdown": "Human-readable append-only ledger of runtime lessons and high-value summaries."
+  },
+  "normalization_rules": {
+    "required_fields": [
+      "record_id",
+      "timestamp",
+      "instruction",
+      "output",
+      "signal",
+      "source_type",
+      "source_path"
+    ],
+    "optional_fields": [
+      "session_id",
+      "node_id",
+      "input",
+      "quality_score",
+      "accepted",
+      "tags",
+      "content_hash"
+    ],
+    "signal_values": [
+      "success",
+      "steering",
+      "miss",
+      "error",
+      "data",
+      "retrieval",
+      "memory"
+    ]
+  },
+  "downstream_guarantees": {
+    "canonical_dataset": "SPAWN/STOP/.orchestrator/data/canonical_traces.jsonl",
+    "metrics": "SPAWN/STOP/.orchestrator/data/clean_dataset_metrics.json",
+    "storage_index": "SPAWN/STOP/.orchestrator/data/trace_storage_index.json",
+    "smoke_subset": "SPAWN/STOP/.orchestrator/data/smoke_subset.jsonl"
+  }
+}

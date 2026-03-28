@@ -1,0 +1,18 @@
+.env
+__pycache__/
+*.pyc
+
+# Editor state
+.vscode/
+
+# Security: Vault credentials (NEVER commit)
+SPAWN/STOP/.orchestrator/vault/.env
+SPAWN/STOP/.orchestrator/vault/.env.tmp
+SPAWN/STOP/.orchestrator/vault/.env.gpg
+
+# Runtime logs and process files
+SPAWN/STOP/.orchestrator/logs/security/
+SPAWN/STOP/.orchestrator/logs/*.log
+SPAWN/STOP/.orchestrator/dashboard.pid
+SPAWN/STOP/Stop/
+SPAWN/STOP/web/orchestrator.log

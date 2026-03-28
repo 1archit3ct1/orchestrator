@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NextAura Orchestrator Dashboard</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="dashboard-header">
+        <div class="header-content">
+            <div class="header-left">
+                <h1 class="dashboard-title">
+                    <span class="logo">◈</span>
+                    NextAura Orchestrator
+                </h1>
+                <div class="global-status">
+                    <span class="status-indicator running"></span>
+                    <span class="status-text">Running</span>
+                </div>
+            </div>
+            <div class="header-stats">
+                <div class="stat-item">
+                    <span class="stat-label">Cycles</span>
+                    <span class="stat-value" id="stat-cycles">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Tasks</span>
+                    <span class="stat-value" id="stat-tasks">0/0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Repos</span>
+                    <span class="stat-value" id="stat-repos">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Time</span>
+                    <span class="stat-value" id="stat-time">--:--:--</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Dashboard Grid -->
+    <main class="dashboard-grid">
+        <!-- DAG Visualization Panel -->
+        <section class="panel dag-panel">
+            <div class="panel-header">
+                <h2>DAG Visualization</h2>
+                <div class="panel-controls">
+                    <span class="dag-progress" id="dag-progress">0% Complete</span>
+                </div>
+            </div>
+            <div class="panel-content">
+                <div class="dag-container" id="dag-container">
+                    <!-- DAG nodes and edges will be rendered here -->
+                    <div class="dag-loading">Loading DAG...</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Narrative Progress Panel -->
+        <section class="panel narrative-panel">
+            <div class="panel-header">
+                <h2>Progress Story</h2>
+            </div>
+            <div class="panel-content">
+                <div class="narrative-timeline" id="narrative-timeline">
+                    <div class="narrative-summary">
+                        <p class="summary-text" id="summary-text">Initializing orchestration...</p>
+                    </div>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar" id="progress-bar">
+                            <div class="progress-fill" id="progress-fill"></div>
+                        </div>
+                    </div>
+                    <div class="next-task-preview" id="next-task-preview">
+                        <strong>Next:</strong> <span id="next-task-text">Waiting for tasks...</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Task Queue Panel -->
+        <section class="panel tasks-panel">
+            <div class="panel-header">
+                <h2>Task Queue</h2>
+                <div class="panel-controls">
+                    <button class="control-btn" id="filter-all">All</button>
+                    <button class="control-btn" id="filter-pending">Pending</button>
+                    <button class="control-btn" id="filter-completed">Completed</button>
+                </div>
+            </div>
+            <div class="panel-content">
+                <div class="task-list" id="task-list">
+                    <div class="task-loading">Loading tasks...</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Logs Panel -->
+        <section class="panel logs-panel">
+            <div class="panel-header">
+                <h2>Live Logs</h2>
+                <div class="panel-controls">
+                    <button class="control-btn" id="clear-logs">Clear</button>
+                    <button class="control-btn" id="auto-scroll" active>Auto-scroll</button>
+                </div>
+            </div>
+            <div class="panel-content">
+                <div class="logs-container" id="logs-container">
+                    <div class="log-entry"><span class="log-time">--:--:--</span> <span class="log-level info">INFO</span> <span class="log-message">Waiting for logs...</span></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Metrics Panel -->
+        <section class="panel metrics-panel">
+            <div class="panel-header">
+                <h2>Metrics</h2>
+            </div>
+            <div class="panel-content">
+                <div class="metrics-grid" id="metrics-grid">
+                    <div class="metric-card">
+                        <span class="metric-label">DAG Progress</span>
+                        <span class="metric-value" id="metric-dag-progress">0%</span>
+                    </div>
+                    <div class="metric-card">
+                        <span class="metric-label">Vector Store</span>
+                        <span class="metric-value" id="metric-vector">0</span>
+                    </div>
+                    <div class="metric-card">
+                        <span class="metric-label">Training Data</span>
+                        <span class="metric-value" id="metric-data">0</span>
+                    </div>
+                    <div class="metric-card">
+                        <span class="metric-label">Model Checkpoints</span>
+                        <span class="metric-value" id="metric-models">0</span>
+                    </div>
+                    <div class="metric-card">
+                        <span class="metric-label">Child Repos</span>
+                        <span class="metric-value" id="metric-repos">0</span>
+                    </div>
+                    <div class="metric-card">
+                        <span class="metric-label">Log Files</span>
+                        <span class="metric-value" id="metric-logs">0</span>
+                    </div>
+                    <div class="metric-card">
+                        <span class="metric-label">GPU Enabled</span>
+                        <span class="metric-value" id="metric-gpu">No</span>
+                    </div>
+                    <div class="metric-card">
+                        <span class="metric-label">Last Update</span>
+                        <span class="metric-value" id="metric-timestamp">--:--:--</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Repo Status Panel -->
+        <section class="panel repos-panel">
+            <div class="panel-header">
+                <h2>Child Repositories</h2>
+            </div>
+            <div class="panel-content">
+                <div class="repo-list" id="repo-list">
+                    <div class="repo-empty">No child repositories configured</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Vector Store Stats Panel -->
+        <section class="panel vector-panel">
+            <div class="panel-header">
+                <h2>Vector Store</h2>
+            </div>
+            <div class="panel-content">
+                <div class="vector-stats" id="vector-stats">
+                    <div class="vector-stat">
+                        <span class="vector-stat-label">Total Embeddings</span>
+                        <span class="vector-stat-value" id="vector-total">0</span>
+                    </div>
+                    <div class="vector-stat">
+                        <span class="vector-stat-label">Memory Entries</span>
+                        <span class="vector-stat-value" id="vector-memory">0</span>
+                    </div>
+                    <div class="vector-stat">
+                        <span class="vector-stat-label">Context Retrievals</span>
+                        <span class="vector-stat-value" id="vector-retrievals">0</span>
+                    </div>
+                    <div class="vector-stat">
+                        <span class="vector-stat-label">Store Size</span>
+                        <span class="vector-stat-value" id="vector-size">0 KB</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Orchestration Controls -->
+    <footer class="orchestration-controls">
+        <div class="controls-left">
+            <button class="control-btn primary" id="btn-start">
+                <span class="btn-icon">▶</span> Start
+            </button>
+            <button class="control-btn warning" id="btn-pause">
+                <span class="btn-icon">⏸</span> Pause
+            </button>
+            <button class="control-btn danger" id="btn-stop">
+                <span class="btn-icon">⏹</span> Stop
+            </button>
+        </div>
+        <div class="controls-right">
+            <label class="control-label">
+                Cycle Speed:
+                <select id="cycle-speed">
+                    <option value="fast">Fast</option>
+                    <option value="normal" selected>Normal</option>
+                    <option value="slow">Slow</option>
+                </select>
+            </label>
+            <button class="control-btn" id="btn-dispatch">Dispatch Task</button>
+            <button class="control-btn" id="btn-refresh">Refresh</button>
+        </div>
+    </footer>
+
+    <!-- Error Modal -->
+    <div class="modal" id="error-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Error</h3>
+                <button class="modal-close" id="modal-close">&times;</button>
+            </div>
+            <div class="modal-body" id="error-message">
+                <!-- Error message will be inserted here -->
+            </div>
+            <div class="modal-footer">
+                <button class="control-btn primary" id="btn-retry">Retry</button>
+                <button class="control-btn" id="btn-dismiss">Dismiss</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/script.js"></script>
+</body>
+</html>

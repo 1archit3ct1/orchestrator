@@ -1,0 +1,37 @@
+│ REPOSITORY ROOT │
+│ │
+│ ┌──────────────────────┐ ┌──────────────────────────────┐ │
+│ │ 📁 Start/ │ │ 📁 Stop/ │ │
+│ │ (Bootstrap Zone) │ │ (Agent Work Zone) │ │
+│ │ │ │ │ │
+│ │ ┌────────────────┐ │ BOOTSTRAP ┌──────────────────────────┐ │ │
+│ │ │ 01-init/ │ │ COMPLETE │ 📁 .agent/ │ │ │
+│ │ │ 02-config/ │ │ ─────────────► │ │ ├── loop.py │ │ │
+│ │ │ 03-templates/ │ │ │ │ ├── planner.sh │ │ │
+│ │ │ 04-hooks/ │ │ │ │ └── vector_store/ │ │ │
+│ │ │ 05-validation/ │ │ │ │ (Chroma/FAISS) │ │ │
+│ │ └────────────────┘ │ │ ├──────────────────────────┤ │ │
+│ │ │ │ │ 📁 src/ │ │ │
+│ │ 📄 bootstrap.sh │ │ │ 📁 docs/ │ │ │
+│ │ 📄 AGENTS.md │ │ │ 📁 tests/ │ │ │
+│ │ (FULL VERSION) │ │ │ 📄 TASK.md │ │ │
+│ │ │ │ │ 📄 MEMORY.md │ │ │
+│ │ 🔒 AFTER BOOTSTRAP: │ │ │ 📄 AGENTS.md │ │ │
+│ │ REDUCED TO │ │ │ (REDUCED VERSION) │ │ │
+│ │ PERENNIAL PROMPT │ │ └──────────────────────────┘ │ │
+│ │ + TASK-SCOPED │ │ │ │
+│ │ WRITE ACCESS │ │ 🟢 AGENT OPERATES HERE │ │
+│ │ │ │ (Post-Bootstrap) │ │
+│ └──────────────────────┘ └──────────────────────────────┘ │
+│ │
+│ ═══════════════════════════════════════════════════════════════════════════ │
+│ FLOW: Clone → Start/bootstrap.sh → [Agent Initialized] → Stop/ [Agent Works] │
+│ │
+│ 🔁 AUTONOMOUS LOOP (within Stop/): │
+│ 1. Read TASK.md (includes allowed_paths in frontmatter) │
+│ 2. Query vector store for relevant past context (MEMORY.md + embeddings) │
+│ 3. Call planner (./.agent/planner.sh) with state + prompt │
+│ 4. Execute actions, respecting allowed_paths (task-scoped write) │
+│ 5. Append result to MEMORY.md, embed new knowledge into vector store │
+│ 6. If task done, update TASK.md to next task (user can edit manually) │
+│ 7. Repeat until all tasks complete │

@@ -1,0 +1,26 @@
+{
+  "decision_id": "dec_20260327_143000_001",
+  "timestamp": "2026-03-27T14:30:00Z",
+  "task_id": "task_004",
+  "dag_node_id": "build_dashboard_frontend",
+  "decision": {
+    "question": "Should dashboard JavaScript be split into multiple module files or consolidated into a single script.js?",
+    "options": [
+      {
+        "id": "A",
+        "description": "Split into dag-viz.js, task-queue.js, logs.js, metrics.js, repo-status.js, vector-stats.js, sse.js, controls.js"
+      },
+      {
+        "id": "B",
+        "description": "Consolidate into single script.js file"
+      }
+    ],
+    "chosen": "B",
+    "rationale": "One Node = One File principle from HOWTOPROMPT.md - multiple nodes writing to same file creates entanglement and violates task-scoped writes. Since all dashboard features logically belong together and would share state, consolidating into one file prevents path collisions."
+  },
+  "outcome": {
+    "result": "Correct decision - prevents path collisions and maintains architectural integrity",
+    "lesson": "Consolidate files when multiple features would write to the same path. Split only when features are truly independent.",
+    "follow_up": "Updated HOWTOPROMPT.md with DAG Design Principles to prevent this anti-pattern in future"
+  }
+}

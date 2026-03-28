@@ -1,0 +1,6 @@
+# Orchestrator Git Ignore
+
+# Security: Vault credentials (NEVER commit)
+SPAWN/STOP/.orchestrator/vault/.env
+SPAWN/STOP/.orchestrator/vault/.env.tmp
+SPAWN/STOP/.orchestrator/logs/security/

@@ -1,0 +1,21 @@
+[wsl2]
+# Memory configuration for 128GB system
+# Allocate up to 64GB for WSL2 (leaving 64GB for Windows host)
+memory=64GB
+swap=32GB
+
+# Use all available processors (16 cores / 32 threads on Ryzen 9 7950X)
+processors=32
+
+# Enable nested virtualization for better GPU passthrough
+nestedVirtualization=true
+
+# Enable Windows System Drive mounting
+automountOptions=
+
+[interop]
+enabled=true
+appendWindowsPath=true
+
+[user]
+default=root

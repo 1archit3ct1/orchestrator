@@ -1,0 +1,138 @@
+{
+  "nodes": [
+    {
+      "id": "auth_api",
+      "label": "T01 Auth API",
+      "description": "Ship the authentication API surface that establishes the guarded entry point for spawned work.",
+      "allowed_paths": ["SPAWN/STOP/web/app.py"],
+      "dependencies": [],
+      "status": "green",
+      "task_name": "auth-api",
+      "task_id": "T01",
+      "display_status": "complete"
+    },
+    {
+      "id": "dash_shell",
+      "label": "T02 Dashboard Shell",
+      "description": "Build the dashboard shell that hosts orchestration state, task views, and system panels.",
+      "allowed_paths": ["SPAWN/STOP/web/templates/index.html"],
+      "dependencies": ["auth_api"],
+      "status": "green",
+      "task_name": "dash-shell",
+      "task_id": "T02",
+      "display_status": "complete"
+    },
+    {
+      "id": "dag_monitor",
+      "label": "T03 DAG Monitor",
+      "description": "Render and monitor live DAG execution so the active task, progress, and queue state stay visible.",
+      "allowed_paths": ["SPAWN/STOP/web/static/script.js"],
+      "dependencies": ["dash_shell"],
+      "status": "red",
+      "task_name": "dag-monitor",
+      "task_id": "T03",
+      "display_status": "active",
+      "progress": 61
+    },
+    {
+      "id": "llm_audit",
+      "label": "T04 LLM Audit",
+      "description": "Capture autonomous model actions, blocked writes, and policy violations for operator review.",
+      "allowed_paths": ["SPAWN/STOP/.orchestrator/logs/security/"],
+      "dependencies": ["dag_monitor"],
+      "status": "red",
+      "task_name": "llm-audit",
+      "task_id": "T04",
+      "display_status": "pending"
+    },
+    {
+      "id": "sec_layer",
+      "label": "T05 Security Layer",
+      "description": "Enforce the orchestrator security layer that validates protected actions and hardened runtime behavior.",
+      "allowed_paths": ["SPAWN/STOP/.orchestrator/security_manager.py"],
+      "dependencies": ["llm_audit"],
+      "status": "red",
+      "task_name": "sec-layer",
+      "task_id": "T05",
+      "display_status": "pending"
+    },
+    {
+      "id": "spawn_gate",
+      "label": "T06 Spawn Gate",
+      "description": "Gate task dispatch so spawned agents only receive work through the approved queue and policy flow.",
+      "allowed_paths": ["SPAWN/STOP/.orchestrator/task_queue.json"],
+      "dependencies": ["sec_layer"],
+      "status": "red",
+      "task_name": "spawn-gate",
+      "task_id": "T06",
+      "display_status": "pending"
+    },
+    {
+      "id": "write_mutex",
+      "label": "T07 Write Mutex",
+      "description": "Add the repository write lock that serializes file mutation and blocks stray writes outside task scope.",
+      "allowed_paths": ["SPAWN/STOP/.orchestrator/locks/repo_locks"],
+      "dependencies": ["spawn_gate"],
+      "status": "red",
+      "task_name": "write-mutex",
+      "task_id": "T07",
+      "display_status": "pending"
+    },
+    {
+      "id": "vec_memory",
+      "label": "T08 Vector Memory",
+      "description": "Persist retrieval-ready execution memory so prior outcomes can be embedded and reused in planning.",
+      "allowed_paths": ["SPAWN/STOP/.orchestrator/vector_store/"],
+      "dependencies": ["write_mutex"],
+      "status": "red",
+      "task_name": "vec-memory",
+      "task_id": "T08",
+      "display_status": "pending"
+    },
+    {
+      "id": "model_eta",
+      "label": "T09 Model ETA",
+      "description": "Project training milestones from current trace throughput and expose ETA signals to the dashboard.",
+      "allowed_paths": ["SPAWN/STOP/.orchestrator/models/"],
+      "dependencies": ["vec_memory"],
+      "status": "red",
+      "task_name": "model-eta",
+      "task_id": "T09",
+      "display_status": "pending"
+    },
+    {
+      "id": "trace_pipe",
+      "label": "T10 Trace Pipe",
+      "description": "Pipe loop, task, and memory events into append-only traces for exports, steering, and replay.",
+      "allowed_paths": ["SPAWN/STOP/.orchestrator/iteration_logger.py"],
+      "dependencies": ["model_eta"],
+      "status": "red",
+      "task_name": "trace-pipe",
+      "task_id": "T10",
+      "display_status": "pending"
+    },
+    {
+      "id": "train_pipeline",
+      "label": "T11 Training Pipeline",
+      "description": "Turn captured traces into the model-training pipeline that exports datasets and powers iterative learning.",
+      "allowed_paths": ["SPAWN/STOP/training/"],
+      "dependencies": ["trace_pipe"],
+      "status": "red",
+      "task_name": "train-pipeline",
+      "task_id": "T11",
+      "display_status": "pending"
+    }
+  ],
+  "edges": [
+    { "from": "auth_api", "to": "dash_shell" },
+    { "from": "dash_shell", "to": "dag_monitor" },
+    { "from": "dag_monitor", "to": "llm_audit" },
+    { "from": "llm_audit", "to": "sec_layer" },
+    { "from": "sec_layer", "to": "spawn_gate" },
+    { "from": "spawn_gate", "to": "write_mutex" },
+    { "from": "write_mutex", "to": "vec_memory" },
+    { "from": "vec_memory", "to": "model_eta" },
+    { "from": "model_eta", "to": "trace_pipe" },
+    { "from": "trace_pipe", "to": "train_pipeline" }
+  ]
+}

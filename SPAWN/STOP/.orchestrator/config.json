@@ -1,0 +1,10 @@
+{
+  "repos": [],
+  "global_memory_enabled": true,
+  "vault_enabled": true,
+  "secret_rotation_days": 30,
+  "training_config": {
+    "model_name": "deepseek-ai/deepseek-coder-6.7b-instruct",
+    "output_dir": "Stop/.orchestrator/models/finetuned"
+  }
+}

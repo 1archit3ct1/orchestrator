@@ -10,7 +10,7 @@
       "SPAWN/STOP/web/app.py"
     ],
     "dependencies": [],
-    "status": "active",
+    "status": "completed",
     "priority": 1,
     "progress": null
   },
@@ -27,7 +27,7 @@
     "dependencies": [
       "gui_nav_panels"
     ],
-    "status": "pending",
+    "status": "active",
     "priority": 2,
     "progress": null
   },

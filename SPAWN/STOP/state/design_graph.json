@@ -9,12 +9,12 @@
         "SPAWN/STOP/web/app.py"
       ],
       "dependencies": [],
-      "status": "yellow",
+      "status": "green",
       "task_name": "gui-nav-panels",
       "task_id": "T01",
-      "display_status": "active",
-      "verified_live": false,
-      "verification_reason": "sidebar nav items are still visual-only and lack panel routing hooks",
+      "display_status": "complete",
+      "verified_live": true,
+      "verification_reason": "sidebar navigation routes between dashboard panels from repo-backed hooks",
       "progress": null
     },
     {
@@ -28,10 +28,10 @@
       "dependencies": [
         "gui_nav_panels"
       ],
-      "status": "red",
+      "status": "yellow",
       "task_name": "gui-dag-task-details",
       "task_id": "T02",
-      "display_status": "pending",
+      "display_status": "active",
       "verified_live": false,
       "verification_reason": "task DAG rows are still visual-only and do not open task details",
       "progress": null
@@ -343,6 +343,6 @@
     }
   ],
   "status": "awaiting_task_completion",
-  "last_cycle": 0,
-  "last_updated": null
+  "last_cycle": 1,
+  "last_updated": "2026-03-27T21:14:33.342076"
 }

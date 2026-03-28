@@ -227,7 +227,7 @@ class OrchestratorLoop:
 
     # === 10-STEP AUTONOMOUS LOOP ===
 
-    def check_and_process_task_md(self) -> bool:
+    def check_and_process_task_md(self) -> str | None:
         """
         Check if TASK.md exists and process it with FULL SECURITY PROTOCOL.
 
@@ -308,11 +308,13 @@ class OrchestratorLoop:
 
                     if not ctx.lock_acquired:
                         logger.error(f"  SECURITY: Failed to acquire write lock")
+                        self._update_task_status(task_id, 'in_progress')
+                        self._update_dag_node_status(dag_node_id, 'yellow')
                         self._audit_task_event(task_id, 'lock_denied', {
                             'repo': repo_name,
                             'reason': 'Lock held by another task'
                         })
-                        return False
+                        return 'blocked'
 
                     logger.info(f"  SECURITY: Write lock acquired")
                     logger.info(f"  SECURITY: Credentials injected ({len(required_credentials)} keys)")
@@ -332,8 +334,8 @@ class OrchestratorLoop:
                         logger.info(f"  Task completed, TASK.md deleted")
                         self._promote_next_task()
                     else:
-                        self._update_task_status(task_id, 'pending')
-                        self._update_dag_node_status(dag_node_id, 'red')
+                        self._update_task_status(task_id, 'in_progress')
+                        self._update_dag_node_status(dag_node_id, 'yellow')
                         logger.warning(f"  Task not satisfied yet: {result.get('reason', 'verification failed')}")
 
                 # Context manager automatically:
@@ -341,9 +343,9 @@ class OrchestratorLoop:
                 # - Releases write lock
                 # - Writes audit log
 
-                return True
+                return 'processed'
 
-        return False
+        return None
 
     def _execute_task(self, task_id: str, dag_node_id: str, allowed_paths: list):
         """
@@ -599,8 +601,18 @@ class OrchestratorLoop:
 
             try:
                 # Priority 1: Check for TASK.md (orchestrator's own DAG tasks)
-                if self.check_and_process_task_md():
+                task_md_result = self.check_and_process_task_md()
+                if task_md_result == 'processed':
                     logger.info("TASK.md checked, continuing to next cycle...")
+                    if max_cycles > 0 and self.cycle_count >= max_cycles:
+                        logger.info(f"Reached max cycles ({max_cycles}). Stopping.")
+                        should_continue = False
+                        continue
+                    time.sleep(2)
+                    continue
+
+                if task_md_result == 'blocked':
+                    logger.warning("TASK.md is active but lock acquisition was blocked. Retrying next cycle without entering queue flow...")
                     if max_cycles > 0 and self.cycle_count >= max_cycles:
                         logger.info(f"Reached max cycles ({max_cycles}). Stopping.")
                         should_continue = False

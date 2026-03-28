@@ -339,6 +339,30 @@ LIVE_DASHBOARD_SCRIPT = r"""
       .card-operational .stat-val {
         text-shadow: 0 0 22px var(--green-glow) !important;
       }
+      .memory-graph {
+        margin-top: 12px;
+        border: 1px solid var(--border-dim);
+        border-radius: 8px;
+        background: rgba(34,197,94,0.04);
+        padding: 10px 12px 8px;
+      }
+      .memory-graph-label {
+        font-size: 8px;
+        letter-spacing: 1.8px;
+        color: rgba(140,255,180,0.62);
+        margin-bottom: 8px;
+      }
+      .memory-graph svg {
+        display: block;
+        width: 100%;
+        height: 86px;
+      }
+      .memory-graph-caption {
+        margin-top: 7px;
+        font-size: 8px;
+        letter-spacing: 1.2px;
+        color: var(--text-dim);
+      }
     `;
     document.head.appendChild(style);
   }
@@ -386,6 +410,55 @@ LIVE_DASHBOARD_SCRIPT = r"""
   function setOperational(el, live) {
     if (!el) return;
     el.classList.toggle('card-operational', !!live);
+  }
+  function buildMemoryGraph(points) {
+    const series = Array.isArray(points) ? points : [];
+    if (!series.length) {
+      return '<div class="memory-graph"><div class="memory-graph-label">LIVE MEMORY TOWARD GOAL</div><div class="memory-graph-caption">No repo-backed memory injections recorded yet.</div></div>';
+    }
+
+    const width = 560;
+    const height = 86;
+    const padding = 8;
+    const maxCount = Math.max.apply(null, series.map(function (point) { return point.count || 0; })) || 1;
+    const stepX = series.length === 1 ? 0 : (width - padding * 2) / (series.length - 1);
+    const path = series.map(function (point, index) {
+      const x = padding + (stepX * index);
+      const y = height - padding - (((point.count || 0) / maxCount) * (height - padding * 2));
+      return (index === 0 ? 'M' : 'L') + x.toFixed(2) + ' ' + y.toFixed(2);
+    }).join(' ');
+    const area = path + ' L ' + (padding + stepX * (series.length - 1)).toFixed(2) + ' ' + (height - padding) + ' L ' + padding + ' ' + (height - padding) + ' Z';
+    const latest = series[series.length - 1];
+
+    return ''
+      + '<div class="memory-graph">'
+      + '<div class="memory-graph-label">LIVE MEMORY TOWARD GOAL</div>'
+      + '<svg viewBox="0 0 ' + width + ' ' + height + '" preserveAspectRatio="none" aria-hidden="true">'
+      + '<path d="' + area + '" fill="rgba(34,197,94,0.10)"></path>'
+      + '<path d="' + path + '" fill="none" stroke="rgba(34,197,94,0.95)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"></path>'
+      + '</svg>'
+      + '<div class="memory-graph-caption">Latest injected memory unit: ' + escapeHtml(String(latest.count || 0)) + '</div>'
+      + '</div>';
+  }
+  function handleNavPanel(panelKey) {
+    const selected = panelKey || 'orchestrator';
+    qsa('#sidebar .nav-item[data-nav]').forEach(function (item) {
+      item.classList.toggle('active', item.getAttribute('data-nav') === selected);
+    });
+    qsa('#content [data-panel]').forEach(function (panel) {
+      const keys = (panel.getAttribute('data-panel') || '').split(/\s+/).filter(Boolean);
+      const visible = selected === 'orchestrator' || keys.includes('all') || keys.includes(selected);
+      panel.style.display = visible ? '' : 'none';
+    });
+  }
+  function bindNavPanels() {
+    qsa('#sidebar .nav-item[data-nav]').forEach(function (item) {
+      if (item.dataset.navBound === 'true') return;
+      item.dataset.navBound = 'true';
+      item.addEventListener('click', function () {
+        handleNavPanel(item.getAttribute('data-nav'));
+      });
+    });
   }
 
   function renderTopBar(data) {
@@ -442,19 +515,35 @@ LIVE_DASHBOARD_SCRIPT = r"""
   }
 
   function renderModelPanel(data) {
-    setText(qs('.model-name'), textOr(data.model.name, 'NO MODEL INTEGRATED'));
-    setText(qs('.model-sub'), textOr(data.model.sub, 'CANONICAL REPO STATE'));
-    setText(qs('.eta-num'), data.model.eta_days === null || data.model.eta_days === undefined ? '--' : String(data.model.eta_days));
-    setText(qs('.eta-unit'), data.model.eta_days === null || data.model.eta_days === undefined ? 'UNKNOWN' : 'DAYS');
-    setText(qs('.eta-label'), data.model.integrated ? 'MODEL ETA - BACKED BY REPO STATE' : 'MODEL ETA - ONLY SHOWN AFTER INTEGRATION');
+    setText(qs('.model-name'), textOr(data.model.name, '0.0% MODEL DATA COLLECTED'));
+    setText(qs('.model-sub'), textOr(data.model.sub, 'LIVE MEMORY INJECTION TOWARD 24B CODING GOAL'));
+    setText(qs('.eta-num'), String((data.model && data.model.memory_collected_units) || 0));
+    setText(qs('.eta-unit'), 'UNITS');
+    setText(qs('.eta-label'), 'REPO-BACKED MEMORY INJECTIONS TOWARD MODEL GOAL');
     setText(qs('.coll-pct'), String(Number(data.model.collection_progress || 0).toFixed(1) + '%'));
 
     const progressFill = qs('.prog-fill');
     if (progressFill) progressFill.style.width = (data.model.collection_progress || 0) + '%';
 
+    const collRow = qs('.coll-row');
+    if (collRow) {
+      const spans = collRow.querySelectorAll('span');
+      if (spans[0]) spans[0].textContent = 'MODEL DATA COLLECTION';
+    }
+
     const traceVals = qsa('.trace-box-val');
-    if (traceVals[0]) setText(traceVals[0], (data.model.success_traces || 0).toLocaleString());
-    if (traceVals[1]) setText(traceVals[1], (data.model.steering_traces || 0).toLocaleString());
+    const traceLabels = qsa('.trace-box-label');
+    if (traceLabels[0]) setText(traceLabels[0], 'MEMORY INJECTIONS');
+    if (traceLabels[1]) setText(traceLabels[1], 'TARGET UNITS');
+    if (traceVals[0]) setText(traceVals[0], ((data.model && data.model.memory_collected_units) || 0).toLocaleString());
+    if (traceVals[1]) setText(traceVals[1], ((data.model && data.model.memory_target_units) || 0).toLocaleString());
+
+    const traceSplit = qs('.trace-split');
+    if (traceSplit) {
+      let graph = qs('.memory-graph');
+      if (graph) graph.remove();
+      traceSplit.insertAdjacentHTML('afterend', buildMemoryGraph(data.model && data.model.memory_graph));
+    }
   }
 
   function renderAuditPanels(data) {
@@ -608,6 +697,7 @@ LIVE_DASHBOARD_SCRIPT = r"""
 
   function applyState(data) {
     ensureOperationalStyles();
+    bindNavPanels();
     renderTopBar(data);
     renderStatRow(data);
     renderDagList(data);
@@ -619,6 +709,8 @@ LIVE_DASHBOARD_SCRIPT = r"""
     renderTraceCapture(data);
     renderMemoryFiles(data);
     renderStatusbar(data);
+    const activeNav = qs('#sidebar .nav-item.active[data-nav]');
+    handleNavPanel(activeNav ? activeNav.getAttribute('data-nav') : 'orchestrator');
   }
 
   async function refreshFromServer() {

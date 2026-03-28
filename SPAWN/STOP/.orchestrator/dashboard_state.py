@@ -79,6 +79,16 @@ def has_all(text: str, *needles: str) -> bool:
     return all(needle in text for needle in needles)
 
 
+def count_lines(path: Path):
+    if not path.exists():
+        return 0
+    try:
+        with open(path, "r", encoding="utf-8", errors="replace") as handle:
+            return sum(1 for _ in handle)
+    except OSError:
+        return 0
+
+
 def normalize_tasks(graph, tasks):
     if isinstance(tasks, list) and tasks:
         normalized = []
@@ -476,6 +486,55 @@ def build_memory_files(runtime_dir: Path, task_md: Path, memory_md: Path, vector
     return files
 
 
+def build_memory_progress(memory_path: Path, retrieval_log: Path, vector_dir: Path, data_dir: Path, iterations_dir: Path, config: dict):
+    target_units = int(config.get("training_config", {}).get("memory_goal_units", 100) or 100)
+    events = []
+
+    if memory_path.exists():
+        events.append({"ts": memory_path.stat().st_mtime, "type": "memory"})
+    if retrieval_log.exists():
+        events.append({"ts": retrieval_log.stat().st_mtime, "type": "retrieval"})
+    if vector_dir.exists():
+        for path in vector_dir.glob("*.json"):
+            events.append({"ts": path.stat().st_mtime, "type": "vector"})
+    if data_dir.exists():
+        for path in data_dir.glob("*"):
+            if path.is_file():
+                events.append({"ts": path.stat().st_mtime, "type": "data"})
+    if iterations_dir.exists():
+        for path in iterations_dir.glob("iter_*.json"):
+            events.append({"ts": path.stat().st_mtime, "type": "iteration"})
+        decisions_dir = iterations_dir / "decisions"
+        if decisions_dir.exists():
+            for path in decisions_dir.glob("dec_*.json"):
+                events.append({"ts": path.stat().st_mtime, "type": "decision"})
+
+    events.sort(key=lambda item: item["ts"])
+    points = []
+    running_total = 0
+    for event in events:
+        running_total += 1
+        points.append(
+            {
+                "timestamp": datetime.fromtimestamp(event["ts"]).isoformat(),
+                "count": running_total,
+                "type": event["type"],
+            }
+        )
+
+    collected_units = running_total
+    retrieval_lines = count_lines(retrieval_log)
+    percent = min(100.0, round((collected_units / target_units) * 100, 1)) if target_units else 0.0
+
+    return {
+        "percent": percent,
+        "collected_units": collected_units,
+        "target_units": target_units,
+        "retrieval_lines": retrieval_lines,
+        "points": points[-24:],
+    }
+
+
 def sync_dashboard_state(runtime_dir: Path):
     runtime_dir = Path(runtime_dir)
     orchestrator_dir = runtime_dir / ".orchestrator"
@@ -572,6 +631,14 @@ def sync_dashboard_state(runtime_dir: Path):
 
     model_integrated = bool(training_config.get("integrated", False))
     model_name = training_config.get("model_name") if model_integrated else None
+    memory_progress = build_memory_progress(
+        memory_path,
+        retrieval_log,
+        vector_dir,
+        data_dir,
+        iterations_dir,
+        config,
+    )
 
     dashboard_state = {
         "generated_at": datetime.now().isoformat(),
@@ -620,14 +687,18 @@ def sync_dashboard_state(runtime_dir: Path):
             "stray_count": len(security_events),
         },
         "model": {
-            "name": model_name,
-            "sub": "MODEL NOT INTEGRATED" if not model_integrated else "CANONICAL REPO STATE",
+            "name": f"{memory_progress['percent']:.1f}% MODEL DATA COLLECTED",
+            "sub": "LIVE MEMORY INJECTION TOWARD 24B CODING GOAL",
             "eta_days": None,
-            "collection_progress": dag_progress,
+            "collection_progress": memory_progress["percent"],
             "success_traces": success_traces,
             "steering_traces": steering_traces,
             "error_traces": error_traces,
             "integrated": model_integrated,
+            "memory_graph": memory_progress["points"],
+            "memory_collected_units": memory_progress["collected_units"],
+            "memory_target_units": memory_progress["target_units"],
+            "retrieval_lines": memory_progress["retrieval_lines"],
         },
         "logs": [
             {

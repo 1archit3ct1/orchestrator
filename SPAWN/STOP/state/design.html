@@ -1270,54 +1270,54 @@ body::after {
 
     <div class="nav-section">
       <div class="nav-label">CONTROL</div>
-      <div class="nav-item active">
+      <div class="nav-item active" data-nav="orchestrator">
         <span class="nav-icon">◈</span> Orchestrator
       </div>
-      <div class="nav-item">
+      <div class="nav-item" data-nav="dag-view">
         <span class="nav-icon">⬡</span> DAG View
         <span class="nav-badge">5</span>
       </div>
-      <div class="nav-item">
+      <div class="nav-item" data-nav="spawn-loop">
         <span class="nav-icon">⟳</span> Spawn Loop
       </div>
     </div>
 
     <div class="nav-section">
       <div class="nav-label">MODEL</div>
-      <div class="nav-item">
+      <div class="nav-item" data-nav="training-run">
         <span class="nav-icon">◎</span> Training Run
       </div>
-      <div class="nav-item">
+      <div class="nav-item" data-nav="dataset">
         <span class="nav-icon">▦</span> Dataset
       </div>
-      <div class="nav-item">
+      <div class="nav-item" data-nav="eta-tracker">
         <span class="nav-icon">◷</span> ETA Tracker
       </div>
     </div>
 
     <div class="nav-section">
       <div class="nav-label">SECURITY</div>
-      <div class="nav-item">
+      <div class="nav-item" data-nav="audit-log">
         <span class="nav-icon">⊘</span> Audit Log
         <span class="nav-badge warn">1</span>
       </div>
-      <div class="nav-item">
+      <div class="nav-item" data-nav="repo-freeze">
         <span class="nav-icon">⚿</span> Repo Freeze
       </div>
-      <div class="nav-item">
+      <div class="nav-item" data-nav="stray-monitor">
         <span class="nav-icon">◈</span> Stray Monitor
       </div>
     </div>
 
     <div class="nav-section">
       <div class="nav-label">DATA</div>
-      <div class="nav-item">
+      <div class="nav-item" data-nav="trace-capture">
         <span class="nav-icon">⋯</span> Trace Capture
       </div>
-      <div class="nav-item">
+      <div class="nav-item" data-nav="steering-log">
         <span class="nav-icon">◈</span> Steering Log
       </div>
-      <div class="nav-item">
+      <div class="nav-item" data-nav="export">
         <span class="nav-icon">↗</span> Export
       </div>
     </div>
@@ -1337,7 +1337,7 @@ body::after {
   <div id="content">
 
     <!-- ── STAT ROW ─────────────────────────────────────────── -->
-    <div class="stat-row">
+    <div class="stat-row" data-panel="all orchestrator">
       <div class="card stat-card">
         <div class="stat-label">LOOPS EXECUTED</div>
         <div class="stat-val">247</div>
@@ -1364,7 +1364,7 @@ body::after {
     <div class="bento">
 
       <!-- DAG TASK LIST -->
-      <div class="card dag-panel">
+      <div class="card dag-panel" data-panel="all orchestrator dag-view">
         <div class="panel-hdr">
           <span class="panel-icon">⬡</span>
           <span class="panel-title">TASK DAG</span>
@@ -1434,7 +1434,7 @@ body::after {
       </div>
 
       <!-- MODEL STATUS -->
-      <div class="card model-panel">
+      <div class="card model-panel" data-panel="all orchestrator training-run eta-tracker">
         <div class="panel-hdr">
           <span class="panel-icon">◎</span>
           <span class="panel-title">MODEL STATUS</span>
@@ -1476,7 +1476,7 @@ body::after {
       <div class="right-col">
 
         <!-- AUDIT LOG -->
-        <div class="card">
+        <div class="card" data-panel="all orchestrator audit-log">
           <div class="panel-hdr">
             <span class="panel-icon">⊘</span>
             <span class="panel-title">LLM AUDIT &amp; SECURITY LOG</span>
@@ -1497,7 +1497,7 @@ body::after {
         </div>
 
         <!-- STEERING LOG -->
-        <div class="card">
+        <div class="card" data-panel="all orchestrator steering-log">
           <div class="panel-hdr">
             <span class="panel-icon">⋯</span>
             <span class="panel-title">STEERING EVENT LOG</span>
@@ -1519,7 +1519,7 @@ body::after {
         </div>
 
         <!-- SPAWN LOOP -->
-        <div class="card">
+        <div class="card" data-panel="all orchestrator spawn-loop">
           <div class="panel-hdr">
             <span class="panel-icon">⟳</span>
             <span class="panel-title">SPAWN LOOP</span>
@@ -1555,7 +1555,7 @@ body::after {
     <div class="bento2">
 
       <!-- BOOTSTRAP / REPO STRUCTURE -->
-      <div class="card">
+      <div class="card" data-panel="all orchestrator">
         <div class="panel-hdr">
           <span class="panel-icon">⬡</span>
           <span class="panel-title">BOOTSTRAP ZONE</span>
@@ -1592,7 +1592,7 @@ body::after {
           <div class="repo-flow">
             <span>Clone</span>
             <span class="flow-arrow">→</span>
-            <span>bootstrap.sh</span>
+            <span>prompt.md</span>
             <span class="flow-arrow">→</span>
             <span>Initialized</span>
             <span class="flow-arrow">→</span>
@@ -1602,7 +1602,7 @@ body::after {
       </div>
 
       <!-- REPO STRUCTURE -->
-      <div class="card">
+      <div class="card" data-panel="all orchestrator">
         <div class="panel-hdr">
           <span class="panel-icon">▦</span>
           <span class="panel-title">REPO STRUCTURE</span>
@@ -1611,7 +1611,7 @@ body::after {
           <div class="repo-zone">
             <div class="zone-box">
               <div class="zone-title">START/ (BOOTSTRAP)</div>
-              <div class="zone-item">bootstrap.sh</div>
+              <div class="zone-item">prompt.md</div>
               <div class="zone-item">AGENTS.md (FULL)</div>
               <div class="zone-item">01–05 dirs</div>
             </div>
@@ -1629,7 +1629,7 @@ body::after {
       </div>
 
       <!-- VECTOR MEMORY -->
-      <div class="card">
+      <div class="card" data-panel="all orchestrator dataset">
         <div class="panel-hdr">
           <span class="panel-icon">◈</span>
           <span class="panel-title">VECTOR MEMORY</span>
@@ -1668,7 +1668,7 @@ body::after {
     <div class="bento3">
 
       <!-- REPO FREEZE + TASK POLICY -->
-      <div class="card">
+      <div class="card" data-panel="all orchestrator repo-freeze">
         <div class="panel-hdr">
           <span class="panel-icon">⚿</span>
           <span class="panel-title">REPO FREEZE</span>
@@ -1709,7 +1709,7 @@ body::after {
       </div>
 
       <!-- STRAY MONITOR -->
-      <div class="card">
+      <div class="card" data-panel="all orchestrator stray-monitor">
         <div class="panel-hdr">
           <span class="panel-icon">◈</span>
           <span class="panel-title">STRAY MONITOR</span>
@@ -1729,7 +1729,7 @@ body::after {
       </div>
 
       <!-- TRACE CAPTURE -->
-      <div class="card">
+      <div class="card" data-panel="all orchestrator trace-capture">
         <div class="panel-hdr">
           <span class="panel-icon">⋯</span>
           <span class="panel-title">TRACE CAPTURE</span>
@@ -1775,7 +1775,7 @@ body::after {
     <div class="bento2">
 
       <!-- MEMORY FILES -->
-      <div class="card">
+      <div class="card" data-panel="all orchestrator dataset">
         <div class="panel-hdr">
           <span class="panel-icon">▦</span>
           <span class="panel-title">MEMORY FILES</span>
@@ -1812,7 +1812,7 @@ body::after {
       </div>
 
       <!-- EXPORT -->
-      <div class="card">
+      <div class="card" data-panel="all orchestrator export">
         <div class="panel-hdr">
           <span class="panel-icon">↗</span>
           <span class="panel-title">EXPORT</span>
@@ -1850,7 +1850,7 @@ body::after {
       </div>
 
       <!-- READINESS TRACKER -->
-      <div class="card">
+      <div class="card" data-panel="all orchestrator">
         <div class="panel-hdr">
           <span class="panel-icon">◷</span>
           <span class="panel-title">READINESS TRACKER</span>

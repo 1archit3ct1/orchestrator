@@ -1,0 +1,25 @@
+{
+  "timestamp": "2026-03-28T12:18:02",
+  "type": "session_memory",
+  "topic": "prompt_loop_sync_alignment",
+  "session_focus": "Keep the bootstrap prompt aligned with the real loop, canonical sync ownership, and repo-truth shell so future agents do not rebuild stale behavior.",
+  "user_directives": [
+    "Keep the bootstrap prompt aligned with the real loop, canonical sync ownership, and repo-truth shell so future agents do not rebuild stale behavior."
+  ],
+  "assistant_responses": [
+    "Updated the prompt to describe canonical sync, repo-truth routing, projection state, and serialized git safety as the current system contract."
+  ],
+  "training_value": [
+    "The prompt is part of the runtime contract and must evolve with the system.",
+    "Prompt sections drifted from the real runtime, which caused agents to recreate deleted surfaces and misread how task promotion worked."
+  ],
+  "top_hits": [
+    "SPAWN/STOP/MEMORY.md",
+    "SPAWN/STOP/.orchestrator/data/session_20260328_repo_truth_cleanup_backfill.jsonl",
+    "SPAWN/STOP/retrieval_log.jsonl"
+  ],
+  "tokens": 166,
+  "source": "conversation_backfill",
+  "variant_index": 2,
+  "session_id": "session_20260328_repo_truth_cleanup_backfill"
+}

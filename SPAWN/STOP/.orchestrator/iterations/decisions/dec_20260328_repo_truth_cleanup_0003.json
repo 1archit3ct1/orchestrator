@@ -1,0 +1,26 @@
+{
+  "decision_id": "dec_20260328_repo_truth_cleanup_0003",
+  "timestamp": "2026-03-28T12:19:03Z",
+  "task_id": "conversation_backfill",
+  "dag_node_id": "gui_repo_freeze_toggle",
+  "decision": {
+    "question": "Route mutating git commands through a serialized wrapper so automation cannot collide on the shared repo index.",
+    "chosen": "Added a root-level git_serial wrapper and documented that mutating commands must run sequentially from the parent repo root.",
+    "rationale": "Parallel add/commit/push attempts created transient index lock failures that looked like filesystem corruption."
+  },
+  "outcome": {
+    "result": "Derived steering backfill captured from the March 28 collaboration thread.",
+    "lesson": "Automation should serialize writes explicitly instead of relying on operator timing.",
+    "follow_up": "Use this correction family to weight future orchestration, frontend, and verifier decisions more heavily."
+  },
+  "metadata": {
+    "source": "conversation_backfill",
+    "derived_from": "user_assistant_thread",
+    "category": "repo_truth_alignment",
+    "theme_index": 4,
+    "variant_index": 3,
+    "behavioral_signal": "steering",
+    "backfill": true,
+    "session_id": "session_20260328_repo_truth_cleanup_backfill"
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "decision_id": "dec_20260328_repo_truth_cleanup_0001",
+  "timestamp": "2026-03-28T12:19:01Z",
+  "task_id": "conversation_backfill",
+  "dag_node_id": "gui_readiness_tracker_live",
+  "decision": {
+    "question": "Keep the bootstrap prompt aligned with the real loop, canonical sync ownership, and repo-truth shell so future agents do not rebuild stale behavior.",
+    "chosen": "Updated the prompt to describe canonical sync, repo-truth routing, projection state, and serialized git safety as the current system contract.",
+    "rationale": "Prompt sections drifted from the real runtime, which caused agents to recreate deleted surfaces and misread how task promotion worked."
+  },
+  "outcome": {
+    "result": "Derived steering backfill captured from the March 28 collaboration thread.",
+    "lesson": "The prompt is part of the runtime contract and must evolve with the system.",
+    "follow_up": "Use this correction family to weight future orchestration, frontend, and verifier decisions more heavily."
+  },
+  "metadata": {
+    "source": "conversation_backfill",
+    "derived_from": "user_assistant_thread",
+    "category": "repo_truth_alignment",
+    "theme_index": 2,
+    "variant_index": 1,
+    "behavioral_signal": "steering",
+    "backfill": true,
+    "session_id": "session_20260328_repo_truth_cleanup_backfill"
+  }
+}

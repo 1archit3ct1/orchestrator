@@ -156,7 +156,6 @@
 - This demonstrates the control work contract: GUI controls must mutate real repo state through Flask endpoints, not just visual toggles.
 - The pattern established (endpoint + state persistence + front-end binding + live rendering) should be replicated for other control surfaces (repo freeze, export triggers, etc.).
 
-
 ## Session Memory - Left Rail Coverage And 24B Size Clarification
 - Timestamp: 2026-03-27 22:01:30
 - Session Focus: Preserve the latest 2 user directives and 2 assistant responses around left-rail task coverage and the difference between minimum tuning size and full 24B corpus size.
@@ -389,47 +388,7 @@
 - Training data verified real before building UI features
 - Full conversation persistence increases token count and trace artifacts for model training
 
-## Loop Miss Capture - 2026-03-27 23:55:00
-- Type: lock_denied
-- Summary: Active task gui_training_run_details was blocked by a global write lock denial.
-- Details: {"task_id": "task_004", "dag_node_id": "gui_training_run_details", "repo": null, "reason": "Lock held by another task"}
-
 ## Loop Miss Capture - 2026-03-28 00:56:38
-- Type: verification_miss
-- Summary: Active task gui_dataset_details did not satisfy repo verification yet.
-- Details: {"task_id": "task_005", "dag_node_id": "gui_dataset_details", "reason": "dataset panel is not wired to detailed repo-backed dataset state"}
-
-## Loop Miss Capture - 2026-03-28 00:56:41
-- Type: verification_miss
-- Summary: Active task gui_dataset_details did not satisfy repo verification yet.
-- Details: {"task_id": "task_005", "dag_node_id": "gui_dataset_details", "reason": "dataset panel is not wired to detailed repo-backed dataset state"}
-
-## Loop Miss Capture - 2026-03-28 01:01:19
-- Type: verification_miss
-- Summary: Active task gui_dataset_details did not satisfy repo verification yet.
-- Details: {"task_id": "task_005", "dag_node_id": "gui_dataset_details", "reason": "dataset panel is not wired to detailed repo-backed dataset state"}
-
-## Loop Miss Capture - 2026-03-28 01:01:21
-- Type: verification_miss
-- Summary: Active task gui_dataset_details did not satisfy repo verification yet.
-- Details: {"task_id": "task_005", "dag_node_id": "gui_dataset_details", "reason": "dataset panel is not wired to detailed repo-backed dataset state"}
-
-## Loop Miss Capture - 2026-03-28 01:01:22
-- Type: verification_miss
-- Summary: Active task gui_dataset_details did not satisfy repo verification yet.
-- Details: {"task_id": "task_005", "dag_node_id": "gui_dataset_details", "reason": "dataset panel is not wired to detailed repo-backed dataset state"}
-
-## Loop Miss Capture - 2026-03-28 01:01:23
-- Type: verification_miss
-- Summary: Active task gui_dataset_details did not satisfy repo verification yet.
-- Details: {"task_id": "task_005", "dag_node_id": "gui_dataset_details", "reason": "dataset panel is not wired to detailed repo-backed dataset state"}
-
-## Loop Miss Capture - 2026-03-28 01:01:23
-- Type: verification_miss
-- Summary: Active task gui_dataset_details did not satisfy repo verification yet.
-- Details: {"task_id": "task_005", "dag_node_id": "gui_dataset_details", "reason": "dataset panel is not wired to detailed repo-backed dataset state"}
-
-## Loop Miss Capture - 2026-03-28 01:01:26
 - Type: verification_miss
 - Summary: Active task gui_dataset_details did not satisfy repo verification yet.
 - Details: {"task_id": "task_005", "dag_node_id": "gui_dataset_details", "reason": "dataset panel is not wired to detailed repo-backed dataset state"}
@@ -1475,3 +1434,17 @@
 - Summary: Projection pipeline promoted 7 tasks from 7 extracted structures with 3 overrides.
 - Promotion Ready: True
 - Prompt Handoff: SPAWN/START/prompt.md
+
+## Repo-Truth Cleanup Backfill - 2026-03-28 12:18:00
+- Captured the later March 28 collaboration thread into canonical tuning stores with explicit provenance under `session_20260328_repo_truth_cleanup_backfill`.
+- Coverage: prompt/loop/sync alignment, parent-root git serialization, single-authority `TASK.md`, legacy DAG retirement, local orchestrator backlog dispatch, and repo-truth-only frontend cleanup.
+- [1026] repo_truth_single_source: One live frontend contract is easier to verify than parallel UI truths.
+- [1027] prompt_loop_sync_alignment: The prompt is part of the runtime contract and must evolve with the system.
+- [1028] parent_git_root_not_the_bug: Shared git roots are fine when writes are serialized.
+- [1029] serialize_git_mutations: Automation should serialize writes explicitly instead of relying on operator timing.
+- [1030] single_task_md_authority: One control path for task promotion prevents stale task resurrection.
+- [1031] retire_legacy_dag_surface: Deleting stale UX must include retiring its task definition, not just hiding the widget.
+- [1032] local_backlog_not_child_repo: A deferred-local state is truer than a fake repo-missing warning.
+- [1033] runtime_test_from_prompt_only: Prompt-only replay is a strong regression test for orchestration contracts.
+- [1034] remove_redundancy_not_truth: Redundancy in the interface is not the same as redundancy in the state engine.
+- [1035] conversation_as_tuning_corpus: Long debugging threads can be turned into high-value supervised and steering data when provenance is explicit.

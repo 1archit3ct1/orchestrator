@@ -1,0 +1,26 @@
+{
+  "decision_id": "dec_20260328_repo_truth_cleanup_0008",
+  "timestamp": "2026-03-28T12:19:08Z",
+  "task_id": "conversation_backfill",
+  "dag_node_id": "gui_steering_log_details",
+  "decision": {
+    "question": "Load the full collaboration thread into memory, vector, retrieval, and steering stores as tuning data with explicit provenance.",
+    "chosen": "Generated a conversation-derived backfill across MEMORY.md, data jsonl, iteration summaries, steering decisions, vector entries, and retrieval-log pointers.",
+    "rationale": "The user explicitly asked for the entire conversation to be captured for model tuning rather than left as transient chat history."
+  },
+  "outcome": {
+    "result": "Derived steering backfill captured from the March 28 collaboration thread.",
+    "lesson": "Long debugging threads can be turned into high-value supervised and steering data when provenance is explicit.",
+    "follow_up": "Use this correction family to weight future orchestration, frontend, and verifier decisions more heavily."
+  },
+  "metadata": {
+    "source": "conversation_backfill",
+    "derived_from": "user_assistant_thread",
+    "category": "repo_truth_alignment",
+    "theme_index": 10,
+    "variant_index": 8,
+    "behavioral_signal": "steering",
+    "backfill": true,
+    "session_id": "session_20260328_repo_truth_cleanup_backfill"
+  }
+}

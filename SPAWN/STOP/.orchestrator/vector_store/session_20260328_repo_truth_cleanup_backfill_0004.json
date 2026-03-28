@@ -1,0 +1,25 @@
+{
+  "timestamp": "2026-03-28T12:18:04",
+  "type": "session_memory",
+  "topic": "serialize_git_mutations",
+  "session_focus": "Route mutating git commands through a serialized wrapper so automation cannot collide on the shared repo index.",
+  "user_directives": [
+    "Route mutating git commands through a serialized wrapper so automation cannot collide on the shared repo index."
+  ],
+  "assistant_responses": [
+    "Added a root-level git_serial wrapper and documented that mutating commands must run sequentially from the parent repo root."
+  ],
+  "training_value": [
+    "Automation should serialize writes explicitly instead of relying on operator timing.",
+    "Parallel add/commit/push attempts created transient index lock failures that looked like filesystem corruption."
+  ],
+  "top_hits": [
+    "SPAWN/STOP/MEMORY.md",
+    "SPAWN/STOP/.orchestrator/data/session_20260328_repo_truth_cleanup_backfill.jsonl",
+    "SPAWN/STOP/retrieval_log.jsonl"
+  ],
+  "tokens": 143,
+  "source": "conversation_backfill",
+  "variant_index": 4,
+  "session_id": "session_20260328_repo_truth_cleanup_backfill"
+}

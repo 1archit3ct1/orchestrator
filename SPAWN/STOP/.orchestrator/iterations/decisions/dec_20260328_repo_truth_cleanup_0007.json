@@ -1,0 +1,26 @@
+{
+  "decision_id": "dec_20260328_repo_truth_cleanup_0007",
+  "timestamp": "2026-03-28T12:19:07Z",
+  "task_id": "conversation_backfill",
+  "dag_node_id": "gui_trace_capture_details",
+  "decision": {
+    "question": "Test the loop as if only prompt directives are available, then verify that no stale task files or phantom GUI requirements reappear.",
+    "chosen": "Ran bounded loop cycles against the repo-truth state and confirmed TASK.md stayed absent after the contract and loop authority were aligned.",
+    "rationale": "The goal was to validate the orchestrator from its explicit contract rather than from hidden prior assumptions."
+  },
+  "outcome": {
+    "result": "Derived steering backfill captured from the March 28 collaboration thread.",
+    "lesson": "Prompt-only replay is a strong regression test for orchestration contracts.",
+    "follow_up": "Use this correction family to weight future orchestration, frontend, and verifier decisions more heavily."
+  },
+  "metadata": {
+    "source": "conversation_backfill",
+    "derived_from": "user_assistant_thread",
+    "category": "repo_truth_alignment",
+    "theme_index": 8,
+    "variant_index": 7,
+    "behavioral_signal": "steering",
+    "backfill": true,
+    "session_id": "session_20260328_repo_truth_cleanup_backfill"
+  }
+}

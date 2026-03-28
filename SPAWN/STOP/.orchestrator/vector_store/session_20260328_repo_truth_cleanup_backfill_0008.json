@@ -1,0 +1,25 @@
+{
+  "timestamp": "2026-03-28T12:18:08",
+  "type": "session_memory",
+  "topic": "runtime_test_from_prompt_only",
+  "session_focus": "Test the loop as if only prompt directives are available, then verify that no stale task files or phantom GUI requirements reappear.",
+  "user_directives": [
+    "Test the loop as if only prompt directives are available, then verify that no stale task files or phantom GUI requirements reappear."
+  ],
+  "assistant_responses": [
+    "Ran bounded loop cycles against the repo-truth state and confirmed TASK.md stayed absent after the contract and loop authority were aligned."
+  ],
+  "training_value": [
+    "Prompt-only replay is a strong regression test for orchestration contracts.",
+    "The goal was to validate the orchestrator from its explicit contract rather than from hidden prior assumptions."
+  ],
+  "top_hits": [
+    "SPAWN/STOP/MEMORY.md",
+    "SPAWN/STOP/.orchestrator/data/session_20260328_repo_truth_cleanup_backfill.jsonl",
+    "SPAWN/STOP/retrieval_log.jsonl"
+  ],
+  "tokens": 152,
+  "source": "conversation_backfill",
+  "variant_index": 8,
+  "session_id": "session_20260328_repo_truth_cleanup_backfill"
+}

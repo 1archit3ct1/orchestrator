@@ -1,0 +1,25 @@
+{
+  "timestamp": "2026-03-28T12:20:00",
+  "type": "iteration_record",
+  "cycle": 1035,
+  "task_id": "conversation_backfill",
+  "outcome": "success",
+  "artifacts_created": [
+    "SPAWN/STOP/.orchestrator/data/session_20260328_repo_truth_cleanup_backfill.jsonl",
+    "SPAWN/STOP/.orchestrator/iterations/session_20260328_repo_truth_cleanup_backfill.json",
+    "SPAWN/STOP/.orchestrator/iterations/decisions/",
+    "SPAWN/STOP/.orchestrator/vector_store/",
+    "SPAWN/STOP/MEMORY.md",
+    "SPAWN/STOP/retrieval_log.jsonl"
+  ],
+  "findings": {
+    "conversation_backfill": true,
+    "session_id": "session_20260328_repo_truth_cleanup_backfill",
+    "rows": 10,
+    "steering_decisions": 8,
+    "coverage": "repo_truth_frontend, prompt alignment, git serialization, TASK.md authority, DAG retirement, local backlog dispatch"
+  },
+  "lesson": "Conversation-derived cleanup, retirement, and sync corrections should be preserved as first-class training data.",
+  "source": "conversation_backfill",
+  "session_id": "session_20260328_repo_truth_cleanup_backfill"
+}

@@ -1,0 +1,25 @@
+{
+  "timestamp": "2026-03-28T12:18:03",
+  "type": "session_memory",
+  "topic": "parent_git_root_not_the_bug",
+  "session_focus": "Distinguish repo layout from concurrency issues before blaming the parent-root git structure.",
+  "user_directives": [
+    "Distinguish repo layout from concurrency issues before blaming the parent-root git structure."
+  ],
+  "assistant_responses": [
+    "Determined the layout was intentional and safe; the real bug was overlapping mutating git operations against the same top-level index."
+  ],
+  "training_value": [
+    "Shared git roots are fine when writes are serialized.",
+    "The git index lock kept recurring, and the question was whether the top-level .git one folder above SPAWN was inherently wrong."
+  ],
+  "top_hits": [
+    "SPAWN/STOP/MEMORY.md",
+    "SPAWN/STOP/.orchestrator/data/session_20260328_repo_truth_cleanup_backfill.jsonl",
+    "SPAWN/STOP/retrieval_log.jsonl"
+  ],
+  "tokens": 135,
+  "source": "conversation_backfill",
+  "variant_index": 3,
+  "session_id": "session_20260328_repo_truth_cleanup_backfill"
+}

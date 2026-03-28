@@ -1,0 +1,25 @@
+{
+  "timestamp": "2026-03-28T12:18:05",
+  "type": "session_memory",
+  "topic": "single_task_md_authority",
+  "session_focus": "Make canonical sync the only authority that can create, retire, or advance TASK.md.",
+  "user_directives": [
+    "Make canonical sync the only authority that can create, retire, or advance TASK.md."
+  ],
+  "assistant_responses": [
+    "Removed the duplicate promotion path from the loop so canonical sync alone governs task-file lifecycle."
+  ],
+  "training_value": [
+    "One control path for task promotion prevents stale task resurrection.",
+    "TASK.md kept reappearing because loop.py and dashboard_state.py both had power to write it from different task views."
+  ],
+  "top_hits": [
+    "SPAWN/STOP/MEMORY.md",
+    "SPAWN/STOP/.orchestrator/data/session_20260328_repo_truth_cleanup_backfill.jsonl",
+    "SPAWN/STOP/retrieval_log.jsonl"
+  ],
+  "tokens": 124,
+  "source": "conversation_backfill",
+  "variant_index": 5,
+  "session_id": "session_20260328_repo_truth_cleanup_backfill"
+}

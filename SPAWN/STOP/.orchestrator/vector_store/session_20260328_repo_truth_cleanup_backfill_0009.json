@@ -1,0 +1,25 @@
+{
+  "timestamp": "2026-03-28T12:18:09",
+  "type": "session_memory",
+  "topic": "remove_redundancy_not_truth",
+  "session_focus": "Remove redundant panels, routes, and widgets when they duplicate better repo-backed surfaces, but keep the underlying state APIs if they still serve the engine.",
+  "user_directives": [
+    "Remove redundant panels, routes, and widgets when they duplicate better repo-backed surfaces, but keep the underlying state APIs if they still serve the engine."
+  ],
+  "assistant_responses": [
+    "Retired redundant frontend surfaces while preserving canonical APIs and state artifacts that still support repo truth, loop verification, and training data collection."
+  ],
+  "training_value": [
+    "Redundancy in the interface is not the same as redundancy in the state engine.",
+    "The conversation kept distinguishing between dead GUI duplication and backend truth that should remain reusable."
+  ],
+  "top_hits": [
+    "SPAWN/STOP/MEMORY.md",
+    "SPAWN/STOP/.orchestrator/data/session_20260328_repo_truth_cleanup_backfill.jsonl",
+    "SPAWN/STOP/retrieval_log.jsonl"
+  ],
+  "tokens": 172,
+  "source": "conversation_backfill",
+  "variant_index": 9,
+  "session_id": "session_20260328_repo_truth_cleanup_backfill"
+}

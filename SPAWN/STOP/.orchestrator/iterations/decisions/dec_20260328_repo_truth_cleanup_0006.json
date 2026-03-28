@@ -1,0 +1,26 @@
+{
+  "decision_id": "dec_20260328_repo_truth_cleanup_0006",
+  "timestamp": "2026-03-28T12:19:06Z",
+  "task_id": "conversation_backfill",
+  "dag_node_id": "gui_spawn_loop_controls",
+  "decision": {
+    "question": "Treat orchestrator-owned queue items as local backlog rather than missing child repos when downstream repo execution is not implemented yet.",
+    "chosen": "Changed dispatch behavior so orchestrator queue items are deferred locally instead of logged as missing child repos.",
+    "rationale": "The loop warned Child repo not found: orchestrator for every local strategic task, creating noise without useful action."
+  },
+  "outcome": {
+    "result": "Derived steering backfill captured from the March 28 collaboration thread.",
+    "lesson": "A deferred-local state is truer than a fake repo-missing warning.",
+    "follow_up": "Use this correction family to weight future orchestration, frontend, and verifier decisions more heavily."
+  },
+  "metadata": {
+    "source": "conversation_backfill",
+    "derived_from": "user_assistant_thread",
+    "category": "repo_truth_alignment",
+    "theme_index": 7,
+    "variant_index": 6,
+    "behavioral_signal": "steering",
+    "backfill": true,
+    "session_id": "session_20260328_repo_truth_cleanup_backfill"
+  }
+}

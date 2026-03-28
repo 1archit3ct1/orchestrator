@@ -1,0 +1,26 @@
+{
+  "decision_id": "dec_20260328_repo_truth_cleanup_0005",
+  "timestamp": "2026-03-28T12:19:05Z",
+  "task_id": "conversation_backfill",
+  "dag_node_id": "gui_dag_task_details",
+  "decision": {
+    "question": "If the old GUI DAG is redundant, remove it fully and update the contract so the system stops trying to rebuild it.",
+    "chosen": "Removed the DAG panel and drilldown routes, then redefined T02 as legacy DAG retirement so sync no longer reopens it.",
+    "rationale": "The legacy DAG panel duplicated queue and execution state while also reactivating a removed requirement inside the canonical graph."
+  },
+  "outcome": {
+    "result": "Derived steering backfill captured from the March 28 collaboration thread.",
+    "lesson": "Deleting stale UX must include retiring its task definition, not just hiding the widget.",
+    "follow_up": "Use this correction family to weight future orchestration, frontend, and verifier decisions more heavily."
+  },
+  "metadata": {
+    "source": "conversation_backfill",
+    "derived_from": "user_assistant_thread",
+    "category": "repo_truth_alignment",
+    "theme_index": 6,
+    "variant_index": 5,
+    "behavioral_signal": "steering",
+    "backfill": true,
+    "session_id": "session_20260328_repo_truth_cleanup_backfill"
+  }
+}

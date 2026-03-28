@@ -1,0 +1,26 @@
+{
+  "decision_id": "dec_20260328_repo_truth_cleanup_0004",
+  "timestamp": "2026-03-28T12:19:04Z",
+  "task_id": "conversation_backfill",
+  "dag_node_id": "gui_mutex_lock_details",
+  "decision": {
+    "question": "Make canonical sync the only authority that can create, retire, or advance TASK.md.",
+    "chosen": "Removed the duplicate promotion path from the loop so canonical sync alone governs task-file lifecycle.",
+    "rationale": "TASK.md kept reappearing because loop.py and dashboard_state.py both had power to write it from different task views."
+  },
+  "outcome": {
+    "result": "Derived steering backfill captured from the March 28 collaboration thread.",
+    "lesson": "One control path for task promotion prevents stale task resurrection.",
+    "follow_up": "Use this correction family to weight future orchestration, frontend, and verifier decisions more heavily."
+  },
+  "metadata": {
+    "source": "conversation_backfill",
+    "derived_from": "user_assistant_thread",
+    "category": "repo_truth_alignment",
+    "theme_index": 5,
+    "variant_index": 4,
+    "behavioral_signal": "steering",
+    "backfill": true,
+    "session_id": "session_20260328_repo_truth_cleanup_backfill"
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "timestamp": "2026-03-28T12:18:01",
+  "type": "session_memory",
+  "topic": "repo_truth_single_source",
+  "session_focus": "Prefer the repo-truth frontend as the single live shell and retire served legacy surfaces instead of carrying duplicate GUI contracts.",
+  "user_directives": [
+    "Prefer the repo-truth frontend as the single live shell and retire served legacy surfaces instead of carrying duplicate GUI contracts."
+  ],
+  "assistant_responses": [
+    "Promoted the repo-truth frontend at / as the single live GUI and removed legacy dashboard dependencies rather than preserving dual truths."
+  ],
+  "training_value": [
+    "One live frontend contract is easier to verify than parallel UI truths.",
+    "The conversation repeatedly uncovered mismatch between what the browser showed, what the API returned, and what the old dashboard contract expected."
+  ],
+  "top_hits": [
+    "SPAWN/STOP/MEMORY.md",
+    "SPAWN/STOP/.orchestrator/data/session_20260328_repo_truth_cleanup_backfill.jsonl",
+    "SPAWN/STOP/retrieval_log.jsonl"
+  ],
+  "tokens": 163,
+  "source": "conversation_backfill",
+  "variant_index": 1,
+  "session_id": "session_20260328_repo_truth_cleanup_backfill"
+}

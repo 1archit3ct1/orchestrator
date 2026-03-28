@@ -1,0 +1,25 @@
+{
+  "timestamp": "2026-03-28T12:18:06",
+  "type": "session_memory",
+  "topic": "retire_legacy_dag_surface",
+  "session_focus": "If the old GUI DAG is redundant, remove it fully and update the contract so the system stops trying to rebuild it.",
+  "user_directives": [
+    "If the old GUI DAG is redundant, remove it fully and update the contract so the system stops trying to rebuild it."
+  ],
+  "assistant_responses": [
+    "Removed the DAG panel and drilldown routes, then redefined T02 as legacy DAG retirement so sync no longer reopens it."
+  ],
+  "training_value": [
+    "Deleting stale UX must include retiring its task definition, not just hiding the widget.",
+    "The legacy DAG panel duplicated queue and execution state while also reactivating a removed requirement inside the canonical graph."
+  ],
+  "top_hits": [
+    "SPAWN/STOP/MEMORY.md",
+    "SPAWN/STOP/.orchestrator/data/session_20260328_repo_truth_cleanup_backfill.jsonl",
+    "SPAWN/STOP/retrieval_log.jsonl"
+  ],
+  "tokens": 150,
+  "source": "conversation_backfill",
+  "variant_index": 6,
+  "session_id": "session_20260328_repo_truth_cleanup_backfill"
+}

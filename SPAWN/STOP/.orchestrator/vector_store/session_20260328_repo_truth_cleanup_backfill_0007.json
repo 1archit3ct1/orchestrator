@@ -1,0 +1,25 @@
+{
+  "timestamp": "2026-03-28T12:18:07",
+  "type": "session_memory",
+  "topic": "local_backlog_not_child_repo",
+  "session_focus": "Treat orchestrator-owned queue items as local backlog rather than missing child repos when downstream repo execution is not implemented yet.",
+  "user_directives": [
+    "Treat orchestrator-owned queue items as local backlog rather than missing child repos when downstream repo execution is not implemented yet."
+  ],
+  "assistant_responses": [
+    "Changed dispatch behavior so orchestrator queue items are deferred locally instead of logged as missing child repos."
+  ],
+  "training_value": [
+    "A deferred-local state is truer than a fake repo-missing warning.",
+    "The loop warned Child repo not found: orchestrator for every local strategic task, creating noise without useful action."
+  ],
+  "top_hits": [
+    "SPAWN/STOP/MEMORY.md",
+    "SPAWN/STOP/.orchestrator/data/session_20260328_repo_truth_cleanup_backfill.jsonl",
+    "SPAWN/STOP/retrieval_log.jsonl"
+  ],
+  "tokens": 147,
+  "source": "conversation_backfill",
+  "variant_index": 7,
+  "session_id": "session_20260328_repo_truth_cleanup_backfill"
+}

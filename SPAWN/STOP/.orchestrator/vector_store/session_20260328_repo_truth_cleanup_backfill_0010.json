@@ -1,0 +1,25 @@
+{
+  "timestamp": "2026-03-28T12:18:10",
+  "type": "session_memory",
+  "topic": "conversation_as_tuning_corpus",
+  "session_focus": "Load the full collaboration thread into memory, vector, retrieval, and steering stores as tuning data with explicit provenance.",
+  "user_directives": [
+    "Load the full collaboration thread into memory, vector, retrieval, and steering stores as tuning data with explicit provenance."
+  ],
+  "assistant_responses": [
+    "Generated a conversation-derived backfill across MEMORY.md, data jsonl, iteration summaries, steering decisions, vector entries, and retrieval-log pointers."
+  ],
+  "training_value": [
+    "Long debugging threads can be turned into high-value supervised and steering data when provenance is explicit.",
+    "The user explicitly asked for the entire conversation to be captured for model tuning rather than left as transient chat history."
+  ],
+  "top_hits": [
+    "SPAWN/STOP/MEMORY.md",
+    "SPAWN/STOP/.orchestrator/data/session_20260328_repo_truth_cleanup_backfill.jsonl",
+    "SPAWN/STOP/retrieval_log.jsonl"
+  ],
+  "tokens": 174,
+  "source": "conversation_backfill",
+  "variant_index": 10,
+  "session_id": "session_20260328_repo_truth_cleanup_backfill"
+}

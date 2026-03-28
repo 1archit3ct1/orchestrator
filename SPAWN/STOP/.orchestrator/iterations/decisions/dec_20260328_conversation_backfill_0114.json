@@ -1,0 +1,25 @@
+{
+  "decision_id": "dec_20260328_conversation_backfill_0114",
+  "timestamp": "2026-03-28T10:24:00Z",
+  "task_id": "conversation_backfill",
+  "dag_node_id": "gui_steering_log",
+  "decision": {
+    "question": "How should the repo freeze toggle behave so the user can trust that the control actually changed state?",
+    "chosen": "Send explicit hold or release actions based on rendered state instead of an ambiguous toggle action.",
+    "rationale": "Deterministic actions are easier to reason about than state-blind toggles. This derived steering example was captured from blank-panel remediation as variant 6 in theme 10."
+  },
+  "outcome": {
+    "result": "Derived steering backfill captured from the March 28 collaboration thread.",
+    "lesson": "Controls should encode intent explicitly when state drift is possible.",
+    "follow_up": "Use this decision family to weight future verifier, GUI, and telemetry corrections more heavily."
+  },
+  "metadata": {
+    "source": "conversation_backfill",
+    "derived_from": "user_assistant_thread",
+    "category": "repo_freeze_control",
+    "theme_index": 10,
+    "variant_index": 6,
+    "behavioral_signal": "steering",
+    "backfill": true
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "decision_id": "dec_20260328_conversation_backfill_0133",
+  "timestamp": "2026-03-28T10:43:00Z",
+  "task_id": "conversation_backfill",
+  "dag_node_id": "gui_steering_log",
+  "decision": {
+    "question": "What role should failures, blocked actions, and user corrections play in the training corpus?",
+    "chosen": "Capture them as high-value negative and steering examples instead of discarding them.",
+    "rationale": "These are the moments that teach the system how to recover and how not to overclaim completion. This derived steering example was captured from the user-visible GUI mismatch as variant 1 in theme 12."
+  },
+  "outcome": {
+    "result": "Derived steering backfill captured from the March 28 collaboration thread.",
+    "lesson": "Failure handling is often the richest alignment data in an orchestrator.",
+    "follow_up": "Use this decision family to weight future verifier, GUI, and telemetry corrections more heavily."
+  },
+  "metadata": {
+    "source": "conversation_backfill",
+    "derived_from": "user_assistant_thread",
+    "category": "negative_dataset",
+    "theme_index": 12,
+    "variant_index": 1,
+    "behavioral_signal": "steering",
+    "backfill": true
+  }
+}

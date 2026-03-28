@@ -328,6 +328,7 @@ def build_trace_capture_payload():
         "generated_at": dashboard.get("generated_at"),
         "task_id": "T11",
         "entries": dashboard.get("trace_entries", []),
+        "activity_feed": dashboard.get("activity_feed", []),
         "artifacts": collect_recent_files(iterations_dir, ["iter_*.json", "dec_*.json"], limit=10),
         "trace_count": len(dashboard.get("trace_entries", [])),
         "training_traces": dashboard.get("summary", {}).get("training_traces", 0),
@@ -1132,6 +1133,13 @@ LIVE_DASHBOARD_SCRIPT = r"""
     const body = qs('.scale-analysis-body');
     if (!body) return;
     const analysis = data.scale_analysis || {};
+    const rowHtml = Array.isArray(analysis.rows) && analysis.rows.length ? analysis.rows.map(function (row) {
+      return ''
+        + '<div class="training-run-item">'
+        + '<span>' + escapeHtml(row.label) + '</span>'
+        + '<strong>' + escapeHtml(row.value) + '</strong>'
+        + '</div>';
+    }).join('') : '<div class="training-run-empty">No corpus rows are available yet.</div>';
     body.innerHTML = ''
       + '<div class="scale-analysis-grid">'
       + '<div class="scale-analysis-col">'
@@ -1141,6 +1149,7 @@ LIVE_DASHBOARD_SCRIPT = r"""
       + '<div class="scale-line"><strong>Known:</strong> ' + escapeHtml(String(analysis.known_count || 0)) + ' · <strong>Partial:</strong> ' + escapeHtml(String(analysis.partial_count || 0)) + ' · <strong>Unknown:</strong> ' + escapeHtml(String(analysis.unknown_count || 0)) + '</div>'
       + '<div class="scale-line"><strong>Current collected:</strong> ' + escapeHtml(formatStorageBytes(analysis.current_collected_bytes)) + ' · ' + escapeHtml(compactNumber(analysis.current_collected_tokens || 0)) + ' tokens</div>'
       + '<div class="scale-line"><strong>Current JSONL files:</strong> ' + escapeHtml(String(analysis.current_jsonl_files || 0)) + ' · <strong>Decision files:</strong> ' + escapeHtml(String(analysis.current_decision_files || 0)) + '</div>'
+      + '<div class="scale-line"><strong>Dataset rows:</strong> ' + escapeHtml(String(analysis.current_dataset_rows || 0)) + ' · <strong>Vector entries:</strong> ' + escapeHtml(String(analysis.current_vector_entries || 0)) + '</div>'
       + '</div>'
       + '<div class="scale-box">'
       + '<div class="scale-box-title">MODEL SCALE DECISION</div>'
@@ -1157,6 +1166,12 @@ LIVE_DASHBOARD_SCRIPT = r"""
       + '</div>'
       + '</div>'
       + '<div class="scale-analysis-col">'
+      + '<div class="scale-box">'
+      + '<div class="scale-box-title">LIVE CORPUS COUNTS</div>'
+      + '<div class="scale-list">'
+      + rowHtml
+      + '</div>'
+      + '</div>'
       + '<div class="scale-box">'
       + '<div class="scale-box-title">KNOWN / PARTIAL / UNKNOWN</div>'
       + '<div class="scale-list">'
@@ -1226,6 +1241,25 @@ LIVE_DASHBOARD_SCRIPT = r"""
     }
     badge.textContent = text;
   }
+  function normalizeLegacyLayout() {
+    const sidebar = qs('#sidebar');
+    if (sidebar) sidebar.remove();
+
+    qsa('.card').forEach(function(card) {
+      const title = card.querySelector('.panel-title');
+      if (title && title.textContent.trim() === 'STEERING EVENT LOG') {
+        card.remove();
+      }
+    });
+
+    const main = qs('#main');
+    if (main) main.style.gridTemplateColumns = '1fr';
+    const content = qs('#content');
+    if (content) {
+      content.style.width = '100%';
+      content.style.maxWidth = '100%';
+    }
+  }
   function renderTaskSurfaceMap() {
     const config = taskMapConfig();
     qsa('#sidebar .nav-item[data-nav]').forEach(function (item) {
@@ -1251,13 +1285,14 @@ LIVE_DASHBOARD_SCRIPT = r"""
     qsa('.readiness-row').forEach(function (el) { ensureTaskBadge(el, config.itemGroups.readiness, 'panel-task-badge'); });
   }
   function handleNavPanel(panelKey) {
-    const selected = panelKey || 'orchestrator';
+    const hasSidebar = !!qs('#sidebar .nav-item[data-nav]');
+    const selected = hasSidebar ? (panelKey || 'orchestrator') : 'all';
     qsa('#sidebar .nav-item[data-nav]').forEach(function (item) {
       item.classList.toggle('active', item.getAttribute('data-nav') === selected);
     });
     qsa('#content [data-panel]').forEach(function (panel) {
       const keys = (panel.getAttribute('data-panel') || '').split(/\s+/).filter(Boolean);
-      const visible = selected === 'orchestrator' || keys.includes('all') || keys.includes(selected);
+      const visible = selected === 'all' || selected === 'orchestrator' || keys.includes('all') || keys.includes(selected);
       panel.style.display = visible ? '' : 'none';
     });
   }
@@ -1292,8 +1327,22 @@ LIVE_DASHBOARD_SCRIPT = r"""
   function renderStatRow(data) {
     const cards = qsa('.stat-row .stat-card');
     if (cards.length < 4) return;
-    setText(cards[0].querySelector('.stat-val'), String(data.summary.loops_executed || 0));
-    setText(cards[0].querySelector('.stat-meta'), 'autonomous cycles');
+    cards[0].innerHTML = ''
+      + '<div class="stat-label">AUTONOMY RUNTIME</div>'
+      + '<button class="stat-action-btn" type="button" data-autonomy-detail-open>OPEN AUTONOMY COUNTS</button>'
+      + '<div class="stat-meta">truthful runtime telemetry</div>';
+    const autonomyBtn = cards[0].querySelector('[data-autonomy-detail-open]');
+    if (autonomyBtn) {
+      autonomyBtn.textContent = 'OPEN AUTONOMY COUNTS';
+      autonomyBtn.dataset.autonomySummary = JSON.stringify({
+        loops_executed: data.summary.loops_executed || 0,
+        tasks_completed: (data.metrics && data.metrics.task_status && data.metrics.task_status.completed) || 0,
+        training_traces: data.summary.training_traces || 0,
+        steering_traces: (data.model && data.model.steering_traces) || 0,
+        retrieval_lines: (data.model && data.model.retrieval_lines) || 0,
+        vector_entries: (data.metrics && data.metrics.vector_store_entries) || 0
+      });
+    }
 
     setText(cards[1].querySelector('.stat-val'), Number(data.summary.training_traces || 0).toLocaleString());
     setText(cards[1].querySelector('.stat-delta'), String((data.model && data.model.success_traces) || 0) + ' success · ' + String((data.model && data.model.steering_traces) || 0) + ' steering');
@@ -1304,6 +1353,32 @@ LIVE_DASHBOARD_SCRIPT = r"""
     setText(cards[3].querySelector('.stat-val'), String(data.summary.stray_count || 0));
     setText(cards[3].querySelector('.stat-meta'), (data.summary.stray_count || 0) ? 'policy events detected' : 'no stray events logged');
     cards.forEach(function (card) { setOperational(card, !!data.canonical); });
+  }
+
+  function bindAutonomyRuntimeButton() {
+    const btn = qs('[data-autonomy-detail-open]');
+    if (!btn || btn.dataset.bound === 'true') return;
+    btn.dataset.bound = 'true';
+    btn.addEventListener('click', function () {
+      let summary = {};
+      try {
+        summary = JSON.parse(btn.dataset.autonomySummary || '{}');
+      } catch (error) {
+        summary = {};
+      }
+      openRepoDetailModal(
+        'Autonomy Runtime',
+        'Canonical autonomy counts from the live dashboard payload.',
+        {
+          loops_executed: summary.loops_executed || 0,
+          tasks_completed: summary.tasks_completed || 0,
+          training_traces: summary.training_traces || 0,
+          steering_traces: summary.steering_traces || 0,
+          retrieval_lines: summary.retrieval_lines || 0,
+          vector_entries: summary.vector_entries || 0
+        }
+      );
+    });
   }
 
   function renderDagList(data) {
@@ -1717,6 +1792,7 @@ LIVE_DASHBOARD_SCRIPT = r"""
           : 'No active lock is held. Writes should only occur after the next task lock is acquired.';
       }
       if (toggle) {
+        toggle.dataset.freezeState = held ? 'held' : 'open';
         toggle.style.background = held ? 'var(--red)' : 'rgba(34,197,94,0.25)';
         toggle.style.borderColor = held ? 'var(--border)' : 'rgba(34,197,94,0.35)';
       }
@@ -1740,11 +1816,13 @@ LIVE_DASHBOARD_SCRIPT = r"""
           openMutexLockDetails();
           return;
         }
-        if (!event.target.closest('[data-freeze-action="toggle"]')) return;
+        const toggle = event.target.closest('[data-freeze-action="toggle"]');
+        if (!toggle) return;
+        const action = toggle.dataset.freezeState === 'held' ? 'release' : 'hold';
         fetch('/api/control/repo-freeze', {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({action: 'toggle'})
+          body: JSON.stringify({action: action})
         })
           .then(function(response) { return response.json(); })
           .then(function() {
@@ -1798,15 +1876,20 @@ LIVE_DASHBOARD_SCRIPT = r"""
       const response = await fetch('/api/traces', {cache: 'no-store'});
       if (!response.ok) throw new Error('trace capture request failed');
       const detail = await response.json();
-      const entries = Array.isArray(detail.entries) ? detail.entries : [];
-      traceBody.innerHTML = entries.map(function (entry) {
+      const entries = Array.isArray(detail.entries) && detail.entries.length ? detail.entries : (detail.activity_feed || []);
+      const entryHtml = entries.length ? entries.map(function (entry) {
         return ''
           + '<div class="trace-entry">'
           + '<span class="trace-time">' + escapeHtml(textOr(entry.timestamp, formatClock(data.generated_at))) + '</span>'
           + '<span class="trace-event">' + escapeHtml(entry.text) + '</span>'
           + '<span class="trace-tag ' + traceTagClass(entry.type) + '">' + escapeHtml((entry.type || 'loop').toUpperCase()) + '</span>'
           + '</div>';
-      }).join('');
+      }).join('') : '<div class="trace-entry"><span class="trace-time">LIVE</span><span class="trace-event">No runtime log lines are present yet. The dashboard is now falling back to repo-backed artifact activity instead of rendering blank panels.</span><span class="trace-tag t-loop">STATE</span></div>';
+      const artifacts = Array.isArray(detail.artifacts) ? detail.artifacts : [];
+      const artifactHtml = artifacts.length ? artifacts.slice(0, 4).map(function(item) {
+        return '<div class="trace-entry"><span class="trace-time">' + escapeHtml(formatClock(item.modified_at)) + '</span><span class="trace-event">artifact visible - ' + escapeHtml(item.path) + ' · ' + escapeHtml(item.size) + '</span><span class="trace-tag t-mem">FILE</span></div>';
+      }).join('') : '';
+      traceBody.innerHTML = entryHtml + artifactHtml;
 
       const tracePanelBadge = qsa('.bento3 .panel-badge');
       if (tracePanelBadge[0]) setText(tracePanelBadge[0], '+' + String(detail.training_traces || 0) + ' canonical');
@@ -1827,6 +1910,7 @@ LIVE_DASHBOARD_SCRIPT = r"""
         + '<span class="mem-file-size">' + escapeHtml(item.size) + '</span>'
         + '</div>';
     }).join('');
+    setOperational(container.closest('.card'), !!(data.verification && data.verification.gui_memory_file_open && data.verification.gui_memory_file_open.live));
   }
 
   async function renderTrainingRunDetails() {
@@ -1841,19 +1925,11 @@ LIVE_DASHBOARD_SCRIPT = r"""
       const logs = root ? root.querySelector('[data-training-logs]') : null;
       const blockers = root ? root.querySelector('[data-training-blockers]') : null;
       const inlineBadge = qs('[data-training-inline-badge]');
-      const inlineSummary = qs('[data-training-inline-summary]');
       const inlineBlockers = qs('[data-training-inline-blockers]');
 
       if (inlineBadge) {
         const statusText = detail.training_config && detail.training_config.integrated ? 'training integrated' : 'training run live';
         inlineBadge.textContent = statusText;
-      }
-
-      if (inlineSummary) {
-        inlineSummary.innerHTML = ''
-          + '<div class="trace-box"><div class="trace-box-label">CONFIG</div><div class="trace-box-val" style="font-size:18px;">' + escapeHtml(detail.training_config && detail.training_config.integrated ? 'LIVE' : 'PENDING') + '</div></div>'
-          + '<div class="trace-box"><div class="trace-box-label">DATA FILES</div><div class="trace-box-val" style="font-size:18px;">' + escapeHtml(String(detail.artifacts && detail.artifacts.counts && detail.artifacts.counts.dataset_files || 0)) + '</div></div>'
-          + '<div class="trace-box"><div class="trace-box-label">MODEL FILES</div><div class="trace-box-val" style="font-size:18px;">' + escapeHtml(String(detail.artifacts && detail.artifacts.counts && detail.artifacts.counts.model_files || 0)) + '</div></div>';
       }
 
       if (inlineBlockers) {
@@ -2026,6 +2102,7 @@ LIVE_DASHBOARD_SCRIPT = r"""
     if (flow) {
       flow.innerHTML = '<span>Clone</span><span class="flow-arrow">→</span><span>prompt.md</span><span class="flow-arrow">→</span><span>SPAWN/START</span><span class="flow-arrow">→</span><span>SPAWN/STOP</span>';
     }
+    setOperational(bootBody ? bootBody.closest('.card') : null, !!(data.verification && data.verification.gui_bootstrap_step_details && data.verification.gui_bootstrap_step_details.live));
   }
 
   function renderRepoStructurePanel(data) {
@@ -2041,6 +2118,7 @@ LIVE_DASHBOARD_SCRIPT = r"""
         return '<div class="zone-item" data-structure-node="stop:' + escapeHtml(item.name) + '">' + escapeHtml(item.name) + (item.detail ? ' <span style="color:var(--text-ghost)">· ' + escapeHtml(item.detail) + '</span>' : '') + '</div>';
       }).join('');
     }
+    setOperational(zoneBoxes.length ? zoneBoxes[0].closest('.card') : null, !!(data.verification && data.verification.gui_repo_structure_details && data.verification.gui_repo_structure_details.live));
   }
 
   function renderVectorMemoryPanel(data) {
@@ -2054,6 +2132,7 @@ LIVE_DASHBOARD_SCRIPT = r"""
         + '<div class="vec-phase-desc">' + escapeHtml(phase.detail || '') + '</div>'
         + '</div>';
     }).join('');
+    setOperational(phases.closest('.card'), !!(data.verification && data.verification.gui_vector_phase_details && data.verification.gui_vector_phase_details.live));
   }
 
   function renderExportPanel(data) {
@@ -2078,6 +2157,7 @@ LIVE_DASHBOARD_SCRIPT = r"""
         + '</div>'
         + '</button>';
     }).join('');
+    setOperational(exportBody.closest('.card'), !!(verification.gui_export_jsonl && verification.gui_export_alpaca && verification.gui_export_sharegpt && verification.gui_export_steering && verification.gui_export_jsonl.live && verification.gui_export_alpaca.live && verification.gui_export_sharegpt.live && verification.gui_export_steering.live));
   }
 
   function renderReadinessTracker(data) {
@@ -2088,17 +2168,33 @@ LIVE_DASHBOARD_SCRIPT = r"""
     if (!trackerCard) return;
     const body = trackerCard.querySelector('div[style*="padding:14px 16px"]');
     if (!body || !Array.isArray(data.readiness)) return;
+    const liveCount = data.readiness.filter(function (item) { return item.status === 'live'; }).length;
+    const mostlyLive = liveCount >= Math.max(1, Math.ceil(data.readiness.length / 2));
+    trackerCard.style.background = mostlyLive ? 'linear-gradient(180deg, rgba(0,255,120,0.08), rgba(0,0,0,0.82))' : '';
+    trackerCard.style.borderColor = mostlyLive ? 'rgba(0,255,120,0.28)' : '';
+    trackerCard.style.boxShadow = mostlyLive ? '0 0 24px rgba(0,255,120,0.08)' : '';
     const rows = data.readiness.map(function (item) {
       let color = 'var(--text-dim)';
+      let border = 'var(--border-dim)';
+      let background = 'rgba(255,255,255,0.02)';
       if (item.status === 'live') color = 'var(--green)';
-      if (item.status === 'warn') color = 'var(--amber)';
+      if (item.status === 'live') {
+        border = 'rgba(0,255,120,0.24)';
+        background = 'linear-gradient(90deg, rgba(0,255,120,0.14), rgba(0,255,120,0.04))';
+      }
+      if (item.status === 'warn') {
+        color = 'var(--amber)';
+        border = 'rgba(255,170,0,0.24)';
+        background = 'linear-gradient(90deg, rgba(255,170,0,0.14), rgba(255,170,0,0.04))';
+      }
       return ''
-        + '<div class="readiness-row" data-readiness-key="' + escapeHtml(item.label) + '" style="display:flex;justify-content:space-between;font-size:9px;padding:7px 9px;border:1px solid var(--border-dim);border-radius:5px;background:rgba(255,255,255,0.02);">'
+        + '<div class="readiness-row" data-readiness-key="' + escapeHtml(item.label) + '" style="display:flex;justify-content:space-between;font-size:9px;padding:7px 9px;border:1px solid ' + border + ';border-radius:5px;background:' + background + ';">'
         + '<span style="color:var(--text-dim);">' + escapeHtml(item.label) + '</span>'
         + '<span style="color:' + color + ';">' + escapeHtml(item.value) + '</span>'
         + '</div>';
     }).join('');
     body.innerHTML = '<div style="font-size:8px;letter-spacing:2px;color:var(--text-ghost);margin-bottom:8px;">CURRENT READINESS</div><div style="display:flex;flex-direction:column;gap:6px;">' + rows + '</div>';
+    setOperational(trackerCard, !!(data.verification && data.verification.gui_readiness_tracker_live && data.verification.gui_readiness_tracker_live.live));
   }
 
   async function renderModelStatusDetails() {
@@ -2113,15 +2209,30 @@ LIVE_DASHBOARD_SCRIPT = r"""
         detailBlock = document.createElement('div');
         detailBlock.setAttribute('data-model-status-detail', 'true');
         detailBlock.style.display = 'grid';
-        detailBlock.style.gridTemplateColumns = 'repeat(auto-fit,minmax(160px,1fr))';
-        detailBlock.style.gap = '8px';
+        detailBlock.style.gridTemplateColumns = 'repeat(auto-fit,minmax(220px,1fr))';
+        detailBlock.style.gap = '10px';
         detailBlock.style.marginTop = '12px';
         root.appendChild(detailBlock);
       }
+      const readiness = Array.isArray(detail.readiness) ? detail.readiness : [];
+      const scale = detail.scale_analysis || {};
+      const corpusRows = Array.isArray(scale.rows) ? scale.rows : [];
+      const readinessHtml = readiness.length ? readiness.map(function(item) {
+        return '<div class="training-run-item"><span>' + escapeHtml(item.label) + '</span><strong>' + escapeHtml(item.value) + '</strong></div>';
+      }).join('') : '<div class="training-run-empty">No readiness rows are available.</div>';
+      const corpusHtml = corpusRows.length ? corpusRows.map(function(item) {
+        return '<div class="training-run-item"><span>' + escapeHtml(item.label) + '</span><strong>' + escapeHtml(item.value) + '</strong></div>';
+      }).join('') : '<div class="training-run-empty">No corpus counts are available.</div>';
       detailBlock.innerHTML = ''
-        + '<div class="training-run-item"><span>READINESS ROWS</span><strong>' + escapeHtml(String((detail.readiness || []).length)) + '</strong></div>'
-        + '<div class="training-run-item"><span>FINE-TUNE PATH</span><strong>' + escapeHtml(detail.scale_analysis && detail.scale_analysis.fine_tune_path_ready ? 'READY' : 'BLOCKED') + '</strong></div>'
-        + '<div class="training-run-item"><span>TRAIN FROM SCRATCH</span><strong>' + escapeHtml(detail.scale_analysis && detail.scale_analysis.can_train_from_scratch ? 'SUPPORTED' : 'NO') + '</strong></div>';
+        + '<div><div style="font-size:8px;letter-spacing:2px;color:var(--text-ghost);margin-bottom:8px;">MODEL READINESS</div>' + readinessHtml + '</div>'
+        + '<div><div style="font-size:8px;letter-spacing:2px;color:var(--text-ghost);margin-bottom:8px;">CORPUS COUNTS</div>' + corpusHtml + '</div>'
+        + '<div>'
+        + '<div style="font-size:8px;letter-spacing:2px;color:var(--text-ghost);margin-bottom:8px;">TRAINING VIABILITY</div>'
+        + '<div class="training-run-item"><span>FINE-TUNE PATH</span><strong>' + escapeHtml(scale.fine_tune_path_ready ? 'READY' : 'BLOCKED') + '</strong></div>'
+        + '<div class="training-run-item"><span>TRAIN FROM SCRATCH</span><strong>' + escapeHtml(scale.can_train_from_scratch ? 'SUPPORTED' : 'NO') + '</strong></div>'
+        + '<div class="training-run-item"><span>TRACE FILES</span><strong>' + escapeHtml(String(scale.current_trace_files || 0)) + '</strong></div>'
+        + '<div class="training-run-item"><span>RECOMMENDATION</span><strong>' + escapeHtml(textOr(scale.recommendation, 'No recommendation')) + '</strong></div>'
+        + '</div>';
       setOperational(root.closest('.card'), !!detail.canonical);
     } catch (error) {
       console.error('[model-status] render failed', error);
@@ -2203,13 +2314,14 @@ LIVE_DASHBOARD_SCRIPT = r"""
   }
 
   function applyState(data) {
+    normalizeLegacyLayout();
     ensureOperationalStyles();
-    bindNavPanels();
     bindSpawnControls();
     bindRepoFreezeControls();
     bindRepoDetailModal();
     renderTopBar(data);
     renderStatRow(data);
+    bindAutonomyRuntimeButton();
     renderDagList(data);
     bindDagTaskDetails();
     bindBootstrapStepDetails();
@@ -2244,7 +2356,7 @@ LIVE_DASHBOARD_SCRIPT = r"""
     renderStatusbar(data);
     renderTaskSurfaceMap();
     const activeNav = qs('#sidebar .nav-item.active[data-nav]');
-    handleNavPanel(activeNav ? activeNav.getAttribute('data-nav') : 'orchestrator');
+    handleNavPanel(activeNav ? activeNav.getAttribute('data-nav') : 'all');
   }
 
   async function refreshFromServer() {

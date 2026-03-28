@@ -1,0 +1,25 @@
+{
+  "decision_id": "dec_20260328_conversation_backfill_0132",
+  "timestamp": "2026-03-28T10:42:00Z",
+  "task_id": "conversation_backfill",
+  "dag_node_id": "gui_steering_log",
+  "decision": {
+    "question": "How should the system interpret a mismatch between what the browser shows and what the live API reports?",
+    "chosen": "Use the API as canonical runtime truth while still fixing stale or low-signal browser surfaces.",
+    "rationale": "A stale browser can explain a mismatch, but it does not absolve the UI from rendering useful state. This derived steering example was captured from negative-dataset capture as variant 12 in theme 11."
+  },
+  "outcome": {
+    "result": "Derived steering backfill captured from the March 28 collaboration thread.",
+    "lesson": "Canonical APIs and clear UI surfaces need to agree quickly.",
+    "follow_up": "Use this decision family to weight future verifier, GUI, and telemetry corrections more heavily."
+  },
+  "metadata": {
+    "source": "conversation_backfill",
+    "derived_from": "user_assistant_thread",
+    "category": "browser_vs_api",
+    "theme_index": 11,
+    "variant_index": 12,
+    "behavioral_signal": "steering",
+    "backfill": true
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "decision_id": "dec_20260328_conversation_backfill_0069",
+  "timestamp": "2026-03-28T09:39:00Z",
+  "task_id": "conversation_backfill",
+  "dag_node_id": "gui_steering_log",
+  "decision": {
+    "question": "What should the dashboard render when live logs are quiet but repo-backed artifacts exist?",
+    "chosen": "Fall back to repo activity feeds, artifact tails, and canonical state instead of blank cards.",
+    "rationale": "Silence in one log path should not erase observable repo activity from the GUI. This derived steering example was captured from steering telemetry correction as variant 9 in theme 6."
+  },
+  "outcome": {
+    "result": "Derived steering backfill captured from the March 28 collaboration thread.",
+    "lesson": "Empty-state truthfulness is better than visually dead modules.",
+    "follow_up": "Use this decision family to weight future verifier, GUI, and telemetry corrections more heavily."
+  },
+  "metadata": {
+    "source": "conversation_backfill",
+    "derived_from": "user_assistant_thread",
+    "category": "blank_panel_fallback",
+    "theme_index": 6,
+    "variant_index": 9,
+    "behavioral_signal": "steering",
+    "backfill": true
+  }
+}

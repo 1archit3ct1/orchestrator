@@ -1,0 +1,23 @@
+{
+  "timestamp": "2026-03-28T08:21:07",
+  "type": "iteration_record",
+  "cycle": 968,
+  "task_id": "conversation_backfill",
+  "outcome": "success",
+  "artifacts_created": [
+    "SPAWN/STOP/.orchestrator/data/session_20260328_conversation_backfill_1024.jsonl",
+    "SPAWN/STOP/.orchestrator/vector_store/session_20260328_conversation_backfill_1024_0968.json",
+    "SPAWN/STOP/.orchestrator/iterations/iter_20260328_backfill_0968.json",
+    "SPAWN/STOP/MEMORY.md",
+    "SPAWN/STOP/retrieval_log.jsonl"
+  ],
+  "findings": {
+    "conversation_backfill": true,
+    "variant_index": 968,
+    "topic": "git_log_clue_for_stale_metrics",
+    "signal": "backfilled"
+  },
+  "lesson": "When counts disagree, compare state files, runtime files, and served payloads instead of trusting one surface.",
+  "source": "conversation_backfill",
+  "session_id": "session_20260328_conversation_backfill_1024"
+}

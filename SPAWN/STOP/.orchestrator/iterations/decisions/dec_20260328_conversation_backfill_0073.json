@@ -1,0 +1,25 @@
+{
+  "decision_id": "dec_20260328_conversation_backfill_0073",
+  "timestamp": "2026-03-28T09:43:00Z",
+  "task_id": "conversation_backfill",
+  "dag_node_id": "gui_steering_log",
+  "decision": {
+    "question": "What should happen to UI sections that look mocked or undermine trust in the telemetry?",
+    "chosen": "Remove or replace them with repo-backed fields instead of defending placeholder summaries.",
+    "rationale": "A minimal truthful panel is stronger than a detailed but misleading panel. This derived steering example was captured from the user-visible GUI mismatch as variant 1 in theme 7."
+  },
+  "outcome": {
+    "result": "Derived steering backfill captured from the March 28 collaboration thread.",
+    "lesson": "Trust is easier to preserve by deleting fake affordances than by explaining them away.",
+    "follow_up": "Use this decision family to weight future verifier, GUI, and telemetry corrections more heavily."
+  },
+  "metadata": {
+    "source": "conversation_backfill",
+    "derived_from": "user_assistant_thread",
+    "category": "mock_ui_removal",
+    "theme_index": 7,
+    "variant_index": 1,
+    "behavioral_signal": "steering",
+    "backfill": true
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "timestamp": "2026-03-28T08:16:52",
+  "type": "session_memory",
+  "topic": "negative_dataset_from_failures",
+  "session_focus": "Capture misses, lock denials, verifier failures, and user corrections as negative steering data instead of discarding them.",
+  "user_directives": [
+    "Capture misses, lock denials, verifier failures, and user corrections as negative steering data instead of discarding them."
+  ],
+  "assistant_responses": [
+    "Persisted miss artifacts into MEMORY.md, data, vector, iteration, and retrieval logs. Variant 45 preserves the conversation milestone as reusable training data rather than transient chat."
+  ],
+  "training_value": [
+    "Failure modes are often the highest-value alignment data in orchestration systems.",
+    "Blocked actions and wrong assumptions were showing up in chat and audit logs but were easy to lose. Variant 45 reframes the same milestone through the lens of runtime verification, UI trust, and repo-backed data visibility."
+  ],
+  "top_hits": [
+    "SPAWN/STOP/MEMORY.md",
+    "SPAWN/STOP/.orchestrator/data/session_20260328_conversation_backfill_1024.jsonl",
+    "SPAWN/STOP/retrieval_log.jsonl"
+  ],
+  "tokens": 213,
+  "source": "conversation_backfill",
+  "variant_index": 713,
+  "session_id": "session_20260328_conversation_backfill_1024"
+}

@@ -1,0 +1,25 @@
+{
+  "decision_id": "dec_20260328_conversation_backfill_0049",
+  "timestamp": "2026-03-28T09:19:00Z",
+  "task_id": "conversation_backfill",
+  "dag_node_id": "gui_steering_log",
+  "decision": {
+    "question": "How should the dashboard distinguish between orchestration cycles and DAG task completion?",
+    "chosen": "Keep loop count for engine activity, but avoid conflating it with finished GUI tasks.",
+    "rationale": "A cycle can verify, promote, or idle without completing a new task. This derived steering example was captured from the user-visible GUI mismatch as variant 1 in theme 5."
+  },
+  "outcome": {
+    "result": "Derived steering backfill captured from the March 28 collaboration thread.",
+    "lesson": "Naming and semantics matter as much as the number itself.",
+    "follow_up": "Use this decision family to weight future verifier, GUI, and telemetry corrections more heavily."
+  },
+  "metadata": {
+    "source": "conversation_backfill",
+    "derived_from": "user_assistant_thread",
+    "category": "loop_vs_task",
+    "theme_index": 5,
+    "variant_index": 1,
+    "behavioral_signal": "steering",
+    "backfill": true
+  }
+}

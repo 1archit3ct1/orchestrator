@@ -1,0 +1,25 @@
+{
+  "timestamp": "2026-03-28T08:16:45",
+  "type": "session_memory",
+  "topic": "training_panel_visibility_mismatch",
+  "session_focus": "Make the training-run work visibly land in the Flask frontend instead of only satisfying a hidden verifier hook.",
+  "user_directives": [
+    "Make the training-run work visibly land in the Flask frontend instead of only satisfying a hidden verifier hook."
+  ],
+  "assistant_responses": [
+    "Moved the training work into the actual model-status surface and verified the live API path. Variant 45 preserves the conversation milestone as reusable training data rather than transient chat."
+  ],
+  "training_value": [
+    "A GUI task is not complete if the user cannot see the change in the served interface.",
+    "The user repeatedly showed screenshots where source changes existed but the visible panel did not change in the expected place. Variant 45 reframes the same milestone through the lens of runtime verification, UI trust, and repo-backed data visibility."
+  ],
+  "top_hits": [
+    "SPAWN/STOP/MEMORY.md",
+    "SPAWN/STOP/.orchestrator/data/session_20260328_conversation_backfill_1024.jsonl",
+    "SPAWN/STOP/retrieval_log.jsonl"
+  ],
+  "tokens": 206,
+  "source": "conversation_backfill",
+  "variant_index": 706,
+  "session_id": "session_20260328_conversation_backfill_1024"
+}

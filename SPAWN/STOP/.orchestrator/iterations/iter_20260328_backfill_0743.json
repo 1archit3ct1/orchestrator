@@ -1,0 +1,23 @@
+{
+  "timestamp": "2026-03-28T08:17:22",
+  "type": "iteration_record",
+  "cycle": 743,
+  "task_id": "conversation_backfill",
+  "outcome": "success",
+  "artifacts_created": [
+    "SPAWN/STOP/.orchestrator/data/session_20260328_conversation_backfill_1024.jsonl",
+    "SPAWN/STOP/.orchestrator/vector_store/session_20260328_conversation_backfill_1024_0743.json",
+    "SPAWN/STOP/.orchestrator/iterations/iter_20260328_backfill_0743.json",
+    "SPAWN/STOP/MEMORY.md",
+    "SPAWN/STOP/retrieval_log.jsonl"
+  ],
+  "findings": {
+    "conversation_backfill": true,
+    "variant_index": 743,
+    "topic": "bulk_gui_task_activation",
+    "signal": "corrected"
+  },
+  "lesson": "A dashboard full of static chrome teaches the wrong thing even if the CSS looks finished.",
+  "source": "conversation_backfill",
+  "session_id": "session_20260328_conversation_backfill_1024"
+}

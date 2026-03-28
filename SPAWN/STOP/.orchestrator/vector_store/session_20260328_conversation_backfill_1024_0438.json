@@ -1,0 +1,25 @@
+{
+  "timestamp": "2026-03-28T08:12:17",
+  "type": "session_memory",
+  "topic": "scale_analysis_truth",
+  "session_focus": "Treat scale analysis as a first-class repo-backed page with recommendations grounded in actual artifact state.",
+  "user_directives": [
+    "Treat scale analysis as a first-class repo-backed page with recommendations grounded in actual artifact state."
+  ],
+  "assistant_responses": [
+    "Bound the existing page into canonical verification and made it advance truthfully. Variant 28 preserves the conversation milestone as reusable training data rather than transient chat."
+  ],
+  "training_value": [
+    "Verifier coverage should reflect real shipped surfaces, not lag behind them.",
+    "The repo had training-readiness answers and storage facts, but the verifier was not recognizing the page. Variant 28 reframes the same milestone through the lens of runtime verification, UI trust, and repo-backed data visibility."
+  ],
+  "top_hits": [
+    "SPAWN/STOP/MEMORY.md",
+    "SPAWN/STOP/.orchestrator/data/session_20260328_conversation_backfill_1024.jsonl",
+    "SPAWN/STOP/retrieval_log.jsonl"
+  ],
+  "tokens": 218,
+  "source": "conversation_backfill",
+  "variant_index": 438,
+  "session_id": "session_20260328_conversation_backfill_1024"
+}

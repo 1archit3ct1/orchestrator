@@ -1,0 +1,25 @@
+{
+  "timestamp": "2026-03-28T08:10:36",
+  "type": "session_memory",
+  "topic": "prompt_contract_restore",
+  "session_focus": "Restore deleted DAG and completion requirements in START/prompt.md while keeping concise headings.",
+  "user_directives": [
+    "Restore deleted DAG and completion requirements in START/prompt.md while keeping concise headings."
+  ],
+  "assistant_responses": [
+    "Restored the DAG contract and completion requirements, then updated them to 23 tasks. Variant 22 preserves the conversation milestone as reusable training data rather than transient chat."
+  ],
+  "training_value": [
+    "Concise headings are fine, but explicit acceptance criteria must remain in the bootstrap contract.",
+    "Prompt edits removed acceptance criteria and task map, which caused vague GUI work and hidden regressions. Variant 22 reframes the same milestone through the lens of runtime verification, UI trust, and repo-backed data visibility."
+  ],
+  "top_hits": [
+    "SPAWN/STOP/MEMORY.md",
+    "SPAWN/STOP/.orchestrator/data/session_20260328_conversation_backfill_1024.jsonl",
+    "SPAWN/STOP/retrieval_log.jsonl"
+  ],
+  "tokens": 197,
+  "source": "conversation_backfill",
+  "variant_index": 337,
+  "session_id": "session_20260328_conversation_backfill_1024"
+}

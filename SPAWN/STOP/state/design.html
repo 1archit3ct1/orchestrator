@@ -201,16 +201,16 @@ body::after {
   position: relative;
   z-index: 1;
   display: grid;
-  grid-template-columns: 200px 1fr;
+  grid-template-columns: 1fr;
   overflow: hidden;
 }
 
 /* ── SIDEBAR ─────────────────────────────────────────────── */
 #sidebar {
+  display: none !important;
   background: rgba(8,8,12,0.7);
   backdrop-filter: blur(16px);
   border-right: 1px solid var(--border);
-  display: flex;
   flex-direction: column;
   overflow-y: auto;
   scrollbar-width: none;
@@ -322,6 +322,8 @@ body::after {
 
 /* ── CONTENT AREA ────────────────────────────────────────── */
 #content {
+  width: 100%;
+  max-width: 100%;
   overflow-y: auto;
   overflow-x: hidden;
   padding: 16px;
@@ -396,6 +398,30 @@ body::after {
   color: var(--red);
   letter-spacing: 0.5px;
   font-weight: 700;
+}
+.stat-action-btn {
+  margin-top: 4px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(34,197,94,0.28);
+  background: linear-gradient(180deg, rgba(34,197,94,0.18), rgba(34,197,94,0.08));
+  color: var(--green);
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 1.4px;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+  box-shadow: 0 0 14px rgba(34,197,94,0.10);
+}
+.stat-action-btn:hover {
+  border-color: rgba(34,197,94,0.42);
+  background: linear-gradient(180deg, rgba(34,197,94,0.24), rgba(34,197,94,0.10));
+  box-shadow: 0 0 18px rgba(34,197,94,0.16);
+}
+.stat-action-btn:focus-visible {
+  outline: 1px solid rgba(34,197,94,0.5);
+  outline-offset: 2px;
 }
 
 /* ── BENTO GRID ──────────────────────────────────────────── */
@@ -1476,86 +1502,15 @@ body::after {
 <!-- ── MAIN ───────────────────────────────────────────────── -->
 <div id="main">
 
-  <!-- SIDEBAR -->
-  <div id="sidebar">
-
-    <div class="nav-section">
-      <div class="nav-label">CONTROL</div>
-      <div class="nav-item active" data-nav="orchestrator">
-        <span class="nav-icon">◈</span> Orchestrator
-      </div>
-      <div class="nav-item" data-nav="dag-view">
-        <span class="nav-icon">⬡</span> DAG View
-        <span class="nav-badge">5</span>
-      </div>
-      <div class="nav-item" data-nav="spawn-loop">
-        <span class="nav-icon">⟳</span> Spawn Loop
-      </div>
-    </div>
-
-    <div class="nav-section">
-      <div class="nav-label">MODEL</div>
-      <div class="nav-item" data-nav="training-run">
-        <span class="nav-icon">◎</span> Training Run
-      </div>
-      <div class="nav-item" data-nav="dataset">
-        <span class="nav-icon">▦</span> Dataset
-      </div>
-      <div class="nav-item" data-nav="eta-tracker">
-        <span class="nav-icon">◷</span> ETA Tracker
-      </div>
-      <div class="nav-item" data-nav="scale-analysis">
-        <span class="nav-icon">≈</span> Scale Analysis
-      </div>
-    </div>
-
-    <div class="nav-section">
-      <div class="nav-label">SECURITY</div>
-      <div class="nav-item" data-nav="audit-log">
-        <span class="nav-icon">⊘</span> Audit Log
-        <span class="nav-badge warn">1</span>
-      </div>
-      <div class="nav-item" data-nav="repo-freeze">
-        <span class="nav-icon">⚿</span> Repo Freeze
-      </div>
-      <div class="nav-item" data-nav="stray-monitor">
-        <span class="nav-icon">◈</span> Stray Monitor
-      </div>
-    </div>
-
-    <div class="nav-section">
-      <div class="nav-label">DATA</div>
-      <div class="nav-item" data-nav="trace-capture">
-        <span class="nav-icon">⋯</span> Trace Capture
-      </div>
-      <div class="nav-item" data-nav="steering-log">
-        <span class="nav-icon">◈</span> Steering Log
-      </div>
-      <div class="nav-item" data-nav="export">
-        <span class="nav-icon">↗</span> Export
-      </div>
-    </div>
-
-    <!-- REPO LOCK -->
-    <div class="repo-lock">
-      <div class="repo-lock-label">REPO LOCK</div>
-      <div class="mutex-badge">
-        <div class="mutex-dot"></div>
-        MUTEX HELD
-      </div>
-    </div>
-
-  </div>
-
   <!-- CONTENT -->
   <div id="content">
 
     <!-- ── STAT ROW ─────────────────────────────────────────── -->
     <div class="stat-row" data-panel="all orchestrator">
       <div class="card stat-card">
-        <div class="stat-label">LOOPS EXECUTED</div>
-        <div class="stat-val">247</div>
-        <div class="stat-meta">autonomous cycles</div>
+        <div class="stat-label">AUTONOMY RUNTIME</div>
+        <button class="stat-action-btn" type="button" data-autonomy-detail-open>OPEN AUTONOMY COUNTS</button>
+        <div class="stat-meta">truthful runtime telemetry</div>
       </div>
       <div class="card stat-card">
         <div class="stat-label">TRACE ARTIFACTS</div>
@@ -1661,8 +1616,6 @@ body::after {
             <div class="model-sub">QLoRA · FINE-TUNE · CHECKPOINT v0.4.1</div>
           </div>
 
-          <div data-training-inline-summary style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:14px;"></div>
-
           <div class="eta-block">
             <div class="eta-num">14</div>
             <div class="eta-unit">DAYS</div>
@@ -1713,29 +1666,6 @@ body::after {
                 LLM write outside SPAWN/START at 14:22:07.<br/>
                 Trace flagged as MISSED. Inspect immediately.
               </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- STEERING LOG -->
-        <div class="card" data-panel="all orchestrator steering-log">
-          <div class="panel-hdr">
-            <span class="panel-icon">⋯</span>
-            <span class="panel-title">STEERING EVENT LOG</span>
-            <span class="panel-badge" style="color:rgb(255,200,60);background:rgba(255,180,0,0.08);border-color:rgba(255,180,0,0.25);">★ HIGHEST TRAINING VALUE</span>
-          </div>
-        <div class="steering-body">
-          <div data-panel="steering-log" style="display:none;"></div>
-          <div class="steering-entry">
-              <div class="steering-tags">
-                <span class="stag stag-arch">ARCH</span>
-                <span class="stag stag-resolved">RESOLVED</span>
-                <span class="stag stag-gold">★</span>
-              </div>
-              <div class="steering-text">
-                User killed autonomous recovery loop proposal. Hard stop on failure is correct. No retry logic.
-              </div>
-              <div class="steering-note">Trace: NEXTAURA // ORCHESTRATOR · MARCH 27, 2026 | 17:59:35</div>
             </div>
           </div>
         </div>

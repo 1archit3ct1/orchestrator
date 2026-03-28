@@ -9,12 +9,12 @@
         "SPAWN/STOP/web/app.py"
       ],
       "dependencies": [],
-      "status": "green",
+      "status": "yellow",
       "task_name": "gui-orchestrator-view",
       "task_id": "T01",
-      "display_status": "complete",
-      "verified_live": true,
-      "verification_reason": "sidebar navigation routes between dashboard panels from repo-backed hooks",
+      "display_status": "active",
+      "verified_live": false,
+      "verification_reason": "sidebar nav items are still visual-only and lack panel routing hooks",
       "progress": null
     },
     {
@@ -219,12 +219,12 @@
       "dependencies": [
         "gui_nav_panels"
       ],
-      "status": "green",
+      "status": "red",
       "task_name": "gui-steering-log",
       "task_id": "T12",
-      "display_status": "complete",
-      "verified_live": true,
-      "verification_reason": "steering log section opens detailed repo-backed steering events",
+      "display_status": "pending",
+      "verified_live": false,
+      "verification_reason": "steering log section is not wired to detailed repo-backed steering events",
       "progress": null
     },
     {
@@ -528,7 +528,7 @@
       "to": "gui_model_status_panel"
     }
   ],
-  "status": "complete",
+  "status": "awaiting_task_completion",
   "last_cycle": 6,
   "last_updated": "2026-03-28T01:01:28.791154"
 }

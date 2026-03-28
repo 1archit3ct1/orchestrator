@@ -1,0 +1,25 @@
+{
+  "timestamp": "2026-03-28T08:08:58",
+  "type": "session_memory",
+  "topic": "endpoint_shape_verification",
+  "session_focus": "Harden loop verification so task endpoints must return canonical payloads, not just exist.",
+  "user_directives": [
+    "Harden loop verification so task endpoints must return canonical payloads, not just exist."
+  ],
+  "assistant_responses": [
+    "Added endpoint-shape checks for dashboard tasks like traces, model status, dataset, training, audit, freeze, stray, and steering. Variant 15 preserves the conversation milestone as reusable training data rather than transient chat."
+  ],
+  "training_value": [
+    "Route existence is weaker than route usefulness; payload shape is part of runtime truth.",
+    "A future regression could keep the route alive while returning an empty or broken shape. Variant 15 reframes the same milestone through the lens of runtime verification, UI trust, and repo-backed data visibility."
+  ],
+  "top_hits": [
+    "SPAWN/STOP/MEMORY.md",
+    "SPAWN/STOP/.orchestrator/data/session_20260328_conversation_backfill_1024.jsonl",
+    "SPAWN/STOP/retrieval_log.jsonl"
+  ],
+  "tokens": 219,
+  "source": "conversation_backfill",
+  "variant_index": 239,
+  "session_id": "session_20260328_conversation_backfill_1024"
+}

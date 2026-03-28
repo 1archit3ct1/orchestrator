@@ -1,0 +1,25 @@
+{
+  "decision_id": "dec_20260328_conversation_backfill_0023",
+  "timestamp": "2026-03-28T08:53:00Z",
+  "task_id": "conversation_backfill",
+  "dag_node_id": "gui_steering_log",
+  "decision": {
+    "question": "How should the orchestrator respond when prompt edits remove explicit DAG and completion requirements?",
+    "chosen": "Restore the detailed task contract while keeping the concise heading style.",
+    "rationale": "The concise structure was fine; the lost acceptance criteria were the real regression. This derived steering example was captured from browser/api comparison as variant 11 in theme 2."
+  },
+  "outcome": {
+    "result": "Derived steering backfill captured from the March 28 collaboration thread.",
+    "lesson": "Short prompts can still be strict prompts when the operational contract remains explicit.",
+    "follow_up": "Use this decision family to weight future verifier, GUI, and telemetry corrections more heavily."
+  },
+  "metadata": {
+    "source": "conversation_backfill",
+    "derived_from": "user_assistant_thread",
+    "category": "prompt_contract",
+    "theme_index": 2,
+    "variant_index": 11,
+    "behavioral_signal": "steering",
+    "backfill": true
+  }
+}

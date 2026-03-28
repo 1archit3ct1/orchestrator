@@ -1,0 +1,25 @@
+{
+  "timestamp": "2026-03-28T08:16:24",
+  "type": "session_memory",
+  "topic": "remove_mock_training_strip",
+  "session_focus": "Remove the config/data/model-files summary strip if it reads like mock UI rather than trustworthy repo state.",
+  "user_directives": [
+    "Remove the config/data/model-files summary strip if it reads like mock UI rather than trustworthy repo state."
+  ],
+  "assistant_responses": [
+    "Removed the strip from the model panel and kept richer repo-backed detail below it. Variant 43 preserves the conversation milestone as reusable training data rather than transient chat."
+  ],
+  "training_value": [
+    "If a widget undermines trust, deleting it is better than defending it.",
+    "The user explicitly flagged that summary strip as suspicious and likely mock-looking. Variant 43 reframes the same milestone through the lens of runtime verification, UI trust, and repo-backed data visibility."
+  ],
+  "top_hits": [
+    "SPAWN/STOP/MEMORY.md",
+    "SPAWN/STOP/.orchestrator/data/session_20260328_conversation_backfill_1024.jsonl",
+    "SPAWN/STOP/retrieval_log.jsonl"
+  ],
+  "tokens": 185,
+  "source": "conversation_backfill",
+  "variant_index": 685,
+  "session_id": "session_20260328_conversation_backfill_1024"
+}

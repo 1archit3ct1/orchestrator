@@ -309,6 +309,37 @@ class OrchestratorLoop:
             logger.warning(f"  Live dashboard verification unavailable: {exc}")
             return None
 
+    def _fetch_live_endpoint_state(self, endpoint: str) -> dict | None:
+        try:
+            with urlopen(f'http://localhost:5000{endpoint}', timeout=2) as response:
+                return json.load(response)
+        except (URLError, TimeoutError, json.JSONDecodeError, OSError) as exc:
+            logger.warning(f"  Live endpoint verification unavailable for {endpoint}: {exc}")
+            return None
+
+    def _task_runtime_endpoint_state(self, dag_node_id: str) -> dict:
+        endpoint_map = {
+            'gui_training_run_details': ('/api/training/run', lambda payload: bool(payload.get('artifacts'))),
+            'gui_dataset_details': ('/api/dataset/details', lambda payload: 'counts' in payload and 'files' in payload),
+            'gui_audit_log_details': ('/api/audit/events', lambda payload: payload.get('canonical') is True and 'events' in payload),
+            'gui_repo_freeze_toggle': ('/api/repo-freeze/state', lambda payload: payload.get('canonical') is True and 'mutex_held' in payload),
+            'gui_stray_monitor_details': ('/api/stray/events', lambda payload: payload.get('canonical') is True and 'events' in payload),
+            'gui_trace_capture_details': ('/api/traces', lambda payload: payload.get('canonical') is True and ('entries' in payload or 'activity_feed' in payload)),
+            'gui_steering_log_details': ('/api/steering/events', lambda payload: payload.get('canonical') is True and 'events' in payload),
+            'gui_model_status_panel': ('/api/model/status', lambda payload: payload.get('canonical') is True and 'model' in payload and 'readiness' in payload),
+        }
+        endpoint_rule = endpoint_map.get(dag_node_id)
+        if not endpoint_rule:
+            return {'live': True, 'reason': 'no task-specific runtime endpoint required'}
+
+        endpoint, validator = endpoint_rule
+        payload = self._fetch_live_endpoint_state(endpoint)
+        if not isinstance(payload, dict):
+            return {'live': False, 'reason': f'endpoint {endpoint} was unavailable'}
+        if validator(payload):
+            return {'live': True, 'reason': f'endpoint {endpoint} returned canonical payload'}
+        return {'live': False, 'reason': f'endpoint {endpoint} returned incomplete payload'}
+
     def _live_dashboard_node_state(self, dag_node_id: str) -> dict:
         payload = self._fetch_live_dashboard_state()
         if not isinstance(payload, dict):
@@ -359,20 +390,25 @@ class OrchestratorLoop:
             }
 
         runtime_state = self._live_dashboard_node_state(dag_node_id)
+        endpoint_state = self._task_runtime_endpoint_state(dag_node_id)
         source_live = bool(source_state.get('live'))
         runtime_live = bool(runtime_state.get('live'))
-        if source_live and runtime_live:
-            reason = runtime_state.get('reason') or source_state.get('reason', 'source and runtime verification passed')
+        endpoint_live = bool(endpoint_state.get('live'))
+        if source_live and runtime_live and endpoint_live:
+            reason = runtime_state.get('reason') or endpoint_state.get('reason') or source_state.get('reason', 'source and runtime verification passed')
         elif not source_live:
             reason = source_state.get('reason', 'source verification failed')
+        elif not endpoint_live:
+            reason = endpoint_state.get('reason', 'task-specific runtime endpoint failed')
         else:
             reason = runtime_state.get('reason', 'live dashboard verification failed')
 
         return {
-            'live': source_live and runtime_live,
+            'live': source_live and runtime_live and endpoint_live,
             'reason': reason,
             'source_live': source_live,
             'runtime_live': runtime_live,
+            'endpoint_live': endpoint_live,
         }
 
     def _queue_has_task(self, task_id: str) -> bool:

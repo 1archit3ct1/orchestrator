@@ -1,0 +1,25 @@
+{
+  "timestamp": "2026-03-28T08:21:47",
+  "type": "session_memory",
+  "topic": "browser_vs_api_truth",
+  "session_focus": "Distinguish a stale browser render from the live API truth while still fixing the visible UI.",
+  "user_directives": [
+    "Distinguish a stale browser render from the live API truth while still fixing the visible UI."
+  ],
+  "assistant_responses": [
+    "Verified through endpoints and then improved the rendered panels so the browser state stays obviously alive. Variant 63 preserves the conversation milestone as reusable training data rather than transient chat."
+  ],
+  "training_value": [
+    "A stale browser can explain a mismatch, but it should not be an excuse for low-signal UI.",
+    "Screenshots sometimes lagged behind the served payload, but the user-visible problem was still real. Variant 63 reframes the same milestone through the lens of runtime verification, UI trust, and repo-backed data visibility."
+  ],
+  "top_hits": [
+    "SPAWN/STOP/MEMORY.md",
+    "SPAWN/STOP/.orchestrator/data/session_20260328_conversation_backfill_1024.jsonl",
+    "SPAWN/STOP/retrieval_log.jsonl"
+  ],
+  "tokens": 188,
+  "source": "conversation_backfill",
+  "variant_index": 1008,
+  "session_id": "session_20260328_conversation_backfill_1024"
+}

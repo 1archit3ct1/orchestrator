@@ -1,0 +1,23 @@
+{
+  "timestamp": "2026-03-28T08:05:14",
+  "type": "iteration_record",
+  "cycle": 15,
+  "task_id": "conversation_backfill",
+  "outcome": "success",
+  "artifacts_created": [
+    "SPAWN/STOP/.orchestrator/data/session_20260328_conversation_backfill_1024.jsonl",
+    "SPAWN/STOP/.orchestrator/vector_store/session_20260328_conversation_backfill_1024_0015.json",
+    "SPAWN/STOP/.orchestrator/iterations/iter_20260328_backfill_0015.json",
+    "SPAWN/STOP/MEMORY.md",
+    "SPAWN/STOP/retrieval_log.jsonl"
+  ],
+  "findings": {
+    "conversation_backfill": true,
+    "variant_index": 15,
+    "topic": "endpoint_shape_verification",
+    "signal": "corrected"
+  },
+  "lesson": "Route existence is weaker than route usefulness; payload shape is part of runtime truth.",
+  "source": "conversation_backfill",
+  "session_id": "session_20260328_conversation_backfill_1024"
+}

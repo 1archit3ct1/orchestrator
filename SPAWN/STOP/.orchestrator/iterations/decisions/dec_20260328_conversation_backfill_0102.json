@@ -1,0 +1,25 @@
+{
+  "decision_id": "dec_20260328_conversation_backfill_0102",
+  "timestamp": "2026-03-28T10:12:00Z",
+  "task_id": "conversation_backfill",
+  "dag_node_id": "gui_steering_log",
+  "decision": {
+    "question": "What should happen when the dashboard shows many success traces but very few steering traces after a corrective thread?",
+    "chosen": "Backfill a real decision layer derived from objections, corrections, and verifier refinements in the thread.",
+    "rationale": "Structural data volume without behavioral balance misrepresents what actually happened. This derived steering example was captured from blank-panel remediation as variant 6 in theme 9."
+  },
+  "outcome": {
+    "result": "Derived steering backfill captured from the March 28 collaboration thread.",
+    "lesson": "Training telemetry should reflect both progress and course correction.",
+    "follow_up": "Use this decision family to weight future verifier, GUI, and telemetry corrections more heavily."
+  },
+  "metadata": {
+    "source": "conversation_backfill",
+    "derived_from": "user_assistant_thread",
+    "category": "behavioral_representation",
+    "theme_index": 9,
+    "variant_index": 6,
+    "behavioral_signal": "steering",
+    "backfill": true
+  }
+}

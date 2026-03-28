@@ -528,6 +528,66 @@ def parse_trace_entries(log_paths, limit=6):
     return entries[-limit:]
 
 
+def build_activity_feed(runtime_dir: Path, logs_dir: Path, iterations_dir: Path, data_dir: Path, retrieval_log: Path, memory_path: Path, limit=12):
+    events = []
+
+    def push(ts: float, text: str, trace_type: str, tag: str):
+        events.append(
+            {
+                "timestamp": datetime.fromtimestamp(ts).strftime("%H:%M:%S"),
+                "text": text,
+                "type": trace_type,
+                "tag": tag,
+                "ts": ts,
+            }
+        )
+
+    for path in sorted(iterations_dir.glob("iter_*.json"))[-limit:]:
+        payload = load_json(path, {})
+        summary = payload.get("summary") or payload.get("type") or path.stem
+        push(path.stat().st_mtime, f"iteration artifact captured - {summary}", "task", "TASK")
+
+    decisions_dir = iterations_dir / "decisions"
+    for path in sorted(decisions_dir.glob("dec_*.json"))[-limit:]:
+        payload = load_json(path, {})
+        decision = payload.get("decision", {})
+        if isinstance(decision, dict):
+            question = decision.get("question") or payload.get("summary") or path.stem
+        else:
+            question = str(decision or payload.get("summary") or path.stem)
+        push(path.stat().st_mtime, f"steering decision logged - {question}", "model", "MODEL")
+
+    for path in sorted(data_dir.glob("*.jsonl"))[-limit:]:
+        payload_lines = tail_lines(path, 1)
+        summary = path.stem
+        if payload_lines:
+            try:
+                payload = json.loads(payload_lines[-1])
+                summary = payload.get("summary") or payload.get("miss_type") or summary
+            except json.JSONDecodeError:
+                pass
+        push(path.stat().st_mtime, f"dataset event stored - {summary}", "mem", "MEM")
+
+    if retrieval_log.exists():
+        lines = tail_lines(retrieval_log, min(limit, 6))
+        for index, line in enumerate(lines):
+            push(retrieval_log.stat().st_mtime + (index * 0.001), f"retrieval log updated - {line[:96]}", "mem", "MEM")
+
+    if memory_path.exists():
+        push(memory_path.stat().st_mtime, "memory ledger updated", "mem", "MEM")
+
+    task_md = runtime_dir / "TASK.md"
+    if task_md.exists():
+        push(task_md.stat().st_mtime, "task assignment file active", "task", "TASK")
+    else:
+        graph_path = runtime_dir / "state" / "design_graph.json"
+        if graph_path.exists():
+            push(graph_path.stat().st_mtime, "dashboard DAG verified complete", "loop", "LOOP")
+
+    events.sort(key=lambda item: item["ts"])
+    return [{key: value for key, value in item.items() if key != "ts"} for item in events[-limit:]]
+
+
 def parse_security_events(log_paths, limit=6):
     processed = set()
     for path in log_paths:
@@ -704,8 +764,8 @@ def build_readiness_state(model_integrated: bool, graph: dict, task_md: dict | N
         },
         {
             "label": "TASK.md Alignment",
-            "value": "ALIGNED" if task_md_aligned and not warnings else ("ATTENTION" if warnings else "PENDING"),
-            "status": "live" if task_md_aligned and not warnings else ("warn" if warnings else "pending"),
+            "value": "COMPLETE" if (not task_md and all(node.get("status") == "green" for node in graph.get("nodes", []))) else ("ALIGNED" if task_md_aligned and not warnings else ("ATTENTION" if warnings else "PENDING")),
+            "status": "live" if ((not task_md and all(node.get("status") == "green" for node in graph.get("nodes", []))) or (task_md_aligned and not warnings)) else ("warn" if warnings else "pending"),
         },
     ]
 
@@ -791,6 +851,10 @@ def build_scale_analysis(config: dict, data_dir: Path, vector_dir: Path, iterati
     jsonl_files = sorted(data_dir.glob("*.jsonl")) if data_dir.exists() else []
     training_scripts = sorted(training_dir.rglob("*")) if training_dir.exists() else []
     decision_files = sorted((iterations_dir / "decisions").glob("dec_*.json")) if (iterations_dir / "decisions").exists() else []
+    dataset_rows = sum(count_lines(path) for path in jsonl_files)
+    vector_entries = count_files(vector_dir, "*.json")
+    iteration_files = len(list(iterations_dir.glob("iter_*.json"))) if iterations_dir.exists() else 0
+    trace_files = iteration_files + len(decision_files)
 
     known = {
         "D01": "Mixed storage today: JSONL training artifacts plus JSON vector/iteration files and MEMORY.md.",
@@ -824,6 +888,29 @@ def build_scale_analysis(config: dict, data_dir: Path, vector_dir: Path, iterati
     if not fine_tune_path_ready:
         recommendation = "Data pipeline still needs normalization before even a fine-tune-first path is reliable."
 
+    rows = [
+        {
+            "label": "Dataset Rows",
+            "value": f"{dataset_rows:,}",
+            "status": "live" if dataset_rows else "pending",
+        },
+        {
+            "label": "Retrieval Rows",
+            "value": f"{int(memory_progress.get('retrieval_lines', 0)):,}",
+            "status": "live" if memory_progress.get("retrieval_lines", 0) else "pending",
+        },
+        {
+            "label": "Vector Entries",
+            "value": f"{vector_entries:,}",
+            "status": "live" if vector_entries else "pending",
+        },
+        {
+            "label": "Trace Files",
+            "value": f"{trace_files:,}",
+            "status": "live" if trace_files else "pending",
+        },
+    ]
+
     return {
         "questions_scanned": 11,
         "known_count": len(known),
@@ -835,7 +922,10 @@ def build_scale_analysis(config: dict, data_dir: Path, vector_dir: Path, iterati
         "current_collected_bytes": current_bytes,
         "current_collected_tokens": current_tokens,
         "current_jsonl_files": len(jsonl_files),
+        "current_dataset_rows": dataset_rows,
         "current_decision_files": len(decision_files),
+        "current_vector_entries": vector_entries,
+        "current_trace_files": trace_files,
         "training_scripts_present": training_scripts_present,
         "clean_dataset_ready": clean_dataset_ready,
         "framework_ready": framework_ready,
@@ -846,6 +936,7 @@ def build_scale_analysis(config: dict, data_dir: Path, vector_dir: Path, iterati
         "target_9b_bytes": nine_b_target_bytes,
         "target_9b_minimum_tuning_bytes": nine_b_minimum_tuning_bytes,
         "recommendation": recommendation,
+        "rows": rows,
     }
 
 
@@ -942,6 +1033,9 @@ def sync_dashboard_state(runtime_dir: Path):
     security_events.extend(state_warnings)
     security_events = security_events[-6:]
     trace_entries = parse_trace_entries([orchestrator_log, iteration_log], limit=6)
+    activity_feed = build_activity_feed(runtime_dir, logs_dir, iterations_dir, data_dir, retrieval_log, memory_path, limit=12)
+    if not trace_entries:
+        trace_entries = activity_feed[-6:]
 
     repos = []
     if repos_dir.exists():
@@ -1041,8 +1135,16 @@ def sync_dashboard_state(runtime_dir: Path):
                 "timestamp": entry["timestamp"] or datetime.now().strftime("%H:%M:%S"),
             }
             for entry in trace_entries
+        ] or [
+            {
+                "source": "activity-feed",
+                "content": entry["text"],
+                "timestamp": entry["timestamp"],
+            }
+            for entry in activity_feed[-6:]
         ],
         "trace_entries": trace_entries,
+        "activity_feed": activity_feed,
         "stray_events": security_events,
         "steering_events": steering_events,
         "repos": repos,

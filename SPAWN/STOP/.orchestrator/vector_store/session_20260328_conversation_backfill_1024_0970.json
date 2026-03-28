@@ -1,0 +1,25 @@
+{
+  "timestamp": "2026-03-28T08:21:09",
+  "type": "session_memory",
+  "topic": "auto_advance_task_md",
+  "session_focus": "Remove the need for task agents to edit TASK.md directly by making canonical sync own task promotion.",
+  "user_directives": [
+    "Remove the need for task agents to edit TASK.md directly by making canonical sync own task promotion."
+  ],
+  "assistant_responses": [
+    "Canonical sync now retires satisfied TASK.md and promotes the next runnable task automatically. Variant 61 preserves the conversation milestone as reusable training data rather than transient chat."
+  ],
+  "training_value": [
+    "Task progression belongs to the orchestrator, not to arbitrary task implementations.",
+    "Task allowed_paths prevented agents from updating TASK.md even when a GUI node was truly complete. Variant 61 reframes the same milestone through the lens of runtime verification, UI trust, and repo-backed data visibility."
+  ],
+  "top_hits": [
+    "SPAWN/STOP/MEMORY.md",
+    "SPAWN/STOP/.orchestrator/data/session_20260328_conversation_backfill_1024.jsonl",
+    "SPAWN/STOP/retrieval_log.jsonl"
+  ],
+  "tokens": 190,
+  "source": "conversation_backfill",
+  "variant_index": 970,
+  "session_id": "session_20260328_conversation_backfill_1024"
+}

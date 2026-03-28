@@ -1,0 +1,25 @@
+{
+  "timestamp": "2026-03-28T08:11:47",
+  "type": "session_memory",
+  "topic": "git_log_clue_for_stale_metrics",
+  "session_focus": "Use git logs and runtime file timestamps to understand when data paths were last truly loading fresh state.",
+  "user_directives": [
+    "Use git logs and runtime file timestamps to understand when data paths were last truly loading fresh state."
+  ],
+  "assistant_responses": [
+    "Identified the stale loop metric path and distinguished it from actively growing trace and memory counts. Variant 26 preserves the conversation milestone as reusable training data rather than transient chat."
+  ],
+  "training_value": [
+    "When counts disagree, compare state files, runtime files, and served payloads instead of trusting one surface.",
+    "The user noticed some counters were stale while artifacts on disk had changed more recently. Variant 26 reframes the same milestone through the lens of runtime verification, UI trust, and repo-backed data visibility."
+  ],
+  "top_hits": [
+    "SPAWN/STOP/MEMORY.md",
+    "SPAWN/STOP/.orchestrator/data/session_20260328_conversation_backfill_1024.jsonl",
+    "SPAWN/STOP/retrieval_log.jsonl"
+  ],
+  "tokens": 188,
+  "source": "conversation_backfill",
+  "variant_index": 408,
+  "session_id": "session_20260328_conversation_backfill_1024"
+}

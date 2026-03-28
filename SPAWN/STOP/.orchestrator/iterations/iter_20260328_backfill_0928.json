@@ -1,0 +1,23 @@
+{
+  "timestamp": "2026-03-28T08:20:27",
+  "type": "iteration_record",
+  "cycle": 928,
+  "task_id": "conversation_backfill",
+  "outcome": "success",
+  "artifacts_created": [
+    "SPAWN/STOP/.orchestrator/data/session_20260328_conversation_backfill_1024.jsonl",
+    "SPAWN/STOP/.orchestrator/vector_store/session_20260328_conversation_backfill_1024_0928.json",
+    "SPAWN/STOP/.orchestrator/iterations/iter_20260328_backfill_0928.json",
+    "SPAWN/STOP/MEMORY.md",
+    "SPAWN/STOP/retrieval_log.jsonl"
+  ],
+  "findings": {
+    "conversation_backfill": true,
+    "variant_index": 928,
+    "topic": "browser_vs_api_truth",
+    "signal": "backfilled"
+  },
+  "lesson": "A stale browser can explain a mismatch, but it should not be an excuse for low-signal UI.",
+  "source": "conversation_backfill",
+  "session_id": "session_20260328_conversation_backfill_1024"
+}

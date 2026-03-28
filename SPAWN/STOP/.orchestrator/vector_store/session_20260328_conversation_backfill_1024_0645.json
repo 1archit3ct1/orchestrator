@@ -1,0 +1,25 @@
+{
+  "timestamp": "2026-03-28T08:15:44",
+  "type": "session_memory",
+  "topic": "live_runtime_verification",
+  "session_focus": "Require the orchestrator loop to confirm the live Flask dashboard before advancing GUI tasks.",
+  "user_directives": [
+    "Require the orchestrator loop to confirm the live Flask dashboard before advancing GUI tasks."
+  ],
+  "assistant_responses": [
+    "Added live /api/dashboard and task-endpoint verification into the loop completion gate. Variant 41 preserves the conversation milestone as reusable training data rather than transient chat."
+  ],
+  "training_value": [
+    "Source hooks and runtime behavior are separate truths and both must pass.",
+    "Source-level verification alone let tasks go green before the running app proved it was serving the change. Variant 41 reframes the same milestone through the lens of runtime verification, UI trust, and repo-backed data visibility."
+  ],
+  "top_hits": [
+    "SPAWN/STOP/MEMORY.md",
+    "SPAWN/STOP/.orchestrator/data/session_20260328_conversation_backfill_1024.jsonl",
+    "SPAWN/STOP/retrieval_log.jsonl"
+  ],
+  "tokens": 185,
+  "source": "conversation_backfill",
+  "variant_index": 645,
+  "session_id": "session_20260328_conversation_backfill_1024"
+}

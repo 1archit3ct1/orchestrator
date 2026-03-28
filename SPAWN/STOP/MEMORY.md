@@ -47,3 +47,18 @@
 - The dashboard is now serving a 15-task GUI-gap DAG from canonical repo state.
 - Stray event logging is live and correctly surfaced global write lock denials.
 - This session memory should be embedded into the vector store, data pipeline, retrieval log, and iteration artifacts so live metrics increase from real repo data.
+
+## Session Memory - Queue Ordering And Operational Panel Styling
+- Timestamp: 2026-03-27 21:00:00
+- Session Focus: Preserve child-repo work in the queue, but only after the orchestrator GUI is finished, and align dashboard panel chrome with operational/live status.
+
+### Confirmed Decisions
+- Child-repo creation and downstream repo orchestration should remain in the queue, but only after the orchestrator GUI is fully built out.
+- The orchestrator should not be creating or managing new repos from an unfinished control surface.
+- Operational dashboard modules should render green at the container level when their repo-backed function is live.
+- Individual DAG task rows should remain red or yellow until those specific tasks are completed.
+
+### Runtime Outcome
+- Core goals were committed into the repo brief and task queue.
+- Engine memory artifacts increased live metrics through vector store, data, retrieval, iteration, and steering files.
+- The dashboard styling logic was updated so operational panels can display green while unfinished DAG tasks remain task-level red.

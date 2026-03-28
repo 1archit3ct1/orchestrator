@@ -1,0 +1,8 @@
+{
+  "timestamp": "2026-03-27T21:00:00",
+  "decision": {
+    "question": "How should the orchestrator prioritize repo creation and display operational status on the dashboard?",
+    "chosen": "Keep child-repo work queued behind finishing the orchestrator GUI, and render operational dashboard modules green while unfinished DAG tasks remain individually pending.",
+    "rationale": "This prevents downstream repo management from outrunning the control plane and makes the dashboard communicate operational reality without hiding unfinished task gaps."
+  }
+}

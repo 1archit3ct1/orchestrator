@@ -1,0 +1,26 @@
+{
+  "id": "session_20260327_queue_and_operational_panels",
+  "timestamp": "2026-03-27T21:00:00",
+  "type": "session_memory",
+  "topic": "queue_ordering_and_operational_panel_styling",
+  "summary": [
+    "Child-repo work remains in the queue, but only after the orchestrator GUI is fully built out.",
+    "The orchestrator should not build or manage new repos from an unfinished GUI.",
+    "Operational dashboard modules should render green at the container level when live.",
+    "Unfinished DAG tasks should remain individually red or yellow inside the DAG list."
+  ],
+  "source_files": [
+    "SPAWN/STOP/MEMORY.md",
+    "SPAWN/STOP/.orchestrator/task_queue.json",
+    "SPAWN/STOP/web/app.py",
+    "SPAWN/STOP/state/design_graph.json"
+  ],
+  "tags": [
+    "queue",
+    "gui",
+    "operational-state",
+    "styling",
+    "repos",
+    "security"
+  ]
+}

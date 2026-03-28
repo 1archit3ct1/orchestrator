@@ -315,6 +315,33 @@ LIVE_DASHBOARD_SCRIPT = r"""
 
   function qs(selector) { return document.querySelector(selector); }
   function qsa(selector) { return Array.from(document.querySelectorAll(selector)); }
+  function ensureOperationalStyles() {
+    if (document.getElementById('operational-panel-styles')) return;
+    const style = document.createElement('style');
+    style.id = 'operational-panel-styles';
+    style.textContent = `
+      .card-operational {
+        border-color: rgba(34,197,94,0.22) !important;
+        box-shadow: inset 0 0 24px rgba(34,197,94,0.04), 0 0 0 1px rgba(34,197,94,0.05);
+        background: linear-gradient(135deg, rgba(34,197,94,0.05) 0%, rgba(255,255,255,0.028) 55%, rgba(34,197,94,0.02) 100%) !important;
+      }
+      .card-operational::before {
+        background: linear-gradient(135deg, rgba(34,197,94,0.05) 0%, transparent 60%) !important;
+      }
+      .card-operational .panel-title,
+      .card-operational .stat-meta {
+        color: rgba(140,255,180,0.65) !important;
+      }
+      .card-operational .panel-icon,
+      .card-operational .stat-delta {
+        color: var(--green) !important;
+      }
+      .card-operational .stat-val {
+        text-shadow: 0 0 22px var(--green-glow) !important;
+      }
+    `;
+    document.head.appendChild(style);
+  }
   function setText(el, value) { if (el) el.textContent = value; }
   function textOr(value, fallback) {
     return value === null || value === undefined || value === '' ? fallback : value;
@@ -356,6 +383,10 @@ LIVE_DASHBOARD_SCRIPT = r"""
     if (type === 'model') return 't-model';
     return 't-loop';
   }
+  function setOperational(el, live) {
+    if (!el) return;
+    el.classList.toggle('card-operational', !!live);
+  }
 
   function renderTopBar(data) {
     const meta = qs('.tb-meta');
@@ -389,6 +420,7 @@ LIVE_DASHBOARD_SCRIPT = r"""
 
     setText(cards[3].querySelector('.stat-val'), String(data.summary.stray_count || 0));
     setText(cards[3].querySelector('.stat-meta'), (data.summary.stray_count || 0) ? 'policy events detected' : 'no stray events logged');
+    cards.forEach(function (card) { setOperational(card, !!data.canonical); });
   }
 
   function renderDagList(data) {
@@ -406,6 +438,7 @@ LIVE_DASHBOARD_SCRIPT = r"""
         + progress
         + '</div>';
     }).join('');
+    setOperational(dagList.closest('.card'), Array.isArray(data.tasks) && data.tasks.length > 0);
   }
 
   function renderModelPanel(data) {
@@ -437,6 +470,8 @@ LIVE_DASHBOARD_SCRIPT = r"""
         + '</div>';
     }
 
+    setOperational(auditBody ? auditBody.closest('.card') : null, Array.isArray(data.stray_events));
+
     const warnBadge = qs('.panel-badge.warn');
     if (warnBadge) setText(warnBadge, String((data.summary.stray_count || 0) + ' ALERT'));
 
@@ -450,6 +485,7 @@ LIVE_DASHBOARD_SCRIPT = r"""
         + '<div class="steering-note">Trace: NEXTAURA // ORCHESTRATOR · ' + escapeHtml(formatClock(data.generated_at)) + '</div>'
         + '</div>';
     }
+    setOperational(steeringBody ? steeringBody.closest('.card') : null, Array.isArray(data.steering_events));
   }
 
   function renderSpawnPanel(data) {
@@ -460,6 +496,7 @@ LIVE_DASHBOARD_SCRIPT = r"""
     if (values[2]) setText(values[2], (activeTask.task_id || '--') + ' -> ' + (activeTask.label || 'waiting'));
     if (values[3]) setText(values[3], activeTask.progress === null || activeTask.progress === undefined ? '--' : String(activeTask.progress) + '%');
     setText(qs('.spawn-label-text'), data.summary.dag_active ? 'SPAWN ACTIVE' : 'SPAWN IDLE');
+    setOperational(qs('.spawn-body') ? qs('.spawn-body').closest('.card') : null, !!data.canonical);
   }
 
   function renderPolicyAndStray(data) {
@@ -486,6 +523,7 @@ LIVE_DASHBOARD_SCRIPT = r"""
     if (strayTime) setText(strayTime, formatClock(data.generated_at) + ' · LIVE');
     const strayDesc = qs('.stray-event-desc');
     if (strayDesc) setText(strayDesc, data.stray_events[0] || 'No stray write attempts were found in the latest security scan.');
+    setOperational(qs('.stray-mon-body') ? qs('.stray-mon-body').closest('.card') : null, !!data.canonical);
   }
 
   function renderRepoFreeze(data) {
@@ -569,6 +607,7 @@ LIVE_DASHBOARD_SCRIPT = r"""
   }
 
   function applyState(data) {
+    ensureOperationalStyles();
     renderTopBar(data);
     renderStatRow(data);
     renderDagList(data);

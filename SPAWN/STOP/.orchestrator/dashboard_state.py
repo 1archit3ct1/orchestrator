@@ -15,6 +15,11 @@ import hashlib
 from datetime import datetime
 from pathlib import Path
 
+DONE_TASK_STATUSES = {"completed", "complete"}
+ACTIVE_TASK_STATUSES = {"active", "in_progress"}
+PROGRESS_TASK_STATUSES = {"scaffolded", "implemented", "validated"}
+ACTIONABLE_TASK_STATUSES = {"pending"} | ACTIVE_TASK_STATUSES | PROGRESS_TASK_STATUSES
+
 
 def load_json(path: Path, default):
     try:
@@ -266,14 +271,174 @@ def verify_dashboard_integrations(runtime_dir: Path):
 def task_status_counts(tasks):
     total = len(tasks)
     pending = sum(1 for task in tasks if task.get("status") == "pending")
-    active = sum(1 for task in tasks if task.get("status") in {"active", "in_progress"})
-    completed = sum(1 for task in tasks if task.get("status") in {"completed", "complete"})
+    active = sum(1 for task in tasks if task.get("status") in ACTIVE_TASK_STATUSES)
+    scaffolded = sum(1 for task in tasks if task.get("status") == "scaffolded")
+    implemented = sum(1 for task in tasks if task.get("status") == "implemented")
+    validated = sum(1 for task in tasks if task.get("status") == "validated")
+    completed = sum(1 for task in tasks if task.get("status") in DONE_TASK_STATUSES)
     return {
         "total": total,
         "pending": pending,
         "in_progress": active,
+        "scaffolded": scaffolded,
+        "implemented": implemented,
+        "validated": validated,
         "completed": completed,
     }
+
+
+def derive_task_evidence(runtime_dir: Path, task: dict):
+    training_dir = runtime_dir / "training"
+    data_dir = runtime_dir / ".orchestrator" / "data"
+    models_dir = runtime_dir / ".orchestrator" / "models"
+
+    task_id = task.get("id", "")
+    status = task.get("status", "pending")
+    reason = task.get("status_reason")
+    evidence = list(task.get("evidence", []))
+    completion_gates = list(task.get("completion_gates", []))
+    next_step = task.get("next_step")
+
+    def rel(path: Path):
+        try:
+            return str(path.relative_to(runtime_dir)).replace("\\", "/")
+        except ValueError:
+            return str(path)
+
+    if task_id == "goal_24b_model_eval_harness":
+        harness_path = training_dir / "eval_harness.py"
+        suite_path = data_dir / "eval_suite.json"
+        result_paths = sorted(data_dir.glob("eval_run_*.json")) + sorted((runtime_dir / ".orchestrator" / "logs" / "verification").glob("eval_run_*.json"))
+        harness_exists = harness_path.exists()
+        suite_exists = suite_path.exists()
+        has_eval_run = bool(result_paths)
+        if has_eval_run:
+            status = "completed"
+            reason = "Eval harness has a concrete eval run artifact."
+        elif harness_exists and suite_exists:
+            status = "implemented"
+            reason = "Eval harness code and suite spec exist, but no eval run artifact is present yet."
+            next_step = "Run the harness against a candidate checkpoint and persist an eval_run artifact."
+        elif harness_exists or suite_exists:
+            status = "scaffolded"
+            reason = "Eval task has partial scaffolding but is missing either code or suite definition."
+            next_step = "Complete both the harness implementation and the eval suite definition."
+        else:
+            status = "pending"
+            reason = "No eval harness implementation or eval suite artifact is present."
+            next_step = "Create the harness implementation and eval suite before any run can be validated."
+        evidence = [rel(path) for path in [harness_path, suite_path] if path.exists()] + [rel(path) for path in result_paths[:3]]
+        completion_gates = [
+            {"id": "eval_harness_code", "label": "Eval harness source exists", "met": harness_exists},
+            {"id": "eval_suite_spec", "label": "Eval suite spec exists", "met": suite_exists},
+            {"id": "eval_run_artifact", "label": "Real eval run artifact exists", "met": has_eval_run, "required_for": "completed"},
+        ]
+
+    elif task_id == "goal_24b_model_data_pipeline":
+        builder_path = training_dir / "build_datasets.py"
+        traces_path = data_dir / "canonical_traces.jsonl"
+        metrics_path = data_dir / "clean_dataset_metrics.json"
+        metrics = load_json(metrics_path, {})
+        clean_records = int(metrics.get("clean_records", 0) or 0)
+        outputs_validated = builder_path.exists() and traces_path.exists() and metrics_path.exists() and clean_records > 0
+        if outputs_validated:
+            status = "completed"
+            reason = "Dataset builder and validated dataset outputs are present."
+        elif builder_path.exists() or traces_path.exists() or metrics_path.exists():
+            status = "implemented"
+            reason = "Data pipeline code or outputs exist, but validated dataset outputs are incomplete."
+            next_step = "Regenerate canonical traces and metrics until clean dataset outputs validate."
+        else:
+            status = "pending"
+            reason = "No data pipeline implementation or dataset outputs are present."
+            next_step = "Build the dataset pipeline and produce validated outputs."
+        evidence = [rel(path) for path in [builder_path, traces_path, metrics_path] if path.exists()]
+        completion_gates = [
+            {"id": "dataset_builder", "label": "Dataset builder exists", "met": builder_path.exists()},
+            {"id": "canonical_dataset", "label": "Canonical dataset exists", "met": traces_path.exists()},
+            {"id": "clean_metrics", "label": "Validated dataset metrics exist", "met": metrics_path.exists() and clean_records > 0, "required_for": "completed"},
+        ]
+
+    elif task_id == "goal_24b_model_train_stack":
+        train_stack_path = training_dir / "train_stack.py"
+        config_path = training_dir / "train_stack_config.json"
+        smoke_manifest_path = models_dir / "smoke_test" / "manifest.json"
+        checkpoint_paths = sorted((models_dir / "finetuned").rglob("*.safetensors")) + sorted((models_dir / "finetuned").rglob("*.bin")) + sorted((models_dir / "finetuned").rglob("*.pt"))
+        smoke_manifest = load_json(smoke_manifest_path, {})
+        smoke_validated = smoke_manifest.get("status") == "smoke_test_validated"
+        has_checkpoint = bool(checkpoint_paths)
+        if train_stack_path.exists() and config_path.exists() and smoke_validated and has_checkpoint:
+            status = "completed"
+            reason = "Train stack has config, smoke validation, and a real checkpoint artifact."
+        elif train_stack_path.exists() and config_path.exists() and smoke_validated:
+            status = "validated"
+            reason = "Train stack config and smoke validation exist, but no real checkpoint artifact has been produced."
+            next_step = "Run a real training launch that writes a checkpoint into .orchestrator/models/finetuned/."
+        elif train_stack_path.exists() and config_path.exists():
+            status = "implemented"
+            reason = "Train stack code/config exist, but smoke validation and checkpoints are missing."
+            next_step = "Run the smoke path and persist checkpoint-producing launch artifacts."
+        elif train_stack_path.exists() or config_path.exists():
+            status = "scaffolded"
+            reason = "Train stack has partial scaffolding but is not fully implemented."
+            next_step = "Complete the train stack implementation and config before validation."
+        else:
+            status = "pending"
+            reason = "No train stack implementation is present."
+            next_step = "Create the train stack implementation and config."
+        evidence = [rel(path) for path in [train_stack_path, config_path, smoke_manifest_path] if path.exists()] + [rel(path) for path in checkpoint_paths[:3]]
+        completion_gates = [
+            {"id": "train_stack_code", "label": "Train stack source exists", "met": train_stack_path.exists()},
+            {"id": "train_stack_config", "label": "Train stack config exists", "met": config_path.exists()},
+            {"id": "smoke_validation", "label": "Smoke validation artifact exists", "met": smoke_validated},
+            {"id": "checkpoint_artifact", "label": "Real checkpoint artifact exists", "met": has_checkpoint, "required_for": "completed"},
+        ]
+
+    elif task_id == "gap_smoke_test_finetune":
+        smoke_manifest_path = models_dir / "smoke_test" / "manifest.json"
+        smoke_manifest = load_json(smoke_manifest_path, {})
+        smoke_validated = smoke_manifest.get("status") == "smoke_test_validated"
+        has_smoke_checkpoint = bool(list((models_dir / "smoke_test").rglob("*.safetensors")) + list((models_dir / "smoke_test").rglob("*.bin")) + list((models_dir / "smoke_test").rglob("*.pt")))
+        if smoke_validated and has_smoke_checkpoint:
+            status = "completed"
+            reason = "Smoke fine-tune produced a validation artifact and a checkpoint."
+        elif smoke_validated:
+            status = "validated"
+            reason = "Smoke path is validated, but no checkpoint-producing fine-tune artifact exists."
+            next_step = "Run a tiny checkpoint-producing smoke fine-tune and persist the artifact."
+        elif smoke_manifest_path.exists():
+            status = "implemented"
+            reason = "Smoke manifest exists, but the smoke fine-tune is not validated."
+            next_step = "Re-run the smoke test and confirm the manifest reports smoke_test_validated."
+        else:
+            status = "pending"
+            reason = "No smoke fine-tune artifact is present."
+            next_step = "Run the smoke validation path and persist its manifest."
+        evidence = [rel(path) for path in [smoke_manifest_path] if path.exists()]
+        completion_gates = [
+            {"id": "smoke_manifest", "label": "Smoke manifest exists", "met": smoke_manifest_path.exists()},
+            {"id": "smoke_validated", "label": "Smoke path validated", "met": smoke_validated},
+            {"id": "smoke_checkpoint", "label": "Smoke checkpoint artifact exists", "met": has_smoke_checkpoint, "required_for": "completed"},
+        ]
+
+    result = {
+        "status": status,
+        "status_reason": reason,
+        "evidence": evidence,
+        "completion_gates": completion_gates,
+    }
+    if next_step:
+        result["next_step"] = next_step
+    return result
+
+
+def normalize_queue_tasks(runtime_dir: Path, tasks: list[dict]):
+    normalized = []
+    for task in tasks:
+        normalized_task = dict(task)
+        normalized_task.update(derive_task_evidence(runtime_dir, normalized_task))
+        normalized.append(normalized_task)
+    return normalized
 
 
 def parse_trace_entries(log_paths, limit=6):
@@ -928,12 +1093,13 @@ def sync_dashboard_state(runtime_dir: Path):
     task_queue = load_json(task_queue_path, [])
     if not isinstance(task_queue, list):
         task_queue = []
+    task_queue = normalize_queue_tasks(runtime_dir, task_queue)
+    write_json_if_changed(task_queue_path, task_queue)
     verification = verify_dashboard_integrations(runtime_dir)
     loop_cycles = int(config.get("cycle_count", 0) or 0)
     tasks = sorted(task_queue, key=lambda item: (item.get("priority", 9999), item.get("id", "")))
     task_counts = task_status_counts(tasks)
-    actionable_statuses = {"pending", "in_progress", "active"}
-    actionable_tasks = [item for item in tasks if item.get("status", "pending") in actionable_statuses]
+    actionable_tasks = [item for item in tasks if item.get("status", "pending") in ACTIONABLE_TASK_STATUSES]
     state_warnings = []
     active_task = actionable_tasks[0] if actionable_tasks else None
     completed_count = task_counts["completed"]
@@ -989,6 +1155,10 @@ def sync_dashboard_state(runtime_dir: Path):
         memory_progress,
     )
 
+    pending_like_count = sum(
+        1 for item in tasks if item.get("status", "pending") in (ACTIONABLE_TASK_STATUSES - ACTIVE_TASK_STATUSES)
+    )
+
     dashboard_state = {
         "generated_at": datetime.now().isoformat(),
         "canonical": True,
@@ -1026,7 +1196,7 @@ def sync_dashboard_state(runtime_dir: Path):
             "loops_executed": loop_cycles,
             "training_traces": total_training_traces,
             "dag_total": total_count,
-            "dag_pending": task_counts["pending"],
+            "dag_pending": pending_like_count,
             "dag_active": len(actionable_tasks),
             "stray_count": len(security_events),
         },

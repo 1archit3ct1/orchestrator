@@ -22,6 +22,7 @@ Run the local orchestrator from `SPAWN/START/` by selecting the next truthful qu
 
 - Only mark work complete when the corresponding repo condition is actually satisfied on disk or through the live repo-truth frontend.
 - `task_queue.json`, memory artifacts, and the repo-truth frontend must stay aligned through canonical sync.
+- Queue status must stay truthful: use `scaffolded`, `implemented`, `validated`, and `completed` to reflect evidence depth instead of collapsing file creation into `completed`.
 - Only write inside the current task's `allowed_paths`.
 - When a queue item declares `start_path`, stay rooted there and open only the current task paths plus required sync targets.
 - If the current task is blocked, risky, or ambiguous, stop and ask instead of inventing a new path.
@@ -29,6 +30,7 @@ Run the local orchestrator from `SPAWN/START/` by selecting the next truthful qu
 - Unknown state should remain null, pending, empty, or absent.
 - Every task must leave repo-visible data artifacts, not just plans or status changes.
 - A task is incomplete until its expected files, records, endpoints, or rendered state exist and can be verified from repo state.
+- Training tasks require hard evidence before `completed`: eval work needs a real eval-run artifact, data work needs validated dataset outputs, and train-stack work needs real launch/checkpoint evidence.
 - Misses are useful training data: whenever the loop, verifier, audit log, or chat reveals a miss, blocked action, wrong assumption, or failed attempt, capture it into memory artifacts instead of discarding it.
 - The repo-truth frontend served at `/` is the live GUI contract.
 

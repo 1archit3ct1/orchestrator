@@ -10,7 +10,10 @@
     ],
     "priority": 25,
     "status": "completed",
-    "goal": "local_runtime_security"
+    "goal": "local_runtime_security",
+    "status_reason": null,
+    "evidence": [],
+    "completion_gates": []
   },
   {
     "id": "goal_24b_model_eval_harness",
@@ -22,9 +25,33 @@
       "SPAWN/STOP/.orchestrator/iterations/"
     ],
     "priority": 26,
-    "status": "completed",
+    "status": "implemented",
     "goal": "deliver_24b_model",
-    "verified_at": "2026-03-28T14:38:03.274030"
+    "verified_at": "2026-03-28T14:38:03.274030",
+    "status_reason": "Eval harness code and suite spec exist, but no eval run artifact is present yet.",
+    "evidence": [
+      "training/eval_harness.py",
+      ".orchestrator/data/eval_suite.json"
+    ],
+    "completion_gates": [
+      {
+        "id": "eval_harness_code",
+        "label": "Eval harness source exists",
+        "met": true
+      },
+      {
+        "id": "eval_suite_spec",
+        "label": "Eval suite spec exists",
+        "met": true
+      },
+      {
+        "id": "eval_run_artifact",
+        "label": "Real eval run artifact exists",
+        "met": false,
+        "required_for": "completed"
+      }
+    ],
+    "next_step": "Run the harness against a candidate checkpoint and persist an eval_run artifact."
   },
   {
     "id": "goal_24b_model_data_pipeline",
@@ -38,7 +65,31 @@
     "priority": 27,
     "status": "completed",
     "goal": "deliver_24b_model",
-    "verified_at": "2026-03-28T14:38:03.274030"
+    "verified_at": "2026-03-28T14:38:03.274030",
+    "status_reason": "Dataset builder and validated dataset outputs are present.",
+    "evidence": [
+      "training/build_datasets.py",
+      ".orchestrator/data/canonical_traces.jsonl",
+      ".orchestrator/data/clean_dataset_metrics.json"
+    ],
+    "completion_gates": [
+      {
+        "id": "dataset_builder",
+        "label": "Dataset builder exists",
+        "met": true
+      },
+      {
+        "id": "canonical_dataset",
+        "label": "Canonical dataset exists",
+        "met": true
+      },
+      {
+        "id": "clean_metrics",
+        "label": "Validated dataset metrics exist",
+        "met": true,
+        "required_for": "completed"
+      }
+    ]
   },
   {
     "id": "goal_24b_model_train_stack",
@@ -50,9 +101,39 @@
       "SPAWN/STOP/.orchestrator/data/"
     ],
     "priority": 28,
-    "status": "completed",
+    "status": "validated",
     "goal": "deliver_24b_model",
-    "verified_at": "2026-03-28T14:38:03.274030"
+    "verified_at": "2026-03-28T14:38:03.274030",
+    "status_reason": "Train stack config and smoke validation exist, but no real checkpoint artifact has been produced.",
+    "evidence": [
+      "training/train_stack.py",
+      "training/train_stack_config.json",
+      ".orchestrator/models/smoke_test/manifest.json"
+    ],
+    "completion_gates": [
+      {
+        "id": "train_stack_code",
+        "label": "Train stack source exists",
+        "met": true
+      },
+      {
+        "id": "train_stack_config",
+        "label": "Train stack config exists",
+        "met": true
+      },
+      {
+        "id": "smoke_validation",
+        "label": "Smoke validation artifact exists",
+        "met": true
+      },
+      {
+        "id": "checkpoint_artifact",
+        "label": "Real checkpoint artifact exists",
+        "met": false,
+        "required_for": "completed"
+      }
+    ],
+    "next_step": "Run a real training launch that writes a checkpoint into .orchestrator/models/finetuned/."
   },
   {
     "id": "goal_repo_runtime_scaffold",
@@ -64,7 +145,10 @@
     ],
     "priority": 29,
     "status": "completed",
-    "goal": "local_runtime_security"
+    "goal": "local_runtime_security",
+    "status_reason": null,
+    "evidence": [],
+    "completion_gates": []
   },
   {
     "id": "goal_repo_dispatch_and_handoff",
@@ -76,7 +160,10 @@
     ],
     "priority": 30,
     "status": "completed",
-    "goal": "local_runtime_security"
+    "goal": "local_runtime_security",
+    "status_reason": null,
+    "evidence": [],
+    "completion_gates": []
   },
   {
     "id": "goal_repo_security_enforcement",
@@ -89,7 +176,10 @@
     ],
     "priority": 31,
     "status": "completed",
-    "goal": "local_runtime_security"
+    "goal": "local_runtime_security",
+    "status_reason": null,
+    "evidence": [],
+    "completion_gates": []
   },
   {
     "id": "gap_trace_schema_normalization",
@@ -106,7 +196,10 @@
     "question_ids": [
       "D02"
     ],
-    "verified_at": "2026-03-28T14:38:03.274030"
+    "verified_at": "2026-03-28T14:38:03.274030",
+    "status_reason": null,
+    "evidence": [],
+    "completion_gates": []
   },
   {
     "id": "gap_steering_trace_labeling",
@@ -124,7 +217,10 @@
     "question_ids": [
       "D04"
     ],
-    "verified_at": "2026-03-28T14:38:03.274030"
+    "verified_at": "2026-03-28T14:38:03.274030",
+    "status_reason": null,
+    "evidence": [],
+    "completion_gates": []
   },
   {
     "id": "gap_trace_quality_thresholds",
@@ -141,7 +237,10 @@
     "question_ids": [
       "C02"
     ],
-    "verified_at": "2026-03-28T14:38:03.274030"
+    "verified_at": "2026-03-28T14:38:03.274030",
+    "status_reason": null,
+    "evidence": [],
+    "completion_gates": []
   },
   {
     "id": "gap_clean_dataset_metric",
@@ -159,7 +258,10 @@
     "question_ids": [
       "C03"
     ],
-    "verified_at": "2026-03-28T14:38:03.274030"
+    "verified_at": "2026-03-28T14:38:03.274030",
+    "status_reason": null,
+    "evidence": [],
+    "completion_gates": []
   },
   {
     "id": "gap_training_framework_selection",
@@ -176,7 +278,10 @@
     "question_ids": [
       "T01"
     ],
-    "verified_at": "2026-03-28T14:38:03.274030"
+    "verified_at": "2026-03-28T14:38:03.274030",
+    "status_reason": null,
+    "evidence": [],
+    "completion_gates": []
   },
   {
     "id": "gap_base_model_selection",
@@ -193,7 +298,10 @@
     "question_ids": [
       "T02"
     ],
-    "verified_at": "2026-03-28T14:38:03.274030"
+    "verified_at": "2026-03-28T14:38:03.274030",
+    "status_reason": null,
+    "evidence": [],
+    "completion_gates": []
   },
   {
     "id": "gap_smoke_test_finetune",
@@ -206,12 +314,35 @@
       "SPAWN/STOP/.orchestrator/iterations/"
     ],
     "priority": 38,
-    "status": "completed",
+    "status": "validated",
     "goal": "deliver_24b_model",
     "question_ids": [
       "T03"
     ],
-    "verified_at": "2026-03-28T14:38:03.274030"
+    "verified_at": "2026-03-28T14:38:03.274030",
+    "status_reason": "Smoke path is validated, but no checkpoint-producing fine-tune artifact exists.",
+    "evidence": [
+      ".orchestrator/models/smoke_test/manifest.json"
+    ],
+    "completion_gates": [
+      {
+        "id": "smoke_manifest",
+        "label": "Smoke manifest exists",
+        "met": true
+      },
+      {
+        "id": "smoke_validated",
+        "label": "Smoke path validated",
+        "met": true
+      },
+      {
+        "id": "smoke_checkpoint",
+        "label": "Smoke checkpoint artifact exists",
+        "met": false,
+        "required_for": "completed"
+      }
+    ],
+    "next_step": "Run a tiny checkpoint-producing smoke fine-tune and persist the artifact."
   },
   {
     "id": "gap_vram_profiling",
@@ -228,7 +359,10 @@
     "question_ids": [
       "T04"
     ],
-    "verified_at": "2026-03-28T14:38:03.274030"
+    "verified_at": "2026-03-28T14:38:03.274030",
+    "status_reason": null,
+    "evidence": [],
+    "completion_gates": []
   },
   {
     "id": "gap_trace_storage_format_contract",
@@ -248,7 +382,10 @@
     "question_ids": [
       "D01"
     ],
-    "verified_at": "2026-03-28T14:38:03.274030"
+    "verified_at": "2026-03-28T14:38:03.274030",
+    "status_reason": null,
+    "evidence": [],
+    "completion_gates": []
   },
   {
     "id": "gap_trace_storage_location_index",
@@ -268,7 +405,10 @@
     "question_ids": [
       "D03"
     ],
-    "verified_at": "2026-03-28T14:38:03.274030"
+    "verified_at": "2026-03-28T14:38:03.274030",
+    "status_reason": null,
+    "evidence": [],
+    "completion_gates": []
   },
   {
     "id": "gap_dedup_policy_surface",
@@ -286,7 +426,10 @@
     "question_ids": [
       "C01"
     ],
-    "verified_at": "2026-03-28T14:38:03.274030"
+    "verified_at": "2026-03-28T14:38:03.274030",
+    "status_reason": null,
+    "evidence": [],
+    "completion_gates": []
   },
   {
     "id": "projection_exec_proj_001",
@@ -305,7 +448,10 @@
     "projected_task_id": "proj_001",
     "task_id": "P01",
     "label": "Execution Summary",
-    "verified_at": "2026-03-28T14:38:03.274030"
+    "verified_at": "2026-03-28T14:38:03.274030",
+    "status_reason": null,
+    "evidence": [],
+    "completion_gates": []
   },
   {
     "id": "projection_exec_proj_002",
@@ -324,7 +470,10 @@
     "projected_task_id": "proj_002",
     "task_id": "P02",
     "label": "Strategic Queue",
-    "verified_at": "2026-03-28T14:38:03.274030"
+    "verified_at": "2026-03-28T14:38:03.274030",
+    "status_reason": null,
+    "evidence": [],
+    "completion_gates": []
   },
   {
     "id": "projection_exec_proj_003",
@@ -343,7 +492,10 @@
     "projected_task_id": "proj_003",
     "task_id": "P03",
     "label": "Projection Pipeline",
-    "verified_at": "2026-03-28T14:38:03.274030"
+    "verified_at": "2026-03-28T14:38:03.274030",
+    "status_reason": null,
+    "evidence": [],
+    "completion_gates": []
   },
   {
     "id": "projection_exec_proj_004",
@@ -362,7 +514,10 @@
     "projected_task_id": "proj_004",
     "task_id": "P04",
     "label": "Backend Runtime Mirror",
-    "verified_at": "2026-03-28T14:38:03.274030"
+    "verified_at": "2026-03-28T14:38:03.274030",
+    "status_reason": null,
+    "evidence": [],
+    "completion_gates": []
   },
   {
     "id": "projection_exec_proj_005",
@@ -381,7 +536,10 @@
     "projected_task_id": "proj_005",
     "task_id": "P05",
     "label": "Memory and Vector",
-    "verified_at": "2026-03-28T14:38:03.274030"
+    "verified_at": "2026-03-28T14:38:03.274030",
+    "status_reason": null,
+    "evidence": [],
+    "completion_gates": []
   },
   {
     "id": "projection_exec_proj_006",
@@ -400,7 +558,10 @@
     "projected_task_id": "proj_006",
     "task_id": "P06",
     "label": "Training State",
-    "verified_at": "2026-03-28T14:38:03.274030"
+    "verified_at": "2026-03-28T14:38:03.274030",
+    "status_reason": null,
+    "evidence": [],
+    "completion_gates": []
   },
   {
     "id": "projection_exec_proj_007",
@@ -419,7 +580,10 @@
     "projected_task_id": "proj_007",
     "task_id": "P07",
     "label": "Miss Detection",
-    "verified_at": "2026-03-28T14:38:03.274030"
+    "verified_at": "2026-03-28T14:38:03.274030",
+    "status_reason": null,
+    "evidence": [],
+    "completion_gates": []
   },
   {
     "id": "goal_task_scoped_prompt_contract",
@@ -441,7 +605,10 @@
     "priority": 51,
     "status": "completed",
     "goal": "prompt_runtime_focus",
-    "verified_at": "2026-03-28T14:52:19.853107"
+    "verified_at": "2026-03-28T14:52:19.853107",
+    "status_reason": null,
+    "evidence": [],
+    "completion_gates": []
   },
   {
     "id": "maintenance_parse_duplicates",
@@ -465,6 +632,9 @@
       "threshold": 3000,
       "cron_schedule": "*/15 * * * *"
     },
-    "prompt_load_path": "SPAWN/STOP/.orchestrator/task_queue.json"
+    "prompt_load_path": "SPAWN/STOP/.orchestrator/task_queue.json",
+    "status_reason": null,
+    "evidence": [],
+    "completion_gates": []
   }
 ]

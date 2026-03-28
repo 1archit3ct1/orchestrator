@@ -30,7 +30,13 @@ from urllib.request import urlopen
 # Import security system
 import security_manager
 from security_manager import CredentialType, SecurityManager
-from dashboard_state import sync_dashboard_state, verify_dashboard_integrations
+from dashboard_state import (
+    ACTIONABLE_TASK_STATUSES,
+    DONE_TASK_STATUSES,
+    normalize_queue_tasks,
+    sync_dashboard_state,
+    verify_dashboard_integrations,
+)
 from maintenance import run_duplicate_parse
 
 logging.basicConfig(
@@ -433,10 +439,11 @@ class OrchestratorLoop:
         """Update task status in task_queue.json."""
         tasks = self._load_json(self.task_queue_path)
         if isinstance(tasks, list):
+            tasks = normalize_queue_tasks(self.root / 'SPAWN' / 'STOP', tasks)
             for task in tasks:
                 if task.get('id') == task_id:
                     task['status'] = status
-                    if status == 'completed':
+                    if status in DONE_TASK_STATUSES:
                         task['completed_at'] = datetime.now().isoformat()
                     break
             self._save_json(self.task_queue_path, tasks)
@@ -454,9 +461,10 @@ class OrchestratorLoop:
         self._schedule_duplicate_parse_job_if_needed()
         tasks = self._load_json(self.task_queue_path)
         if isinstance(tasks, list):
+            tasks = normalize_queue_tasks(self.root / 'SPAWN' / 'STOP', tasks)
             actionable = [
                 task for task in tasks
-                if task.get('status', 'pending') in {'pending', 'in_progress', 'active'}
+                if task.get('status', 'pending') in ACTIONABLE_TASK_STATUSES
             ]
             completed = len(tasks) - len(actionable)
             logger.info(f"  Found {len(tasks)} tasks in queue ({len(actionable)} actionable, {completed} completed)")
@@ -685,10 +693,15 @@ class OrchestratorLoop:
         queue = self._load_json(self.task_queue_path)
         if not isinstance(queue, list):
             queue = []
+        queue = normalize_queue_tasks(self.root / 'SPAWN' / 'STOP', queue)
         for task in queue:
             result_key = task.get('id') if task.get('repo') == 'orchestrator' else task.get('repo', 'unknown')
             result = dispatch_results.get(result_key, {})
-            if result.get('status') == 'dispatched' and task.get('status') in {'pending', 'active', 'in_progress'}:
+            if (
+                result.get('status') == 'dispatched'
+                and task.get('job') == 'parse_duplicates'
+                and task.get('status') in ACTIONABLE_TASK_STATUSES
+            ):
                 task['status'] = 'completed'
                 task['verified_at'] = datetime.now().isoformat()
         return self._save_json(self.task_queue_path, queue)
@@ -703,9 +716,10 @@ class OrchestratorLoop:
         """Step 10: Repeat until all coordinated tasks complete"""
         queue_state = self._load_json(self.task_queue_path)
         if isinstance(queue_state, list):
+            queue_state = normalize_queue_tasks(self.root / 'SPAWN' / 'STOP', queue_state)
             actionable = [
                 task for task in queue_state
-                if task.get('status', 'pending') in {'pending', 'in_progress', 'active'}
+                if task.get('status', 'pending') in ACTIONABLE_TASK_STATUSES
             ]
         else:
             actionable = queue_state.get('pending', [])

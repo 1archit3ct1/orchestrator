@@ -51,7 +51,14 @@ ORCHESTRATOR_LOG_PATH = LOGS_DIR / "orchestrator.log"
 if str(ORCHESTRATOR_DIR) not in sys.path:
     sys.path.insert(0, str(ORCHESTRATOR_DIR))
 
-from dashboard_state import sync_dashboard_state
+from dashboard_state import (
+    ACTIONABLE_TASK_STATUSES,
+    ACTIVE_TASK_STATUSES,
+    DONE_TASK_STATUSES,
+    normalize_queue_tasks,
+    sync_dashboard_state,
+    task_status_counts,
+)
 
 
 def load_json(path: Path, default):
@@ -140,6 +147,7 @@ def collect_training_queue_items(limit=6):
     queue = load_json(TASK_QUEUE_PATH, [])
     if not isinstance(queue, list):
         return []
+    queue = normalize_queue_tasks(RUNTIME_DIR, queue)
 
     keywords = ("train", "training", "dataset", "model", "eval", "trace", "fine-tune")
     items = []
@@ -577,23 +585,24 @@ def get_task_records():
     queue = load_json(TASK_QUEUE_PATH, [])
     if not isinstance(queue, list):
         return []
+    queue = normalize_queue_tasks(RUNTIME_DIR, queue)
     return sorted(queue, key=lambda item: (item.get("priority", 9999), item.get("id", "")))
 
 
 def get_active_task(tasks):
     for task in tasks:
-        if task.get("status") in {"active", "in_progress"}:
+        if task.get("status") in ACTIVE_TASK_STATUSES:
             return task
     for task in tasks:
-        if task.get("status") == "pending":
+        if task.get("status") in ACTIONABLE_TASK_STATUSES:
             return task
     return tasks[0] if tasks else None
 
 def get_dag_status(tasks=None):
     tasks = tasks or get_task_records()
     total = len(tasks)
-    green = sum(1 for item in tasks if item.get("status") in {"completed", "complete"})
-    yellow = sum(1 for item in tasks if item.get("status") in {"pending", "active", "in_progress"})
+    green = sum(1 for item in tasks if item.get("status") in DONE_TASK_STATUSES)
+    yellow = sum(1 for item in tasks if item.get("status") in ACTIONABLE_TASK_STATUSES)
     red = 0
     return {
         "total": total,
@@ -606,16 +615,7 @@ def get_dag_status(tasks=None):
 
 def get_task_status(tasks=None):
     tasks = tasks or get_task_records()
-    total = len(tasks)
-    pending = sum(1 for task in tasks if task.get("status") == "pending")
-    in_progress = sum(1 for task in tasks if task.get("status") in {"active", "in_progress"})
-    completed = sum(1 for task in tasks if task.get("status") in {"completed", "complete"})
-    return {
-        "total": total,
-        "pending": pending,
-        "in_progress": in_progress,
-        "completed": completed,
-    }
+    return task_status_counts(tasks)
 
 
 def get_recent_logs(limit=50):
@@ -657,10 +657,12 @@ def build_trace_entries(tasks):
     for task in tasks:
         status = task.get("status", "pending")
         label = task.get("label") or task.get("id")
-        if status in {"active", "in_progress"}:
+        if status in ACTIVE_TASK_STATUSES:
             entries.append({"type": "task", "text": f"task.started - {task.get('task_id', task.get('id'))} {label}"})
-        elif status in {"complete", "completed"}:
+        elif status in DONE_TASK_STATUSES:
             entries.append({"type": "task", "text": f"task.completed - {task.get('task_id', task.get('id'))} {label}"})
+        elif status in {"scaffolded", "implemented", "validated"}:
+            entries.append({"type": "task", "text": f"task.{status} - {task.get('task_id', task.get('id'))} {label}"})
 
     if not entries:
         entries.append({"type": "loop", "text": "loop.idle - waiting for orchestrator activity"})
@@ -703,7 +705,9 @@ def build_projection_payload():
 
 def load_task_queue():
     queue = load_json(TASK_QUEUE_PATH, [])
-    return queue if isinstance(queue, list) else []
+    if not isinstance(queue, list):
+        return []
+    return normalize_queue_tasks(RUNTIME_DIR, queue)
 
 
 def build_execution_view_payload(dashboard=None):
@@ -721,8 +725,7 @@ def build_execution_view_payload(dashboard=None):
 def build_task_queue_view_payload(dashboard=None):
     dashboard = dashboard or build_dashboard_payload()
     queue = load_task_queue()
-    actionable_statuses = {"pending", "in_progress", "active"}
-    actionable = [item for item in queue if item.get("status", "pending") in actionable_statuses]
+    actionable = [item for item in queue if item.get("status", "pending") in ACTIONABLE_TASK_STATUSES]
     actionable.sort(key=lambda item: (item.get("priority", 9999), item.get("id", "")))
     counts = {}
     grouped = {}
@@ -1339,18 +1342,23 @@ LIVE_DASHBOARD_SCRIPT = r"""
     const status = task.status || 'pending';
     if (status === 'completed' || status === 'complete') return 'COMPLETE';
     if (status === 'active' || status === 'in_progress') return 'ACTIVE';
+    if (status === 'validated') return 'VALIDATED';
+    if (status === 'implemented') return 'IMPLEMENTED';
+    if (status === 'scaffolded') return 'SCAFFOLDED';
     return 'PENDING';
   }
   function taskStatusClass(task) {
     const status = task.status || 'pending';
     if (status === 'completed' || status === 'complete') return 'status-complete';
     if (status === 'active' || status === 'in_progress') return 'status-active';
+    if (status === 'validated' || status === 'implemented' || status === 'scaffolded') return 'status-pending';
     return 'status-pending';
   }
   function taskRowClass(task) {
     const status = task.status || 'pending';
     if (status === 'completed' || status === 'complete') return 'dag-task complete';
     if (status === 'active' || status === 'in_progress') return 'dag-task active';
+    if (status === 'validated' || status === 'implemented' || status === 'scaffolded') return 'dag-task active';
     return 'dag-task';
   }
   function traceTagClass(type) {

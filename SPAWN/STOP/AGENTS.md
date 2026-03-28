@@ -15,6 +15,7 @@ Key rules:
 - `SPAWN/START/` is immutable after bootstrap.
 - `SPAWN/STOP/` is the writable runtime zone.
 - `task_queue.json` contains the actionable local backlog, verification gates, projection execution tasks, and training work.
+- Queue progress is stage-based: use `scaffolded`, `implemented`, `validated`, and `completed` truthfully, and never collapse file creation alone into `completed`.
 - Misses, blocked actions, and wrong assumptions should be captured into `MEMORY.md`, `.orchestrator/data/`, `.orchestrator/iterations/`, `.orchestrator/vector_store/`, and `retrieval_log.jsonl`.
 
 Active runtime files:

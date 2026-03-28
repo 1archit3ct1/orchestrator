@@ -1652,12 +1652,15 @@ body::after {
         <div class="panel-hdr">
           <span class="panel-icon">◎</span>
           <span class="panel-title">MODEL STATUS</span>
+          <span class="panel-badge" data-training-inline-badge>training run pending</span>
         </div>
         <div class="model-body">
           <div class="model-name-block">
             <div class="model-name">Qwen2.5-Coder14B</div>
             <div class="model-sub">QLoRA · FINE-TUNE · CHECKPOINT v0.4.1</div>
           </div>
+
+          <div data-training-inline-summary style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:14px;"></div>
 
           <div class="eta-block">
             <div class="eta-num">14</div>
@@ -1683,6 +1686,8 @@ body::after {
               <div class="trace-box-val">235</div>
             </div>
           </div>
+
+          <div data-training-inline-blockers style="display:flex;flex-direction:column;gap:6px;margin-top:12px;"></div>
         </div>
       </div>
 
@@ -1783,6 +1788,38 @@ body::after {
       </div>
       <div class="scale-analysis-body" style="padding:14px 16px 18px;">
         <div style="font-size:9px;color:var(--text-dim);letter-spacing:1px;">Loading canonical training-readiness analysis...</div>
+      </div>
+    </div>
+
+    <div class="card" data-panel="all orchestrator training-run">
+      <div class="panel-hdr">
+        <span class="panel-icon">◎</span>
+        <span class="panel-title">TRAINING RUN DETAILS</span>
+        <span class="panel-badge">/api/training/run</span>
+      </div>
+      <div data-training-run-root style="padding:14px 16px 18px;display:flex;flex-direction:column;gap:12px;">
+        <div style="font-size:8px;letter-spacing:2px;color:var(--text-ghost);">CANONICAL TRAINING STATE</div>
+        <div data-training-summary style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;"></div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;">
+          <div>
+            <div style="font-size:8px;letter-spacing:2px;color:var(--text-ghost);margin-bottom:8px;">ARTIFACTS</div>
+            <div data-training-artifacts style="display:flex;flex-direction:column;gap:10px;"></div>
+          </div>
+          <div>
+            <div style="font-size:8px;letter-spacing:2px;color:var(--text-ghost);margin-bottom:8px;">QUEUE</div>
+            <div data-training-queue style="display:flex;flex-direction:column;gap:8px;"></div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;">
+          <div>
+            <div style="font-size:8px;letter-spacing:2px;color:var(--text-ghost);margin-bottom:8px;">RECENT LOGS</div>
+            <div data-training-logs style="display:flex;flex-direction:column;gap:10px;"></div>
+          </div>
+          <div>
+            <div style="font-size:8px;letter-spacing:2px;color:var(--text-ghost);margin-bottom:8px;">BLOCKERS</div>
+            <div data-training-blockers style="display:flex;flex-direction:column;gap:8px;"></div>
+          </div>
+        </div>
       </div>
     </div>
 

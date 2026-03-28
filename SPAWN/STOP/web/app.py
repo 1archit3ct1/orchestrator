@@ -106,6 +106,133 @@ def count_files(path: Path):
     return sum(1 for item in path.rglob("*") if item.is_file())
 
 
+def rel_runtime_path(path: Path):
+    try:
+        return str(path.relative_to(RUNTIME_DIR)).replace("\\", "/")
+    except ValueError:
+        return str(path)
+
+
+def summarize_path_entry(path: Path):
+    stat = path.stat()
+    return {
+        "name": path.name,
+        "path": rel_runtime_path(path),
+        "size_bytes": stat.st_size,
+        "size": format_bytes(stat.st_size),
+        "modified_at": datetime.fromtimestamp(stat.st_mtime).isoformat(),
+    }
+
+
+def collect_recent_files(base_dir: Path, patterns, limit=6):
+    if not base_dir.exists():
+        return []
+    paths = []
+    for pattern in patterns:
+        paths.extend(path for path in base_dir.rglob(pattern) if path.is_file())
+    unique_paths = sorted(set(paths), key=lambda item: item.stat().st_mtime, reverse=True)
+    return [summarize_path_entry(path) for path in unique_paths[:limit]]
+
+
+def collect_training_queue_items(limit=6):
+    queue = load_json(TASK_QUEUE_PATH, [])
+    if not isinstance(queue, list):
+        return []
+
+    keywords = ("train", "training", "dataset", "model", "eval", "trace", "fine-tune")
+    items = []
+    for item in queue:
+        haystack = " ".join(
+            str(item.get(key, "")) for key in ["id", "description", "goal", "job"]
+        ).lower()
+        if any(keyword in haystack for keyword in keywords):
+            items.append(
+                {
+                    "id": item.get("id"),
+                    "status": item.get("status", "pending"),
+                    "priority": item.get("priority"),
+                    "description": item.get("description", ""),
+                    "goal": item.get("goal"),
+                    "allowed_paths": item.get("allowed_paths", []),
+                }
+            )
+    return items[:limit]
+
+
+def build_training_run_payload():
+    config = load_json(CONFIG_PATH, {})
+    dashboard = build_dashboard_payload()
+    training_config = config.get("training_config", {}) if isinstance(config, dict) else {}
+    output_dir = training_config.get("output_dir")
+    output_path = Path(output_dir) if output_dir else None
+    if output_path and not output_path.is_absolute():
+        output_path = RUNTIME_DIR.parent.parent / output_path
+
+    training_scripts = collect_recent_files(TRAINING_DIR, ["*.py", "*.sh", "*.yaml", "*.yml", "*.json"], limit=8)
+    model_artifacts = collect_recent_files(MODELS_DIR, ["*.pt", "*.bin", "*.safetensors", "*.json", "*.ckpt"], limit=8)
+    dataset_artifacts = collect_recent_files(DATA_DIR, ["*.jsonl", "*.json", "*.csv"], limit=8)
+    training_logs = []
+    for path in [LOGS_DIR / "spawn_runner.log", LOGS_DIR / "loop-actual.err.log", LOGS_DIR / "loop-test.err.log"]:
+        if path.exists():
+            training_logs.append(
+                {
+                    "path": rel_runtime_path(path),
+                    "tail": tail_lines(path, 5),
+                }
+            )
+
+    blockers = []
+    if not training_scripts:
+        blockers.append("No training scripts are present under SPAWN/STOP/training/.")
+    if not dataset_artifacts:
+        blockers.append("No dataset artifacts are present under SPAWN/STOP/.orchestrator/data/.")
+    if not model_artifacts:
+        blockers.append("No model checkpoints are present under SPAWN/STOP/.orchestrator/models/.")
+    if not training_config.get("integrated"):
+        blockers.append("training_config.integrated is false in .orchestrator/config.json.")
+
+    memory_model = dashboard.get("model", {})
+    return {
+        "canonical": True,
+        "generated_at": datetime.now().isoformat(),
+        "task_id": "T04",
+        "active_task": dashboard.get("active_task"),
+        "training_config": {
+            "integrated": bool(training_config.get("integrated", False)),
+            "model_name": training_config.get("model_name"),
+            "output_dir": output_dir,
+        },
+        "runtime": {
+            "gpu_enabled": bool(config.get("gpu_enabled", False)),
+            "spawn_state": config.get("spawn_loop", {}).get("state", "stopped"),
+            "output_dir_exists": bool(output_path and output_path.exists()),
+            "training_dir_exists": TRAINING_DIR.exists(),
+            "models_dir_exists": MODELS_DIR.exists(),
+            "data_dir_exists": DATA_DIR.exists(),
+        },
+        "artifacts": {
+            "training_scripts": training_scripts,
+            "dataset_files": dataset_artifacts,
+            "model_files": model_artifacts,
+            "counts": {
+                "training_scripts": len(training_scripts),
+                "dataset_files": len(dataset_artifacts),
+                "model_files": len(model_artifacts),
+            },
+        },
+        "queue": collect_training_queue_items(),
+        "recent_logs": training_logs,
+        "memory_progress": {
+            "collected_tokens": memory_model.get("memory_collected_tokens", 0),
+            "target_tokens": memory_model.get("memory_target_tokens", 0),
+            "collection_percent": memory_model.get("collection_progress", 0),
+            "minimum_tuning_tokens": memory_model.get("minimum_tuning_tokens", 0),
+            "retrieval_lines": memory_model.get("retrieval_lines", 0),
+        },
+        "blockers": blockers,
+    }
+
+
 def derive_tasks_from_graph():
     graph = load_json(DESIGN_GRAPH_PATH, {"nodes": [], "edges": []})
     nodes = graph.get("nodes", [])
@@ -1106,6 +1233,94 @@ LIVE_DASHBOARD_SCRIPT = r"""
     }).join('');
   }
 
+  async function renderTrainingRunDetails() {
+    const root = qs('[data-training-run-root]');
+    try {
+      const response = await fetch('/api/training/run', {cache: 'no-store'});
+      if (!response.ok) throw new Error('training run request failed');
+      const detail = await response.json();
+      const summary = root ? root.querySelector('[data-training-summary]') : null;
+      const artifacts = root ? root.querySelector('[data-training-artifacts]') : null;
+      const queue = root ? root.querySelector('[data-training-queue]') : null;
+      const logs = root ? root.querySelector('[data-training-logs]') : null;
+      const blockers = root ? root.querySelector('[data-training-blockers]') : null;
+      const inlineBadge = qs('[data-training-inline-badge]');
+      const inlineSummary = qs('[data-training-inline-summary]');
+      const inlineBlockers = qs('[data-training-inline-blockers]');
+
+      if (inlineBadge) {
+        const statusText = detail.training_config && detail.training_config.integrated ? 'training integrated' : 'training run live';
+        inlineBadge.textContent = statusText;
+      }
+
+      if (inlineSummary) {
+        inlineSummary.innerHTML = ''
+          + '<div class="trace-box"><div class="trace-box-label">CONFIG</div><div class="trace-box-val" style="font-size:18px;">' + escapeHtml(detail.training_config && detail.training_config.integrated ? 'LIVE' : 'PENDING') + '</div></div>'
+          + '<div class="trace-box"><div class="trace-box-label">DATA FILES</div><div class="trace-box-val" style="font-size:18px;">' + escapeHtml(String(detail.artifacts && detail.artifacts.counts && detail.artifacts.counts.dataset_files || 0)) + '</div></div>'
+          + '<div class="trace-box"><div class="trace-box-label">MODEL FILES</div><div class="trace-box-val" style="font-size:18px;">' + escapeHtml(String(detail.artifacts && detail.artifacts.counts && detail.artifacts.counts.model_files || 0)) + '</div></div>';
+      }
+
+      if (inlineBlockers) {
+        const items = Array.isArray(detail.blockers) ? detail.blockers : [];
+        inlineBlockers.innerHTML = items.length ? items.slice(0, 3).map(function(item) {
+          return '<div class="training-run-blocker">' + escapeHtml(item) + '</div>';
+        }).join('') : '<div class="training-run-empty">No current blockers detected from repo state.</div>';
+      }
+
+      if (summary) {
+        summary.innerHTML = ''
+          + '<div class="training-run-kv"><span>CONFIG</span><strong>' + escapeHtml(detail.training_config && detail.training_config.integrated ? 'INTEGRATED' : 'PENDING') + '</strong></div>'
+          + '<div class="training-run-kv"><span>GPU</span><strong>' + escapeHtml(detail.runtime && detail.runtime.gpu_enabled ? 'ENABLED' : 'DISABLED') + '</strong></div>'
+          + '<div class="training-run-kv"><span>SPAWN LOOP</span><strong>' + escapeHtml(textOr(detail.runtime && detail.runtime.spawn_state, 'stopped').toUpperCase()) + '</strong></div>'
+          + '<div class="training-run-kv"><span>TOKENS</span><strong>' + escapeHtml(compactNumber(detail.memory_progress && detail.memory_progress.collected_tokens || 0)) + ' / ' + escapeHtml(compactNumber(detail.memory_progress && detail.memory_progress.target_tokens || 0)) + '</strong></div>'
+          + '<div class="training-run-kv"><span>RETRIEVAL LINES</span><strong>' + escapeHtml(compactNumber(detail.memory_progress && detail.memory_progress.retrieval_lines || 0)) + '</strong></div>'
+          + '<div class="training-run-kv"><span>OUTPUT DIR</span><strong>' + escapeHtml(detail.runtime && detail.runtime.output_dir_exists ? 'PRESENT' : 'MISSING') + '</strong></div>';
+      }
+
+      if (artifacts) {
+        const groups = [
+          { label: 'Scripts', items: detail.artifacts && detail.artifacts.training_scripts },
+          { label: 'Datasets', items: detail.artifacts && detail.artifacts.dataset_files },
+          { label: 'Models', items: detail.artifacts && detail.artifacts.model_files }
+        ];
+        artifacts.innerHTML = groups.map(function(group) {
+          const items = Array.isArray(group.items) ? group.items : [];
+          const body = items.length ? items.map(function(item) {
+            return '<div class="training-run-item"><span>' + escapeHtml(item.path) + '</span><strong>' + escapeHtml(item.size) + '</strong></div>';
+          }).join('') : '<div class="training-run-empty">No repo-backed artifacts found.</div>';
+          return '<div class="training-run-group"><div class="training-run-group-title">' + escapeHtml(group.label) + '</div>' + body + '</div>';
+        }).join('');
+      }
+
+      if (queue) {
+        const items = Array.isArray(detail.queue) ? detail.queue : [];
+        queue.innerHTML = items.length ? items.map(function(item) {
+          return '<div class="training-run-item"><span>' + escapeHtml((item.id || 'queue-item') + ' · ' + (item.status || 'pending')) + '</span><strong>' + escapeHtml('P' + String(item.priority || '--')) + '</strong></div><div class="training-run-subitem">' + escapeHtml(textOr(item.description, '')) + '</div>';
+        }).join('') : '<div class="training-run-empty">No queued training-adjacent tasks found.</div>';
+      }
+
+      if (logs) {
+        const items = Array.isArray(detail.recent_logs) ? detail.recent_logs : [];
+        logs.innerHTML = items.length ? items.map(function(item) {
+          return '<div class="training-run-group"><div class="training-run-group-title">' + escapeHtml(item.path) + '</div><pre class="training-run-log">' + escapeHtml((item.tail || []).join('\n')) + '</pre></div>';
+        }).join('') : '<div class="training-run-empty">No training-related log files found.</div>';
+      }
+
+      if (blockers) {
+        const items = Array.isArray(detail.blockers) ? detail.blockers : [];
+        blockers.innerHTML = items.length ? items.map(function(item) {
+          return '<div class="training-run-blocker">' + escapeHtml(item) + '</div>';
+        }).join('') : '<div class="training-run-empty">No current blockers detected from repo state.</div>';
+      }
+
+      if (root) setOperational(root.closest('.card'), !!detail.canonical);
+      const modelCard = qs('.model-name') ? qs('.model-name').closest('.card') : null;
+      setOperational(modelCard, !!detail.canonical);
+    } catch (error) {
+      console.error('[training-run] render failed', error);
+    }
+  }
+
   function renderBootstrapPanel(data) {
     const bootBody = qs('.boot-body');
     if (bootBody && Array.isArray(data.bootstrap_steps)) {
@@ -1269,6 +1484,7 @@ LIVE_DASHBOARD_SCRIPT = r"""
     renderRepoStructurePanel(data);
     renderVectorMemoryPanel(data);
     renderMemoryFiles(data);
+    renderTrainingRunDetails();
     renderExportPanel(data);
     renderReadinessTracker(data);
     renderScaleAnalysis(data);
@@ -1428,6 +1644,12 @@ def api_spawn_status():
     spawn_loop["runner_pid"] = spawn_runner_process.pid if spawn_runner_process and spawn_runner_process.poll() is None else None
     spawn_loop["runner_running"] = spawn_runner_process is not None and spawn_runner_process.poll() is None
     return jsonify(spawn_loop)
+
+
+@app.route("/api/training/run")
+def api_training_run():
+    """Return canonical repo-backed training run details for the training dashboard panel."""
+    return jsonify(build_training_run_payload())
 
 
 def render_live_design_html():

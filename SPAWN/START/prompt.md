@@ -1,11 +1,11 @@
-# Orchestrator Bootstrap Prompt
+ Prompt
 
 You are initializing the orchestrator from `SPAWN/START/`.
 
 Do not auto-run installers, launch services, mutate unrelated files, or "bootstrap the machine."
 Only prepare the orchestrator repo itself from canonical repo state.
 
-## Bootstrap Goal
+ Goal
 
 Initialize `SPAWN/STOP/` so the autonomous orchestration loop can run truthfully from repo-backed state.
 
@@ -66,27 +66,30 @@ If a task does not leave behind verifiable repo data, do not advance the DAG.
 
 - `T01 gui-nav-panels`
 - `T02 gui-dag-task-details`
-- `T03 gui-bootstrap-step-details`
-- `T04 gui-repo-structure-details`
-- `T05 gui-vector-phase-details`
-- `T06 gui-memory-file-open`
-- `T07 gui-export-jsonl`
-- `T08 gui-export-alpaca`
-- `T09 gui-export-sharegpt`
-- `T10 gui-export-steering`
-- `T11 gui-repo-freeze-toggle`
-- `T12 gui-spawn-loop-controls`
-- `T13 gui-audit-log-details`
-- `T14 gui-stray-monitor-details`
-- `T15 gui-readiness-tracker-live`
-- `T16 gui-training-run-details`
-- `T17 gui-dataset-details`
-- `T18 gui-eta-tracker-live`
-- `T19 gui-trace-capture-details`
-- `T20 gui-steering-log-details`
-- `T21 gui-mutex-lock-details`
+- `T03 gui-spawn-loop-controls`
+- `T04 gui-training-run-details`
+- `T05 gui-dataset-details`
+- `T06 gui-eta-tracker-live`
+- `T07 gui-scale-analysis-page`
+- `T08 gui-audit-log-details`
+- `T09 gui-repo-freeze-toggle`
+- `T10 gui-stray-monitor-details`
+- `T11 gui-trace-capture-details`
+- `T12 gui-steering-log-details`
+- `T13 gui-bootstrap-step-details`
+- `T14 gui-repo-structure-details`
+- `T15 gui-vector-phase-details`
+- `T16 gui-memory-file-open`
+- `T17 gui-export-jsonl`
+- `T18 gui-export-alpaca`
+- `T19 gui-export-sharegpt`
+- `T20 gui-export-steering`
+- `T21 gui-readiness-tracker-live`
+- `T22 gui-mutex-lock-details`
+- `T23 gui-model-status-panel`
 
-## Bootstrap Output
+
+ Output
 
 Initialize the repo so that:
 
@@ -102,22 +105,25 @@ Do not complete a task unless it delivers the following:
 
 - `T01 gui-nav-panels`: sidebar nav changes live panel state through repo-backed hooks
 - `T02 gui-dag-task-details`: DAG rows open real task detail state
-- `T03 gui-bootstrap-step-details`: bootstrap rows open real step details
-- `T04 gui-repo-structure-details`: repo structure rows open real details
-- `T05 gui-vector-phase-details`: vector phases open real phase details
-- `T06 gui-memory-file-open`: memory file rows open real repo file details
-- `T07-T10`: each export button has a matching live Flask export endpoint and binding
-- `T11`: repo freeze toggle mutates live freeze state through Flask
-- `T12`: spawn loop controls hit a live Flask control plane
-- `T13`: audit log panel opens detailed audit events
-- `T14`: stray monitor panel opens detailed stray events
-- `T15`: readiness tracker rows render from canonical repo state
-- `T16`: training run section opens detailed repo-backed training state
-- `T17`: dataset section opens detailed repo-backed dataset state
-- `T18`: ETA tracker renders canonical ETA details instead of static text
-- `T19`: trace capture section opens detailed repo-backed trace history
-- `T20`: steering log section opens detailed repo-backed steering events
-- `T21`: mutex status box opens detailed live lock ownership and gating state
+- `T03 gui-spawn-loop-controls`: spawn loop controls hit a live Flask control plane
+- `T04 gui-training-run-details`: training run section opens detailed repo-backed training state
+- `T05 gui-dataset-details`: dataset section opens detailed repo-backed dataset state
+- `T06 gui-eta-tracker-live`: ETA tracker renders canonical ETA details instead of static text
+- `T07 gui-scale-analysis-page`: scale analysis page renders repo-backed scale recommendations, thresholds, and viability guidance
+- `T08 gui-audit-log-details`: audit log panel opens detailed audit events
+- `T09 gui-repo-freeze-toggle`: repo freeze toggle mutates live freeze state through Flask
+- `T10 gui-stray-monitor-details`: stray monitor panel opens detailed stray events
+- `T11 gui-trace-capture-details`: trace capture section opens detailed repo-backed trace history
+- `T12 gui-steering-log-details`: steering log section opens detailed repo-backed steering events
+- `T13 gui-bootstrap-step-details`: bootstrap rows open real step details
+- `T14 gui-repo-structure-details`: repo structure rows open real details
+- `T15 gui-vector-phase-details`: vector phases open real phase details
+- `T16 gui-memory-file-open`: memory file rows open real repo file details
+- `T17-T20`: each export button has a matching live Flask export endpoint and binding
+- `T21 gui-readiness-tracker-live`: readiness tracker rows render from canonical repo state
+- `T22 gui-mutex-lock-details`: mutex status box opens detailed live lock ownership and gating state
+- `T23 gui-model-status-panel`: model status surface is a first-class repo-backed function with readiness, graph rendering, and training-scale state
+
 
 ## Operator Use
 

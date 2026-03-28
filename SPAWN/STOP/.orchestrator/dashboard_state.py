@@ -112,54 +112,6 @@ def estimate_text_tokens(path: Path):
     return max(1, math.ceil(len(text) / 4))
 
 
-def normalize_tasks(graph, tasks):
-    if isinstance(tasks, list) and tasks:
-        normalized = []
-        for index, task in enumerate(tasks, start=1):
-            normalized.append(
-                {
-                    "id": task.get("id", f"task_{index:03d}"),
-                    "task_id": task.get("task_id", f"T{index:02d}"),
-                    "dag_node_id": task.get("dag_node_id"),
-                    "label": task.get("label") or task.get("task_name") or task.get("dag_node_id") or f"task-{index}",
-                    "description": task.get("description", ""),
-                    "allowed_paths": task.get("allowed_paths", []),
-                    "dependencies": task.get("dependencies", []),
-                    "status": task.get("status", "pending"),
-                    "priority": task.get("priority", index),
-                    "progress": task.get("progress"),
-                }
-            )
-        return normalized
-
-    normalized = []
-    for index, node in enumerate(graph.get("nodes", []), start=1):
-        display_status = node.get("display_status")
-        if not display_status:
-            if node.get("status") == "green":
-                display_status = "completed"
-            elif node.get("status") == "yellow":
-                display_status = "active"
-            else:
-                display_status = "pending"
-
-        normalized.append(
-            {
-                "id": f"task_{index:03d}",
-                "task_id": node.get("task_id", f"T{index:02d}"),
-                "dag_node_id": node.get("id"),
-                "label": node.get("task_name") or node.get("label") or node.get("id"),
-                "description": node.get("description", ""),
-                "allowed_paths": node.get("allowed_paths", []),
-                "dependencies": node.get("dependencies", []),
-                "status": display_status,
-                "priority": index,
-                "progress": node.get("progress"),
-            }
-        )
-    return normalized
-
-
 def verify_dashboard_integrations(runtime_dir: Path):
     orchestrator_dir = runtime_dir / ".orchestrator"
     web_dir = runtime_dir / "web"
@@ -179,9 +131,9 @@ def verify_dashboard_integrations(runtime_dir: Path):
         },
         "gui_dag_task_details": {
             "live": "Execution DAG" not in design_text and "/api/task/<task_id>" not in app_text and "@app.route(\"/api/dag\")" not in app_text,
-            "reason": "legacy GUI DAG surface has been retired so repo-truth routing no longer depends on the old task list panel"
+            "reason": "repo-truth routing depends on queue summaries and no old DAG task list panel remains"
             if "Execution DAG" not in design_text and "/api/task/<task_id>" not in app_text and "@app.route(\"/api/dag\")" not in app_text
-            else "legacy GUI DAG surface is still present in the repo-truth frontend or backend routes",
+            else "an old DAG task list panel is still present in the repo-truth frontend or backend routes",
         },
         "gui_bootstrap_step_details": {
             "live": 'data-boot-step="' in design_text and "function openBootstrapStep" in app_text,
@@ -311,190 +263,6 @@ def verify_dashboard_integrations(runtime_dir: Path):
         },
     }
     return checks
-
-
-def apply_verification_to_graph(graph, verification, task_md):
-    active_node_id = task_md.get("dag_node_id") if task_md else None
-    graph = json.loads(json.dumps(graph))
-
-    for node in graph.get("nodes", []):
-        node_id = node.get("id")
-        result = verification.get(node_id, {"live": False, "reason": "no verification rule"})
-        node["verified_live"] = result["live"]
-        node["verification_reason"] = result["reason"]
-
-        if result["live"]:
-            node["status"] = "green"
-            node["display_status"] = "complete"
-            node["progress"] = None
-        elif active_node_id and node_id == active_node_id:
-            node["status"] = "yellow"
-            node["display_status"] = "active"
-        else:
-            node["status"] = "red"
-            node["display_status"] = "pending"
-            node["progress"] = None
-
-    return graph
-
-
-def parse_task_md(task_md_path: Path):
-    if not task_md_path.exists():
-        return None
-
-    content = read_text(task_md_path)
-    if not content.startswith("---"):
-        return None
-
-    end = content.find("---", 3)
-    if end <= 0:
-        return None
-
-    frontmatter = content[3:end].strip()
-    body = content[end + 3 :].strip()
-    record = {
-        "task_id": None,
-        "dag_node_id": None,
-        "priority": None,
-        "allowed_paths": [],
-        "description": "",
-        "status": "pending",
-    }
-
-    in_allowed_paths = False
-    for raw_line in frontmatter.splitlines():
-        line = raw_line.rstrip()
-        stripped = line.strip()
-        if not stripped:
-            continue
-
-        if stripped == "allowed_paths:":
-            in_allowed_paths = True
-            continue
-
-        if in_allowed_paths and stripped.startswith("- "):
-            record["allowed_paths"].append(stripped[2:].strip())
-            continue
-
-        in_allowed_paths = False
-        if ":" in stripped:
-            key, value = stripped.split(":", 1)
-            key = key.strip()
-            value = value.strip()
-            if key in record:
-                record[key] = value
-
-    match = re.search(r"## Description\s*(.+?)(?:\n## |\Z)", body, flags=re.S)
-    if match:
-        record["description"] = " ".join(match.group(1).split())
-
-    status_match = re.search(r"## Status:\s*([A-Z_]+)", body)
-    if status_match:
-        record["status"] = status_match.group(1).lower()
-
-    return record
-
-
-def render_task_md(task: dict):
-    allowed_paths = task.get("allowed_paths", [])
-    allowed_lines = "\n".join(f"  - {path}" for path in allowed_paths) if allowed_paths else "  - SPAWN/STOP/state/"
-    label = task.get("label") or task.get("dag_node_id") or task.get("task_id") or "task"
-    description = task.get("description", "")
-    return (
-        f"---\n"
-        f"task_id: {task.get('id')}\n"
-        f"dag_node_id: {task.get('dag_node_id')}\n"
-        f"allowed_paths:\n{allowed_lines}\n"
-        f"priority: {task.get('priority', 1)}\n"
-        f"---\n\n"
-        f"# Task: {label}\n\n"
-        f"## Description\n"
-        f"{description}\n\n"
-        f"## Allowed Paths\n"
-        f"You may ONLY write to: {', '.join(f'`{path}`' for path in allowed_paths) if allowed_paths else '`SPAWN/STOP/state/`'}\n\n"
-        f"## Status: PENDING\n"
-    )
-
-
-def canonicalize_tasks(graph: dict, tasks: list, task_md: dict | None):
-    graph_nodes = {node.get("id"): node for node in graph.get("nodes", [])}
-    active_node_id = task_md.get("dag_node_id") if task_md else None
-    normalized = []
-    for task in tasks:
-        task_copy = dict(task)
-        node = graph_nodes.get(task.get("dag_node_id"), {})
-        if node.get("status") == "green":
-            task_copy["status"] = "completed"
-        elif active_node_id and task.get("dag_node_id") == active_node_id:
-            task_copy["status"] = "in_progress"
-        else:
-            task_copy["status"] = "pending"
-        task_copy["progress"] = None
-        normalized.append(task_copy)
-    return normalized
-
-
-def find_next_runnable_task(tasks: list):
-    completed_nodes = {
-        task.get("dag_node_id")
-        for task in tasks
-        if task.get("status") == "completed"
-    }
-    for task in tasks:
-        if task.get("status") in {"active", "in_progress"}:
-            return task
-    for task in tasks:
-        if task.get("status") != "pending":
-            continue
-        dependencies = task.get("dependencies", [])
-        if all(dep in completed_nodes for dep in dependencies):
-            return task
-    return None
-
-
-def sync_task_md(runtime_dir: Path, graph: dict, tasks: list, task_md: dict | None):
-    task_md_path = runtime_dir / "TASK.md"
-    graph_nodes = {node.get("id"): node for node in graph.get("nodes", [])}
-    current_node = graph_nodes.get(task_md.get("dag_node_id")) if task_md else None
-
-    # Retire orphaned TASK.md files that reference a node name from an older contract.
-    if task_md and task_md.get("dag_node_id") and current_node is None:
-        if task_md_path.exists():
-            task_md_path.unlink()
-        task_md = None
-
-    # When canonical verification says the active task is live, retire the stale TASK.md.
-    if task_md and current_node and current_node.get("status") == "green":
-        if task_md_path.exists():
-            task_md_path.unlink()
-        task_md = None
-
-    current_node_id = task_md.get("dag_node_id") if task_md else None
-    next_task = find_next_runnable_task(tasks)
-
-    if not next_task:
-        if task_md_path.exists():
-            task_md_path.unlink()
-        return None
-
-    if current_node_id == next_task.get("dag_node_id") and task_md_path.exists():
-        return task_md
-
-    rendered = render_task_md(next_task)
-    current = read_text(task_md_path, default=None)
-    if current != rendered:
-        task_md_path.write_text(rendered, encoding="utf-8")
-
-    return {
-        "task_id": next_task.get("id"),
-        "dag_node_id": next_task.get("dag_node_id"),
-        "priority": next_task.get("priority"),
-        "allowed_paths": next_task.get("allowed_paths", []),
-        "description": next_task.get("description", ""),
-        "status": "pending",
-    }
-
-
 def task_status_counts(tasks):
     total = len(tasks)
     pending = sum(1 for task in tasks if task.get("status") == "pending")
@@ -596,13 +364,9 @@ def build_activity_feed(runtime_dir: Path, logs_dir: Path, iterations_dir: Path,
     if memory_path.exists():
         push(memory_path.stat().st_mtime, "memory ledger updated", "mem", "MEM")
 
-    task_md = runtime_dir / "TASK.md"
-    if task_md.exists():
-        push(task_md.stat().st_mtime, "task assignment file active", "task", "TASK")
-    else:
-        graph_path = runtime_dir / "state" / "design_graph.json"
-        if graph_path.exists():
-            push(graph_path.stat().st_mtime, "dashboard DAG verified complete", "loop", "LOOP")
+    task_queue_path = runtime_dir / ".orchestrator" / "task_queue.json"
+    if task_queue_path.exists():
+        push(task_queue_path.stat().st_mtime, "queue state updated", "task", "TASK")
 
     events.sort(key=lambda item: item["ts"])
     return [{key: value for key, value in item.items() if key != "ts"} for item in events[-limit:]]
@@ -715,20 +479,18 @@ def build_vector_phases(vector_dir: Path, iterations_dir: Path):
     ]
 
 
-def build_memory_files(runtime_dir: Path, task_md: Path, memory_md: Path, vector_dir: Path, retrieval_log: Path, agents_md: Path, tasks_path: Path):
+def build_memory_files(memory_md: Path, vector_dir: Path, retrieval_log: Path, agents_md: Path, task_queue_path: Path):
     files = []
     if memory_md.exists():
         files.append({"name": "MEMORY.md", "size": f"append-only - {format_bytes(memory_md.stat().st_size)}"})
     if vector_dir.exists():
         files.append({"name": "vector_store/", "size": f"{count_files(vector_dir, '*.json')} entries - {format_bytes(directory_size(vector_dir))}"})
-    if task_md.exists():
-        files.append({"name": "TASK.md", "size": f"active - {format_bytes(task_md.stat().st_size)}"})
     if agents_md.exists():
         files.append({"name": "AGENTS.md", "size": f"runtime prompt - {format_bytes(agents_md.stat().st_size)}"})
     if retrieval_log.exists():
         files.append({"name": "retrieval_log.jsonl", "size": f"{format_bytes(retrieval_log.stat().st_size)}"})
-    if tasks_path.exists():
-        files.append({"name": "tasks.json", "size": format_bytes(tasks_path.stat().st_size)})
+    if task_queue_path.exists():
+        files.append({"name": "task_queue.json", "size": format_bytes(task_queue_path.stat().st_size)})
     return files
 
 
@@ -799,17 +561,16 @@ def ensure_repo_truth_runtime_files(state_dir: Path):
             "mode": "repo-truth-frontend",
             "status": "live",
             "default_route": "/",
-            "legacy_route": None,
             "notes": [
                 "The repo-truth frontend must read canonical backend state domains directly.",
-                "Legacy dashboard serving has been retired and old routes should resolve to the repo-truth frontend.",
+                "The repo-truth frontend is the single live dashboard surface.",
             ],
         },
         "frontend_state_views.json": {
             "canonical": True,
             "mode": "repo-truth-frontend",
             "views": [
-                {"id": "execution", "label": "Execution DAG", "endpoint": "/api/repo-truth/execution"},
+                {"id": "summary", "label": "Execution Summary", "endpoint": "/api/repo-truth/summary"},
                 {"id": "queue", "label": "Strategic Queue", "endpoint": "/api/repo-truth/queue"},
                 {"id": "projection", "label": "Projection Pipeline", "endpoint": "/api/projection/state"},
                 {"id": "runtime", "label": "Backend Runtime", "endpoint": "/api/runtime/mirror"},
@@ -880,7 +641,6 @@ def build_repo_truth_state(state_dir: Path, dashboard_state: dict):
         "mode": frontend.get("mode", "repo-truth-frontend"),
         "status": frontend.get("status", "staged"),
         "default_route": frontend.get("default_route", "/truth"),
-        "legacy_route": frontend.get("legacy_route", "/design"),
         "views": views.get("views", []),
         "notes": frontend.get("notes", []),
         "queue_counts": task_status_counts,
@@ -914,12 +674,12 @@ def build_repo_structure(runtime_dir: Path, start_dir: Path):
     return {"start": start_items, "stop": stop_items}
 
 
-def build_readiness_state(model_integrated: bool, graph: dict, task_md: dict | None, warnings: list[str], verification: dict):
+def build_readiness_state(model_integrated: bool, warnings: list[str], verification: dict, actionable_tasks: list[dict]):
     controls_live = bool(
         verification.get("gui_spawn_loop_controls", {}).get("live")
         and verification.get("gui_repo_freeze_toggle", {}).get("live")
     )
-    queue_synced = not task_md and not warnings
+    queue_synced = not actionable_tasks and not warnings
     return [
         {
             "label": "Canonical State",
@@ -1148,9 +908,6 @@ def sync_dashboard_state(runtime_dir: Path):
     start_dir = runtime_dir.parent / "START"
     config_path = orchestrator_dir / "config.json"
     task_queue_path = orchestrator_dir / "task_queue.json"
-    design_graph_path = state_dir / "design_graph.json"
-    tasks_path = state_dir / "tasks.json"
-    task_md_path = runtime_dir / "TASK.md"
     memory_path = runtime_dir / "MEMORY.md"
     vector_dir = orchestrator_dir / "vector_store"
     data_dir = orchestrator_dir / "data"
@@ -1168,56 +925,31 @@ def sync_dashboard_state(runtime_dir: Path):
     ensure_repo_truth_runtime_files(state_dir)
     config = load_json(config_path, {})
     training_config = config.get("training_config", {})
-    base_graph = load_json(design_graph_path, {"nodes": [], "edges": []})
-    task_md = parse_task_md(task_md_path)
+    task_queue = load_json(task_queue_path, [])
+    if not isinstance(task_queue, list):
+        task_queue = []
     verification = verify_dashboard_integrations(runtime_dir)
-    graph = apply_verification_to_graph(base_graph, verification, task_md)
-    loop_cycles = int(base_graph.get("last_cycle", 0) or 0)
-    if task_md:
-        graph["status"] = "awaiting_task_completion"
-    elif any(node.get("status") != "green" for node in graph.get("nodes", [])):
-        graph["status"] = "waiting_for_work"
-    else:
-        graph["status"] = "complete"
-    graph["last_cycle"] = loop_cycles
-    graph["last_updated"] = base_graph.get("last_updated")
-    write_json_if_changed(design_graph_path, graph)
-    tasks = normalize_tasks(graph, load_json(tasks_path, []))
-    tasks = canonicalize_tasks(graph, tasks, task_md)
-    task_md = sync_task_md(runtime_dir, graph, tasks, task_md)
-    tasks = canonicalize_tasks(graph, tasks, task_md)
-    write_json_if_changed(tasks_path, tasks)
+    loop_cycles = int(config.get("cycle_count", 0) or 0)
+    tasks = sorted(task_queue, key=lambda item: (item.get("priority", 9999), item.get("id", "")))
     task_counts = task_status_counts(tasks)
-
-    graph_node_ids = {node.get("id") for node in graph.get("nodes", [])}
-    graph_nodes = {node.get("id"): node for node in graph.get("nodes", [])}
+    actionable_statuses = {"pending", "in_progress", "active"}
+    actionable_tasks = [item for item in tasks if item.get("status", "pending") in actionable_statuses]
     state_warnings = []
-    active_task = None
-    if task_md and task_md.get("dag_node_id") in graph_node_ids:
-        node = graph_nodes.get(task_md.get("dag_node_id"), {})
-        active_task = {
-            "task_id": task_md.get("task_id") or "--",
-            "dag_node_id": task_md.get("dag_node_id"),
-            "label": node.get("task_name") or node.get("label") or task_md.get("dag_node_id") or "task-md",
-            "description": task_md.get("description", "") or node.get("description", ""),
-            "allowed_paths": task_md.get("allowed_paths", []),
-            "status": task_md.get("status", "pending"),
-            "progress": None,
-            "source": "TASK.md",
-        }
-    elif task_md:
-        state_warnings.append(
-            f"TASK.md references dag_node_id '{task_md.get('dag_node_id')}' which is not present in design_graph.json"
-        )
-    else:
-        for task in tasks:
-            if task.get("status") in {"active", "in_progress"}:
-                active_task = dict(task)
-                active_task["source"] = "tasks-or-graph"
-                break
-    node_count = len(graph.get("nodes", []))
-    green_count = sum(1 for node in graph.get("nodes", []) if node.get("status") == "green")
-    dag_progress = round((green_count / node_count) * 100, 1) if node_count else 0.0
+    active_task = actionable_tasks[0] if actionable_tasks else None
+    completed_count = task_counts["completed"]
+    total_count = task_counts["total"]
+    queue_progress = round((completed_count / total_count) * 100, 1) if total_count else 100.0
+    graph = {
+        "status": "queued" if actionable_tasks else "complete",
+        "last_cycle": loop_cycles,
+        "last_updated": datetime.now().isoformat(),
+        "summary": {
+            "total_items": total_count,
+            "completed_items": completed_count,
+            "actionable_items": len(actionable_tasks),
+            "progress": queue_progress,
+        },
+    }
 
     success_traces = len(list(iterations_dir.glob("iter_*.json"))) if iterations_dir.exists() else 0
     error_traces = len(list((iterations_dir / "errors").glob("err_*.json"))) if (iterations_dir / "errors").exists() else 0
@@ -1262,8 +994,6 @@ def sync_dashboard_state(runtime_dir: Path):
         "canonical": True,
         "canonical_sources": {
             "config": str(config_path),
-            "design_graph": str(design_graph_path),
-            "tasks": str(tasks_path),
             "memory": str(memory_path),
             "task_queue": str(task_queue_path),
         },
@@ -1271,16 +1001,15 @@ def sync_dashboard_state(runtime_dir: Path):
         "verification": verification,
         "graph": graph,
         "tasks": tasks,
-        "task_md": task_md,
         "active_task": active_task,
         "metrics": {
-            "cycles": max(int(config.get("cycle_count", 0) or 0), loop_cycles),
+            "cycles": loop_cycles,
             "dag_progress": {
-                "total": node_count,
-                "green": green_count,
-                "red": sum(1 for node in graph.get("nodes", []) if node.get("status") == "red"),
-                "yellow": sum(1 for node in graph.get("nodes", []) if node.get("status") == "yellow"),
-                "progress": dag_progress,
+                "total": total_count,
+                "green": completed_count,
+                "red": 0,
+                "yellow": len(actionable_tasks),
+                "progress": queue_progress,
             },
             "task_status": task_counts,
             "vector_store_entries": vector_entries,
@@ -1294,11 +1023,11 @@ def sync_dashboard_state(runtime_dir: Path):
             "model_integrated": model_integrated,
         },
         "summary": {
-            "loops_executed": max(int(config.get("cycle_count", 0) or 0), loop_cycles),
+            "loops_executed": loop_cycles,
             "training_traces": total_training_traces,
-            "dag_total": task_counts["total"],
+            "dag_total": total_count,
             "dag_pending": task_counts["pending"],
-            "dag_active": task_counts["in_progress"],
+            "dag_active": len(actionable_tasks),
             "stray_count": len(security_events),
         },
         "model": {
@@ -1346,13 +1075,11 @@ def sync_dashboard_state(runtime_dir: Path):
         "repo_structure": build_repo_structure(runtime_dir, start_dir),
         "vector_phases": build_vector_phases(vector_dir, iterations_dir),
         "memory_files": build_memory_files(
-            runtime_dir,
-            task_md_path,
             memory_path,
             vector_dir,
             retrieval_log,
             runtime_dir / "AGENTS.md",
-            tasks_path,
+            task_queue_path,
         ),
         "repo_freeze": {
             "mutex_held": (
@@ -1360,7 +1087,7 @@ def sync_dashboard_state(runtime_dir: Path):
                 or (locks_path.exists() and any(lock_is_active(path) for path in locks_path.glob("*.lock")))
             ),
             "lock_path": str(locks_dir),
-            "allowed_paths": task_md.get("allowed_paths", []) if task_md else [],
+            "allowed_paths": active_task.get("allowed_paths", []) if active_task else [],
         },
         "spawn_loop": {
             "state": config.get("spawn_loop", {}).get("state", "stopped"),
@@ -1369,9 +1096,9 @@ def sync_dashboard_state(runtime_dir: Path):
             "active_spawns": 1 if config.get("spawn_loop", {}).get("state") == "running" else 0,
             "runner_running": False,  # Updated by Flask app.py at runtime
         },
-        "readiness": build_readiness_state(model_integrated, graph, task_md, state_warnings, verification),
+        "readiness": build_readiness_state(model_integrated, state_warnings, verification, actionable_tasks),
         "projection": build_projection_state(state_dir),
-        "task_queue": load_json(task_queue_path, []),
+        "task_queue": tasks,
     }
     dashboard_state["repo_truth"] = build_repo_truth_state(state_dir, dashboard_state)
 

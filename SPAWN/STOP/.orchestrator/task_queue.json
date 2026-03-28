@@ -291,7 +291,7 @@
   {
     "id": "projection_exec_proj_001",
     "repo": "orchestrator",
-    "description": "Implement approved projected structure for Execution DAG.",
+    "description": "Implement approved projected structure for Execution Summary.",
     "allowed_paths": [
       "SPAWN/STOP/state/",
       "SPAWN/STOP/.orchestrator/",
@@ -304,7 +304,7 @@
     "source_id": "struct_01",
     "projected_task_id": "proj_001",
     "task_id": "P01",
-    "label": "Execution DAG",
+    "label": "Execution Summary",
     "verified_at": "2026-03-28T14:38:03.274030"
   },
   {
@@ -442,5 +442,29 @@
     "status": "completed",
     "goal": "prompt_runtime_focus",
     "verified_at": "2026-03-28T14:52:19.853107"
+  },
+  {
+    "id": "maintenance_parse_duplicates",
+    "repo": "orchestrator",
+    "job": "parse_duplicates",
+    "description": "Parse memory/training artifacts for duplicates and delete exact duplicates when found.",
+    "allowed_paths": [
+      "SPAWN/STOP/MEMORY.md",
+      "SPAWN/STOP/retrieval_log.jsonl",
+      "SPAWN/STOP/.orchestrator/vector_store/",
+      "SPAWN/STOP/.orchestrator/data/",
+      "SPAWN/STOP/.orchestrator/iterations/",
+      "SPAWN/STOP/.orchestrator/logs/maintenance/"
+    ],
+    "priority": 999,
+    "status": "completed",
+    "verified_at": "2026-03-28T15:53:00",
+    "trigger": {
+      "type": "token_threshold",
+      "memory_collected_tokens": 629431,
+      "threshold": 3000,
+      "cron_schedule": "*/15 * * * *"
+    },
+    "prompt_load_path": "SPAWN/STOP/.orchestrator/task_queue.json"
   }
 ]

@@ -7,7 +7,7 @@
     {
       "id": "projection_001",
       "task_id": "P01",
-      "label": "Execution DAG",
+      "label": "Execution Summary",
       "source_id": "struct_01",
       "status": "red"
     },

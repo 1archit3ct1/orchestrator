@@ -16,7 +16,7 @@ import time
 from datetime import datetime
 from pathlib import Path
 
-from flask import Flask, Response, jsonify, redirect, render_template, request, send_from_directory
+from flask import Flask, Response, jsonify, render_template, request, send_from_directory
 
 
 logging.basicConfig(
@@ -45,8 +45,6 @@ LOCKS_DIR = ORCHESTRATOR_DIR / "locks"
 
 CONFIG_PATH = ORCHESTRATOR_DIR / "config.json"
 TASK_QUEUE_PATH = ORCHESTRATOR_DIR / "task_queue.json"
-DESIGN_GRAPH_PATH = STATE_DIR / "design_graph.json"
-TASKS_PATH = STATE_DIR / "tasks.json"
 MEMORY_PATH = RUNTIME_DIR / "MEMORY.md"
 SECURITY_AUDIT_LOG_PATH = LOGS_DIR / "security" / "security_audit.log"
 ORCHESTRATOR_LOG_PATH = LOGS_DIR / "orchestrator.log"
@@ -471,7 +469,7 @@ def build_memory_file_payload(file_name: str):
     item = next((entry for entry in dashboard.get("memory_files", []) if entry.get("name") == file_name), None)
     path_map = {
         "MEMORY.md": MEMORY_PATH,
-        "TASK.md": RUNTIME_DIR / "TASK.md",
+        "task_queue.json": TASK_QUEUE_PATH,
         "AGENTS.md": RUNTIME_DIR / "AGENTS.md",
         "retrieval_log.jsonl": RUNTIME_DIR / "retrieval_log.jsonl",
         "vector_store/": VECTOR_STORE_DIR,
@@ -575,62 +573,11 @@ def build_model_status_payload():
     }
 
 
-def derive_tasks_from_graph():
-    graph = load_json(DESIGN_GRAPH_PATH, {"nodes": [], "edges": []})
-    nodes = graph.get("nodes", [])
-    normalized = []
-
-    for index, node in enumerate(nodes, start=1):
-        display_status = node.get("display_status")
-        if not display_status:
-            if node.get("status") == "green":
-                display_status = "completed"
-            elif node.get("progress"):
-                display_status = "active"
-            else:
-                display_status = "pending"
-
-        task_id = node.get("task_id") or f"T{index:02d}"
-        normalized.append(
-            {
-                "id": f"task_{index:03d}",
-                "task_id": task_id,
-                "dag_node_id": node.get("id"),
-                "label": node.get("task_name") or node.get("label") or node.get("id"),
-                "description": node.get("description", ""),
-                "allowed_paths": node.get("allowed_paths", []),
-                "dependencies": node.get("dependencies", []),
-                "status": display_status,
-                "priority": index,
-                "progress": node.get("progress", 0),
-            }
-        )
-
-    return normalized
-
-
 def get_task_records():
-    tasks = load_json(TASKS_PATH, [])
-    if isinstance(tasks, list) and tasks:
-        records = []
-        for index, task in enumerate(tasks, start=1):
-            records.append(
-                {
-                    "id": task.get("id", f"task_{index:03d}"),
-                    "task_id": task.get("task_id", f"T{index:02d}"),
-                    "dag_node_id": task.get("dag_node_id"),
-                    "label": task.get("label") or task.get("task_name") or task.get("dag_node_id") or f"task-{index}",
-                    "description": task.get("description", ""),
-                    "allowed_paths": task.get("allowed_paths", []),
-                    "dependencies": task.get("dependencies", []),
-                    "status": task.get("status", "pending"),
-                    "priority": task.get("priority", index),
-                    "progress": task.get("progress", 0),
-                }
-            )
-        return records
-
-    return derive_tasks_from_graph()
+    queue = load_json(TASK_QUEUE_PATH, [])
+    if not isinstance(queue, list):
+        return []
+    return sorted(queue, key=lambda item: (item.get("priority", 9999), item.get("id", "")))
 
 
 def get_active_task(tasks):
@@ -642,14 +589,12 @@ def get_active_task(tasks):
             return task
     return tasks[0] if tasks else None
 
-
-def get_dag_status():
-    graph = load_json(DESIGN_GRAPH_PATH, {"nodes": []})
-    nodes = graph.get("nodes", [])
-    total = len(nodes)
-    green = sum(1 for node in nodes if node.get("status") == "green")
-    red = sum(1 for node in nodes if node.get("status") == "red")
-    yellow = sum(1 for node in nodes if node.get("status") == "yellow")
+def get_dag_status(tasks=None):
+    tasks = tasks or get_task_records()
+    total = len(tasks)
+    green = sum(1 for item in tasks if item.get("status") in {"completed", "complete"})
+    yellow = sum(1 for item in tasks if item.get("status") in {"pending", "active", "in_progress"})
+    red = 0
     return {
         "total": total,
         "green": green,
@@ -704,19 +649,18 @@ def get_security_events(limit=10):
 
 
 def build_trace_entries(tasks):
-    graph = load_json(DESIGN_GRAPH_PATH, {"nodes": []})
     entries = []
 
     for line in tail_lines(ORCHESTRATOR_LOG_PATH, 8):
         entries.append({"type": "log", "text": line})
 
-    for node in graph.get("nodes", []):
-        status = node.get("display_status") or node.get("status", "pending")
-        label = node.get("task_name") or node.get("label") or node.get("id")
+    for task in tasks:
+        status = task.get("status", "pending")
+        label = task.get("label") or task.get("id")
         if status in {"active", "in_progress"}:
-            entries.append({"type": "task", "text": f"task.started - {node.get('task_id', node.get('id'))} {label}"})
-        elif status in {"complete", "completed"} or node.get("status") == "green":
-            entries.append({"type": "task", "text": f"task.completed - {node.get('task_id', node.get('id'))} {label}"})
+            entries.append({"type": "task", "text": f"task.started - {task.get('task_id', task.get('id'))} {label}"})
+        elif status in {"complete", "completed"}:
+            entries.append({"type": "task", "text": f"task.completed - {task.get('task_id', task.get('id'))} {label}"})
 
     if not entries:
         entries.append({"type": "loop", "text": "loop.idle - waiting for orchestrator activity"})
@@ -726,7 +670,8 @@ def build_trace_entries(tasks):
 
 def get_metrics(tasks=None):
     config = load_json(CONFIG_PATH, {})
-    dag_status = get_dag_status()
+    tasks = tasks or get_task_records()
+    dag_status = get_dag_status(tasks)
     task_status = get_task_status(tasks)
 
     vector_count = count_files(VECTOR_STORE_DIR)
@@ -766,8 +711,8 @@ def build_execution_view_payload(dashboard=None):
     return {
         "canonical": True,
         "generated_at": dashboard.get("generated_at"),
-        "graph": dashboard.get("graph", {}),
-        "tasks": dashboard.get("tasks", []),
+        "summary": dashboard.get("graph", {}).get("summary", {}),
+        "queue_counts": dashboard.get("metrics", {}).get("task_status", {}),
         "active_task": dashboard.get("active_task"),
         "readiness": dashboard.get("readiness", []),
     }
@@ -1986,7 +1931,7 @@ LIVE_DASHBOARD_SCRIPT = r"""
       }).join(' ') || '<code>waiting for task assignment</code>';
       policyVals[0].innerHTML = allowed;
     }
-    if (policyVals[1]) setText(policyVals[1], 'All paths not in TASK.md frontmatter');
+    if (policyVals[1]) setText(policyVals[1], 'All paths not in current queue item scope');
     if (policyVals[2]) policyVals[2].innerHTML = '<code>enforce_policy()</code> in loop.py';
     if (policyVals[3]) setText(policyVals[3], 'Flag -> audit log -> steering trace -> HALT');
 
@@ -2854,8 +2799,9 @@ def api_repo_truth_dashboard():
     return jsonify(build_repo_truth_payload())
 
 
+@app.route("/api/repo-truth/summary")
 @app.route("/api/repo-truth/execution")
-def api_repo_truth_execution():
+def api_repo_truth_summary():
     return jsonify(build_execution_view_payload())
 
 
@@ -2891,14 +2837,6 @@ def repo_truth_dashboard():
     return render_template("repo_truth.html")
 
 
-@app.route("/design")
-@app.route("/legacy-design")
-@app.route("/classic")
-def retired_legacy_routes():
-    """Retire the older dashboard surfaces and resolve them to the repo-truth UI."""
-    return redirect("/", code=302)
-
-
 @app.route("/static/<path:filename>")
 def serve_static(filename):
     return send_from_directory(app.static_folder, filename)
@@ -2913,11 +2851,6 @@ def api_status():
 @app.route("/api/dashboard")
 def api_dashboard():
     return jsonify(build_dashboard_payload())
-
-
-@app.route("/api/tasks")
-def api_tasks():
-    return jsonify(get_task_records())
 
 
 @app.route("/api/logs")
@@ -2946,8 +2879,8 @@ def sse_events():
                 dashboard = build_dashboard_payload()
                 yield emit("dashboard", dashboard)
                 yield emit("metrics", dashboard["metrics"])
-                yield emit("dag", dashboard["graph"])
-                yield emit("tasks", dashboard["tasks"])
+                yield emit("summary", dashboard.get("graph", {}).get("summary", {}))
+                yield emit("queue", dashboard.get("task_queue", []))
                 time.sleep(5)
         except GeneratorExit:
             logger.info("SSE client disconnected: %s", client_id)

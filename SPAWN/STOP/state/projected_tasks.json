@@ -7,8 +7,8 @@
     {
       "id": "proj_001",
       "task_id": "P01",
-      "label": "Execution DAG",
-      "description": "Implement approved projected structure for Execution DAG.",
+      "label": "Execution Summary",
+      "description": "Implement approved projected structure for Execution Summary.",
       "source_id": "struct_01",
       "status": "pending",
       "priority": 1,

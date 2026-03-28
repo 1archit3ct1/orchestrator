@@ -13,8 +13,6 @@ Run the local orchestrator from `SPAWN/START/` by selecting the next truthful qu
 
 - `SPAWN/STOP/.orchestrator/config.json`
 - `SPAWN/STOP/.orchestrator/task_queue.json`
-- `SPAWN/STOP/state/design_graph.json`
-- `SPAWN/STOP/state/tasks.json`
 - `SPAWN/STOP/state/projection_pipeline.json`
 - `SPAWN/STOP/MEMORY.md`
 - `SPAWN/STOP/retrieval_log.jsonl`
@@ -23,7 +21,7 @@ Run the local orchestrator from `SPAWN/START/` by selecting the next truthful qu
 ## Truth Rules
 
 - Only mark work complete when the corresponding repo condition is actually satisfied on disk or through the live repo-truth frontend.
-- `design_graph.json`, `tasks.json`, `task_queue.json`, and the repo-truth frontend must stay aligned through canonical sync.
+- `task_queue.json`, memory artifacts, and the repo-truth frontend must stay aligned through canonical sync.
 - Only write inside the current task's `allowed_paths`.
 - When a queue item declares `start_path`, stay rooted there and open only the current task paths plus required sync targets.
 - If the current task is blocked, risky, or ambiguous, stop and ask instead of inventing a new path.
@@ -58,7 +56,7 @@ If a task does not leave behind verifiable repo data, do not advance queue state
 6. Execute the task or pause for operator help if blocked; do not invent side quests
 7. Write concrete repo-visible deliverables inside the allowed paths
 8. Capture misses, corrections, and useful lessons into memory, vector, data, iteration, and retrieval artifacts
-9. Run canonical sync so `design_graph.json`, `tasks.json`, `task_queue.json`, and the repo-truth frontend stay aligned
+9. Run canonical sync so `task_queue.json`, memory artifacts, and the repo-truth frontend stay aligned
 10. Verify the live rendered state or endpoint if the task affects the GUI or APIs
 11. Mark the task complete only when the repo condition is visibly true
 12. Repeat until the queue has no actionable tasks left

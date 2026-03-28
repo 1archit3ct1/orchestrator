@@ -3,9 +3,9 @@
   "mode": "repo-truth-frontend",
   "views": [
     {
-      "id": "execution",
-      "label": "Execution DAG",
-      "endpoint": "/api/repo-truth/execution"
+      "id": "summary",
+      "label": "Execution Summary",
+      "endpoint": "/api/repo-truth/summary"
     },
     {
       "id": "queue",

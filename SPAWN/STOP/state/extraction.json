@@ -7,8 +7,8 @@
   "structures": [
     {
       "id": "struct_01",
-      "label": "Execution DAG",
-      "endpoint": "/api/repo-truth/execution",
+      "label": "Execution Summary",
+      "endpoint": "/api/repo-truth/summary",
       "kind": "execution",
       "confidence": 0.86,
       "status": "draft"

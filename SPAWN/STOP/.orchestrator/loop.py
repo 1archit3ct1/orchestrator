@@ -88,11 +88,7 @@ class OrchestratorLoop:
         self.training_dir = self.root / 'SPAWN' / 'STOP' / 'training'
 
         self.config = self._load_json(self.config_path)
-        graph = self._load_json(self.state_dir / 'design_graph.json')
-        persisted_cycles = max(
-            int(self.config.get('cycle_count', 0) or 0),
-            int(graph.get('last_cycle', 0) or 0),
-        )
+        persisted_cycles = int(self.config.get('cycle_count', 0) or 0)
         self.cycle_count = persisted_cycles
 
         # === SECURITY INTEGRATION ===
@@ -210,52 +206,12 @@ class OrchestratorLoop:
             }, default=str) + '\n'
         )
 
-    def _load_design_graph(self) -> dict:
-        return self._load_json(self.state_dir / 'design_graph.json')
-
-    def _derive_tasks_from_graph(self) -> list:
-        graph = self._load_design_graph()
-        tasks = []
-        for index, node in enumerate(graph.get('nodes', []), start=1):
-            node_status = node.get('status', 'red')
-            if node_status == 'green':
-                task_status = 'completed'
-            elif node_status == 'yellow':
-                task_status = 'active'
-            else:
-                task_status = 'pending'
-
-            tasks.append({
-                'id': f'task_{index:03d}',
-                'task_id': node.get('task_id', f'T{index:02d}'),
-                'dag_node_id': node.get('id'),
-                'label': node.get('task_name') or node.get('label') or node.get('id'),
-                'description': node.get('description', ''),
-                'allowed_paths': node.get('allowed_paths', []),
-                'dependencies': node.get('dependencies', []),
-                'status': task_status,
-                'priority': index,
-                'progress': node.get('progress'),
-            })
-        return tasks
-
-    def _sync_tasks_file_from_graph(self) -> list:
-        tasks = self._derive_tasks_from_graph()
-        self._save_json(self.state_dir / 'tasks.json', tasks)
-        return tasks
-
     def _save_config(self) -> bool:
         return self._save_json(self.config_path, self.config)
 
     def _persist_cycle_metrics(self):
         self.config['cycle_count'] = max(int(self.config.get('cycle_count', 0) or 0), self.cycle_count)
         self._save_config()
-
-        design_graph = self.state_dir / 'design_graph.json'
-        graph = self._load_json(design_graph)
-        graph['last_cycle'] = max(int(graph.get('last_cycle', 0) or 0), self.cycle_count)
-        graph['last_updated'] = datetime.now().isoformat()
-        self._save_json(design_graph, graph)
 
     def _current_memory_tokens(self) -> int:
         dashboard_state = sync_dashboard_state(self.root / 'SPAWN' / 'STOP')
@@ -429,143 +385,13 @@ class OrchestratorLoop:
     # === 10-STEP AUTONOMOUS LOOP ===
 
     def check_and_process_task_md(self) -> str | None:
-        """
-        Check if TASK.md exists and process it with FULL SECURITY PROTOCOL.
-
-        SECURITY PROTOCOL:
-        1. Acquire write lock (global or repo-level)
-        2. Inject credentials from vault (task-scoped)
-        3. Execute task with credentials in environment
-        4. Revoke credentials
-        5. Release write lock
-        6. Write audit log
-
-        Returns True if a task was processed, False if no TASK.md or task pending.
-        """
         task_md_path = self.root / 'SPAWN' / 'STOP' / 'TASK.md'
-
-        if not task_md_path.exists():
-            return False
-
-        logger.info(f"Found TASK.md, processing with security protocol...")
-
-        # Parse TASK.md frontmatter
-        with open(task_md_path, 'r') as f:
-            content = f.read()
-
-        # Extract frontmatter (between --- markers)
-        if content.startswith('---'):
-            end_frontmatter = content.find('---', 3)
-            if end_frontmatter > 0:
-                frontmatter = content[4:end_frontmatter].strip()
-
-                # Parse task metadata
-                task_id = None
-                dag_node_id = None
-                allowed_paths = []
-                required_credentials = []
-                repo_name = None
-
-                for line in frontmatter.split('\n'):
-                    if ':' in line:
-                        key, value = line.split(':', 1)
-                        key = key.strip()
-                        value = value.strip()
-                        if key == 'task_id':
-                            task_id = value
-                        elif key == 'dag_node_id':
-                            dag_node_id = value
-                        elif key == 'repo':
-                            repo_name = value
-                        elif key == 'required_credentials':
-                            # Will be parsed from YAML list
-                            pass
-                        elif key == 'allowed_paths':
-                            pass
-
-                # Extract allowed_paths list (YAML format)
-                import re
-                paths_match = re.findall(r'-\s+([^\n]+)', frontmatter)
-                allowed_paths = [p.strip() for p in paths_match if 'allowed_paths' not in p and 'required_credentials' not in p]
-
-                # Extract required_credentials if present
-                if 'required_credentials:' in frontmatter:
-                    cred_section = frontmatter.split('required_credentials:')[1]
-                    cred_matches = re.findall(r'-\s+([^\n]+)', cred_section)
-                    required_credentials = [c.strip().strip('"').strip("'") for c in cred_matches if c.strip()]
-
-                logger.info(f"  Task ID: {task_id}")
-                logger.info(f"  DAG Node: {dag_node_id}")
-                logger.info(f"  Repo: {repo_name or 'global'}")
-                logger.info(f"  Required Credentials: {required_credentials or 'None'}")
-
-                # === SECURITY PROTOCOL ===
-                # Use security context manager for automatic lock/credential handling
-                with self.security.task_security_context(
-                    task_id=task_id,
-                    repo_name=repo_name,
-                    credential_keys=required_credentials
-                ) as ctx:
-
-                    if not ctx.lock_acquired:
-                        logger.error(f"  SECURITY: Failed to acquire write lock")
-                        self._update_task_status(task_id, 'in_progress')
-                        self._update_dag_node_status(dag_node_id, 'yellow')
-                        self._audit_task_event(task_id, 'lock_denied', {
-                            'repo': repo_name,
-                            'reason': 'Lock held by another task'
-                        })
-                        self._capture_miss_memory(
-                            'lock_denied',
-                            f'Active task {dag_node_id} was blocked by a global write lock denial.',
-                            {
-                                'task_id': task_id,
-                                'dag_node_id': dag_node_id,
-                                'repo': repo_name,
-                                'reason': 'Lock held by another task',
-                            }
-                        )
-                        return 'blocked'
-
-                    logger.info(f"  SECURITY: Write lock acquired")
-                    logger.info(f"  SECURITY: Credentials injected ({len(required_credentials)} keys)")
-
-                    self._update_task_status(task_id, 'in_progress')
-                    logger.info(f"  Executing task: {dag_node_id}")
-
-                    result = self._execute_task(task_id, dag_node_id, allowed_paths)
-
-                    if result.get('completed') and self._task_condition_met(dag_node_id):
-                        self._update_task_status(task_id, 'completed')
-                        self._update_dag_node_status(dag_node_id, 'green')
-                        logger.info(f"  SECURITY: Task completed successfully")
-
-                        # Delete TASK.md, then let canonical sync decide whether a next task exists.
-                        task_md_path.unlink()
-                        logger.info(f"  Task completed, TASK.md deleted")
-                        sync_dashboard_state(self.root / 'SPAWN' / 'STOP')
-                    else:
-                        self._update_task_status(task_id, 'in_progress')
-                        self._update_dag_node_status(dag_node_id, 'yellow')
-                        self._capture_miss_memory(
-                            'verification_miss',
-                            f'Active task {dag_node_id} did not satisfy repo verification yet.',
-                            {
-                                'task_id': task_id,
-                                'dag_node_id': dag_node_id,
-                                'reason': result.get('reason', 'verification failed'),
-                            }
-                        )
-                        logger.warning(f"  Task not satisfied yet: {result.get('reason', 'verification failed')}")
-
-                # Context manager automatically:
-                # - Revokes credentials
-                # - Releases write lock
-                # - Writes audit log
-
-                return 'processed'
-
-        return None
+        if task_md_path.exists():
+            logger.warning("Removing stale TASK.md because queue-only orchestration is active.")
+            task_md_path.unlink()
+            sync_dashboard_state(self.root / 'SPAWN' / 'STOP')
+            return 'processed'
+        return False
 
     def _execute_task(self, task_id: str, dag_node_id: str, allowed_paths: list):
         """
@@ -604,35 +430,19 @@ class OrchestratorLoop:
         return bool(self._task_condition_state(dag_node_id).get('live'))
 
     def _update_task_status(self, task_id: str, status: str):
-        """Update task status in tasks.json."""
-        tasks = self._load_json(self.state_dir / 'tasks.json')
-        if not isinstance(tasks, list) or not tasks:
-            tasks = self._derive_tasks_from_graph()
+        """Update task status in task_queue.json."""
+        tasks = self._load_json(self.task_queue_path)
         if isinstance(tasks, list):
             for task in tasks:
                 if task.get('id') == task_id:
                     task['status'] = status
                     if status == 'completed':
-                        from datetime import datetime
                         task['completed_at'] = datetime.now().isoformat()
                     break
-            self._save_json(self.state_dir / 'tasks.json', tasks)
+            self._save_json(self.task_queue_path, tasks)
 
     def _update_dag_node_status(self, node_id: str, status: str):
-        """Update DAG node status in design_graph.json."""
-        dag = self._load_json(self.state_dir / 'design_graph.json')
-        if 'nodes' in dag:
-            for node in dag['nodes']:
-                if node.get('id') == node_id:
-                    node['status'] = status
-                    if status == 'green':
-                        node['display_status'] = 'complete'
-                    elif status == 'yellow':
-                        node['display_status'] = 'active'
-                    else:
-                        node['display_status'] = 'pending'
-                    break
-            self._save_json(self.state_dir / 'design_graph.json', dag)
+        return
 
     def _audit_task_event(self, task_id: str, event: str, details: dict = None):
         """Write audit log entry for task event."""
@@ -870,47 +680,27 @@ class OrchestratorLoop:
         return self._save_json(entry_path, entry)
 
     def step_8_update_task_queue(self, state: dict, dispatch_results: dict) -> bool:
-        """Step 8: Update task_queue.json with next batch of task priorities"""
+        """Step 8: Persist queue state without dropping historical items."""
         logger.info("Step 8: Updating task queue with next priorities")
-        remaining = []
-        for task in state.get('tasks', []):
+        queue = self._load_json(self.task_queue_path)
+        if not isinstance(queue, list):
+            queue = []
+        for task in queue:
             result_key = task.get('id') if task.get('repo') == 'orchestrator' else task.get('repo', 'unknown')
             result = dispatch_results.get(result_key, {})
-            if result.get('status') != 'dispatched':
-                remaining.append(task)
-        return self._save_json(self.task_queue_path, remaining)
+            if result.get('status') == 'dispatched' and task.get('status') in {'pending', 'active', 'in_progress'}:
+                task['status'] = 'completed'
+                task['verified_at'] = datetime.now().isoformat()
+        return self._save_json(self.task_queue_path, queue)
 
     def step_9_finalize_state(self, state: dict, remaining_tasks: bool) -> bool:
         """Step 9: If orchestration complete, finalize state"""
         logger.info("Step 9: Checking if orchestration is complete")
-        design_graph = self.state_dir / 'design_graph.json'
-        graph = self._load_json(design_graph)
-        graph['last_cycle'] = self.cycle_count
-        graph['last_updated'] = datetime.now().isoformat()
-        node_statuses = [node.get('status') for node in graph.get('nodes', [])]
-        if node_statuses and all(status == 'green' for status in node_statuses):
-            graph['status'] = 'complete'
-        elif (self.root / 'SPAWN' / 'STOP' / 'TASK.md').exists():
-            graph['status'] = 'awaiting_task_completion'
-        elif remaining_tasks:
-            graph['status'] = 'in_progress'
-        else:
-            graph['status'] = 'waiting_for_work'
-        return self._save_json(design_graph, graph)
+        sync_dashboard_state(self.root / 'SPAWN' / 'STOP')
+        return True
 
     def step_10_loop_control(self, tasks: list) -> bool:
         """Step 10: Repeat until all coordinated tasks complete"""
-        if (self.root / 'SPAWN' / 'STOP' / 'TASK.md').exists():
-            logger.info("Step 10: TASK.md still active. Continuing loop.")
-            return True
-        graph = self._load_json(self.state_dir / 'design_graph.json')
-        pending_nodes = [
-            node for node in graph.get('nodes', [])
-            if node.get('status') != 'green'
-        ]
-        if pending_nodes:
-            logger.info(f"Step 10: {len(pending_nodes)} DAG tasks remain. Waiting for real work.")
-            return True
         queue_state = self._load_json(self.task_queue_path)
         if isinstance(queue_state, list):
             actionable = [
@@ -949,10 +739,9 @@ class OrchestratorLoop:
             logger.info(f"{'─' * 40}")
 
             try:
-                # Priority 1: Check for TASK.md (orchestrator's own DAG tasks)
                 task_md_result = self.check_and_process_task_md()
                 if task_md_result == 'processed':
-                    logger.info("TASK.md checked, continuing to next cycle...")
+                    logger.info("Queue sync removed a stale task assignment artifact.")
                     if max_cycles > 0 and self.cycle_count >= max_cycles:
                         logger.info(f"Reached max cycles ({max_cycles}). Stopping.")
                         should_continue = False
@@ -960,17 +749,6 @@ class OrchestratorLoop:
                     time.sleep(2)
                     continue
 
-                if task_md_result == 'blocked':
-                    logger.warning("TASK.md is active but lock acquisition was blocked. Retrying next cycle without entering queue flow...")
-                    if max_cycles > 0 and self.cycle_count >= max_cycles:
-                        logger.info(f"Reached max cycles ({max_cycles}). Stopping.")
-                        should_continue = False
-                        continue
-                    time.sleep(2)
-                    continue
-
-                # Priority 2: Run 10-step coordination loop for the local runtime
-                # Step 1: Read task queue
                 tasks = self.step_1_read_task_queue()
 
                 # Step 2: Query vector store

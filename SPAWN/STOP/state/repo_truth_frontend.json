@@ -3,9 +3,8 @@
   "mode": "repo-truth-frontend",
   "status": "live",
   "default_route": "/",
-  "legacy_route": "/design",
   "notes": [
     "The repo-truth frontend must read canonical backend state domains directly.",
-    "Legacy dashboard surfaces remain available until parity and cutover verification are complete."
+    "The repo-truth frontend is the single live dashboard surface."
   ]
 }

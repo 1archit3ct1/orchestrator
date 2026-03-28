@@ -33,9 +33,31 @@ High-level flow:
 2. expose explicit frontend state contracts for execution, queue, projection, runtime, memory, training, and misses
 3. stream backend runtime activity into the GUI through repo-backed APIs and SSE
 4. correlate runtime activity with trace, retrieval, and dataset writes so missed data capture can be detected visibly
-5. keep the legacy shell available on a fallback route until parity is verified
+5. retire legacy shell assumptions after parity is verified so `/` remains the single live frontend
 
 Non-breaking rule:
 
 - the new frontend must consume canonical state domains without mutating queue or execution state during rendering
-- legacy fallback stays available at `SPAWN/STOP/web/templates/dashboard.html` through `/design` while migration verifies parity
+- canonical sync remains responsible for retiring stale `TASK.md` files and promoting the next runnable task only when repo truth says it should
+
+## Git Serialization
+
+The repo root is intentionally one level above `SPAWN/`, so every git write still targets the single top-level index under `.git/`.
+
+That layout is not the bug.
+The real failure mode is concurrent git writes against the same root, especially when `commit`, `push`, or other mutating commands are launched in parallel.
+
+Rules:
+
+- run mutating git commands from the top-level repo, not from separate ad hoc child contexts
+- never launch `git add`, `git commit`, and `git push` in parallel against the same repo
+- use `python scripts/git_serial.py ...` for automation-facing git writes
+
+Examples:
+
+```powershell
+python scripts/git_serial.py status
+python scripts/git_serial.py add SPAWN/STOP/web/app.py
+python scripts/git_serial.py commit -m "Update repo-truth frontend"
+python scripts/git_serial.py push origin main
+```

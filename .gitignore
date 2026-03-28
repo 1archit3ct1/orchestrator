@@ -13,8 +13,10 @@ SPAWN/STOP/.orchestrator/vault/.env.gpg
 # Runtime logs and process files
 SPAWN/STOP/.orchestrator/logs/security/
 SPAWN/STOP/.orchestrator/logs/*.log
+SPAWN/STOP/.orchestrator/logs/maintenance/*.json
 SPAWN/STOP/.orchestrator/dashboard.pid
 SPAWN/STOP/Stop/
 SPAWN/STOP/web/orchestrator.log
 SPAWN/STOP/state/dashboard_state.json
+SPAWN/STOP/.orchestrator/vector_store/cycle_*.json
 # Security: Vault credentials and runtime logs

@@ -27,7 +27,7 @@ Initialize `SPAWN/STOP/` so the autonomous orchestration loop can run truthfully
 - If a task is not satisfied, keep `TASK.md` on that task.
 - Canonical sync owns `TASK.md` retirement and next-task promotion; agents should not invent side channels for task advancement.
 - Only write inside the current task's `allowed_paths`.
-- Never fabricate model integration, training data, child repos, or vector entries.
+- Never fabricate model integration, training data, or vector entries.
 - Unknown state should remain null, pending, empty, or absent.
 - Every task MUST deliver repo-visible data artifacts, not just status changes or plans.
 - A task is incomplete until its expected files, folders, or records exist on disk and can be verified from repo state.
@@ -55,9 +55,9 @@ If a task does not leave behind verifiable repo data, do not advance the DAG.
 1. Bring up the Linux/WSL runtime first whenever GPU-backed work, training, or heavy token processing is involved so CUDA access and memory behavior stay optimized
 2. Read task_queue.json (priority-ordered child tasks)
 3. Query vector store for relevant context (past child task results, embeddings)
-4. Call loop.py with state + child repo requirements
-5. Dispatch tasks to child repos via their allowed_paths (task-scoped coordination)
-6. Collect logs/outputs from child repos into SPAWN/STOP/.orchestrator/logs/
+4. Call loop.py with local runtime state + task requirements
+5. Execute or defer local orchestrator tasks within their allowed_paths and runtime guards
+6. Collect local logs/outputs into SPAWN/STOP/.orchestrator/logs/
 7. Train/update models if training data available
 8. Check for misses: verifier failures, lock denials, stray writes, wrong assumptions, and user-corrected mistakes
 9. Dump useful misses into MEMORY.md, vector store, data pipeline, iteration artifacts, and retrieval log

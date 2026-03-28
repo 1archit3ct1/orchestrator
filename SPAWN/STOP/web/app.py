@@ -40,7 +40,6 @@ LOGS_DIR = ORCHESTRATOR_DIR / "logs"
 DATA_DIR = ORCHESTRATOR_DIR / "data"
 MODELS_DIR = ORCHESTRATOR_DIR / "models"
 VECTOR_STORE_DIR = ORCHESTRATOR_DIR / "vector_store"
-REPOS_DIR = RUNTIME_DIR / "repos"
 TRAINING_DIR = RUNTIME_DIR / "training"
 LOCKS_DIR = ORCHESTRATOR_DIR / "locks"
 
@@ -650,30 +649,6 @@ def get_recent_logs(limit=50):
     return entries[:limit]
 
 
-def get_repo_status():
-    repos = []
-    if REPOS_DIR.exists():
-        for repo_dir in sorted(path for path in REPOS_DIR.iterdir() if path.is_dir()):
-            repo_tasks = load_json(repo_dir / "SPAWN" / "STOP" / "state" / "tasks.json", [])
-            repo_status = "idle"
-            current_task = None
-            if isinstance(repo_tasks, list):
-                for task in repo_tasks:
-                    if task.get("status") in {"active", "in_progress"}:
-                        repo_status = "active"
-                        current_task = task.get("label") or task.get("dag_node_id")
-                        break
-
-            repos.append(
-                {
-                    "name": repo_dir.name,
-                    "status": repo_status,
-                    "current_task": current_task,
-                }
-            )
-    return repos
-
-
 def get_security_events(limit=10):
     events = []
     for path in [SECURITY_AUDIT_LOG_PATH, ORCHESTRATOR_LOG_PATH]:
@@ -713,7 +688,6 @@ def get_metrics(tasks=None):
     vector_count = count_files(VECTOR_STORE_DIR)
     data_count = count_files(DATA_DIR)
     model_count = len(list(MODELS_DIR.rglob("*.pt"))) + len(list(MODELS_DIR.rglob("*.bin"))) + len(list(MODELS_DIR.rglob("*.safetensors")))
-    repo_count = len([path for path in REPOS_DIR.iterdir() if path.is_dir()]) if REPOS_DIR.exists() else 0
     log_count = len([path for path in LOGS_DIR.rglob("*.log") if path.is_file()]) if LOGS_DIR.exists() else 0
 
     return {
@@ -723,7 +697,6 @@ def get_metrics(tasks=None):
         "vector_store_entries": vector_count,
         "training_data_files": data_count,
         "model_checkpoints": model_count,
-        "child_repos": repo_count,
         "log_files": log_count,
         "gpu_enabled": config.get("gpu_enabled", False),
         "timestamp": datetime.now().isoformat(),
@@ -2902,11 +2875,6 @@ def api_logs():
 @app.route("/api/metrics")
 def api_metrics():
     return jsonify(get_metrics(get_task_records()))
-
-
-@app.route("/api/repos")
-def api_repos():
-    return jsonify(get_repo_status())
 
 
 @app.route("/events")

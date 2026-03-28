@@ -1125,7 +1125,6 @@ def sync_dashboard_state(runtime_dir: Path):
     models_dir = orchestrator_dir / "models"
     logs_dir = orchestrator_dir / "logs"
     iterations_dir = orchestrator_dir / "iterations"
-    repos_dir = runtime_dir / "repos"
     training_dir = runtime_dir / "training"
     locks_dir = orchestrator_dir / "locks"
     locks_path = locks_dir / "repo_locks"
@@ -1198,7 +1197,6 @@ def sync_dashboard_state(runtime_dir: Path):
     vector_size = directory_size(vector_dir)
     training_data_files = count_files(data_dir)
     model_files = len(list(models_dir.rglob("*.pt"))) + len(list(models_dir.rglob("*.bin"))) + len(list(models_dir.rglob("*.safetensors"))) if models_dir.exists() else 0
-    child_repos = len([item for item in repos_dir.iterdir() if item.is_dir()]) if repos_dir.exists() else 0
     log_files = count_files(logs_dir, "*.log")
     security_events = parse_security_events([security_log, orchestrator_log], limit=6)
     security_events.extend(state_warnings)
@@ -1207,11 +1205,6 @@ def sync_dashboard_state(runtime_dir: Path):
     activity_feed = build_activity_feed(runtime_dir, logs_dir, iterations_dir, data_dir, retrieval_log, memory_path, limit=12)
     if not trace_entries:
         trace_entries = activity_feed[-6:]
-
-    repos = []
-    if repos_dir.exists():
-        for repo in sorted(item for item in repos_dir.iterdir() if item.is_dir()):
-            repos.append({"name": repo.name, "status": "configured", "current_task": None})
 
     model_integrated = bool(training_config.get("integrated", False))
     model_name = training_config.get("model_name") if model_integrated else None
@@ -1263,7 +1256,6 @@ def sync_dashboard_state(runtime_dir: Path):
             "vector_store_size_bytes": vector_size,
             "training_data_files": training_data_files,
             "model_checkpoints": model_files,
-            "child_repos": child_repos,
             "log_files": log_files,
             "gpu_enabled": bool(config.get("gpu_enabled", False)),
             "timestamp": datetime.now().isoformat(),
@@ -1318,7 +1310,7 @@ def sync_dashboard_state(runtime_dir: Path):
         "activity_feed": activity_feed,
         "stray_events": security_events,
         "steering_events": steering_events,
-        "repos": repos,
+        "repos": [],
         "bootstrap_steps": build_bootstrap_steps(start_dir),
         "repo_structure": build_repo_structure(runtime_dir, start_dir),
         "vector_phases": build_vector_phases(vector_dir, iterations_dir),

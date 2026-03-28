@@ -9,7 +9,6 @@ let dagData = null;
 let tasksData = [];
 let metricsData = null;
 let logsData = [];
-let reposData = [];
 let autoScrollEnabled = true;
 let currentFilter = 'all';
 
@@ -63,12 +62,10 @@ async function loadInitialData() {
             fetchTasks(),
             fetchMetrics(),
             fetchLogs(),
-            fetchRepos()
         ]);
         renderDAG();
         renderTasks();
         renderLogs();
-        renderRepos();
     } catch (error) {
         console.error('[Dashboard] Failed to load initial data:', error);
         showError('Failed to load dashboard data');
@@ -94,11 +91,6 @@ async function fetchMetrics() {
 async function fetchLogs() {
     const response = await fetch('/api/logs?limit=50');
     logsData = await response.json();
-}
-
-async function fetchRepos() {
-    const response = await fetch('/api/repos');
-    reposData = await response.json();
 }
 
 // ==================== DAG Visualization ====================
@@ -365,40 +357,18 @@ function updateMetrics(data) {
     const total = taskStatus.total || 0;
     document.getElementById('stat-tasks').textContent = `${completed}/${total}`;
     
-    document.getElementById('stat-repos').textContent = data.child_repos || 0;
-
     // Update metrics grid
     const dagProgress = data.dag_progress || {};
     document.getElementById('metric-dag-progress').textContent = `${Math.round(dagProgress.progress || 0)}%`;
     document.getElementById('metric-vector').textContent = data.vector_store_entries || 0;
     document.getElementById('metric-data').textContent = data.training_data_files || 0;
     document.getElementById('metric-models').textContent = data.model_checkpoints || 0;
-    document.getElementById('metric-repos').textContent = data.child_repos || 0;
     document.getElementById('metric-logs').textContent = data.log_files || 0;
     document.getElementById('metric-gpu').textContent = data.gpu_enabled ? 'Yes' : 'No';
     
     if (data.timestamp) {
         document.getElementById('metric-timestamp').textContent = new Date(data.timestamp).toLocaleTimeString();
     }
-}
-
-// ==================== Repository Status ====================
-function renderRepos() {
-    const container = document.getElementById('repo-list');
-    if (!container) return;
-
-    if (!reposData || reposData.length === 0) {
-        container.innerHTML = '<div class="repo-empty">No child repositories configured</div>';
-        return;
-    }
-
-    container.innerHTML = reposData.map(repo => `
-        <div class="repo-item">
-            <div class="repo-status-dot ${repo.status}"></div>
-            <div class="repo-name">${repo.name}</div>
-            <div class="repo-task">${repo.current_task || 'Idle'}</div>
-        </div>
-    `).join('');
 }
 
 // ==================== Vector Store Stats ====================
@@ -530,10 +500,5 @@ setInterval(() => {
 setInterval(() => {
     fetchLogs().then(renderLogs).catch(console.error);
 }, 10000);
-
-// Refresh repos every 15 seconds
-setInterval(() => {
-    fetchRepos().then(renderRepos).catch(console.error);
-}, 15000);
 
 console.log('[Dashboard] JavaScript loaded successfully');

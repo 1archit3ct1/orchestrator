@@ -5,7 +5,7 @@ Implements the 10-step coordination cycle defined in orchestratorgraph.md
 
 FLOW: Clone → SPAWN/START/bootstrap.sh → [Orchestrator Initialized] → SPAWN/STOP/ [Orchestrator Coordinates]
 
-This loop runs continuously within SPAWN/STOP/, reading tasks, dispatching to child repos,
+This loop runs continuously within SPAWN/STOP/, reading local tasks,
 collecting results, training models, and updating the vector store.
 
 SECURITY: Integrated with SecurityManager for:
@@ -56,7 +56,7 @@ class OrchestratorLoop:
     """
     10-step autonomous orchestration loop with enterprise security.
 
-    Coordinates child repos, collects outputs, trains models, and maintains state.
+    Coordinates the local orchestrator runtime, collects outputs, trains models, and maintains state.
     All operations are secured with:
     - Write locks (prevent concurrent modifications)
     - Task-scoped credentials (injected per task)
@@ -71,7 +71,6 @@ class OrchestratorLoop:
         'SPAWN/STOP/MEMORY.md',
         'SPAWN/STOP/retrieval_log.jsonl',
         'SPAWN/STOP/state',
-        'SPAWN/STOP/repos',
         'SPAWN/STOP/training',
         'SPAWN/STOP/web',
     ]
@@ -85,7 +84,6 @@ class OrchestratorLoop:
         self.logs_dir = self.orchestrator_dir / 'logs'
         self.data_dir = self.orchestrator_dir / 'data'
         self.models_dir = self.orchestrator_dir / 'models'
-        self.repos_dir = self.root / 'SPAWN' / 'STOP' / 'repos'
         self.state_dir = self.root / 'SPAWN' / 'STOP' / 'state'
         self.training_dir = self.root / 'SPAWN' / 'STOP' / 'training'
 
@@ -774,7 +772,7 @@ class OrchestratorLoop:
         return context
 
     def step_3_process_state(self, tasks: list, context: dict) -> dict:
-        """Step 3: Call loop.py with state + child repo requirements"""
+        """Step 3: Call loop.py with local runtime state + task requirements"""
         logger.info("Step 3: Processing state with tasks and context")
         state = {
             'tasks': tasks,
@@ -786,8 +784,8 @@ class OrchestratorLoop:
         return state
 
     def step_4_dispatch_tasks(self, state: dict) -> dict:
-        """Step 4: Dispatch tasks to child repos via their allowed_paths"""
-        logger.info("Step 4: Dispatching tasks to child repos")
+        """Step 4: Dispatch or defer local orchestrator tasks within runtime guards"""
+        logger.info("Step 4: Dispatching local orchestrator tasks")
         results = {}
         for task in state.get('tasks', []):
             if task.get('repo') == 'orchestrator' and task.get('job') == 'parse_duplicates':
@@ -811,32 +809,27 @@ class OrchestratorLoop:
                 logger.info(f"  Deferred local orchestrator task: {task_id}")
                 continue
 
-            repo_name = task.get('repo', 'unknown')
-            repo_path = self.repos_dir / repo_name
-            if repo_path.exists():
-                # Child repos follow the same SPAWN/STOP runtime contract.
-                task_file = repo_path / 'SPAWN' / 'STOP' / 'state' / 'tasks.json'
-                if self._is_write_allowed(str(task_file)):
-                    results[repo_name] = {'status': 'dispatched', 'task': task}
-                    logger.info(f"  Dispatched to {repo_name}")
-            else:
-                logger.warning(f"  Child repo not found: {repo_name}")
-                results[repo_name] = {'status': 'not_found'}
+            task_id = task.get('id', 'legacy_external_task')
+            self._capture_miss_memory(
+                'legacy_external_repo_task',
+                'Encountered retired external repo task after multi-repo support was removed.',
+                {'task_id': task_id, 'repo': task.get('repo')},
+            )
+            logger.warning(f"  Unsupported legacy external task ignored: {task_id}")
+            results[task_id] = {'status': 'unsupported_legacy', 'task': task}
         return results
 
     def step_5_collect_logs(self, dispatch_results: dict) -> list:
-        """Step 5: Collect logs/outputs from child repos into Stop/.orchestrator/logs/"""
-        logger.info("Step 5: Collecting logs from child repos")
+        """Step 5: Collect local runtime logs and outputs into Stop/.orchestrator/logs/"""
+        logger.info("Step 5: Collecting local runtime logs")
         collected = []
-        for repo_name, result in dispatch_results.items():
-            repo_log_dir = self.repos_dir / repo_name / 'SPAWN' / 'STOP' / '.orchestrator' / 'logs'
-            if repo_log_dir.exists():
-                for log_file in repo_log_dir.glob('*.log'):
-                    collected.append({
-                        'repo': repo_name,
-                        'file': str(log_file),
-                        'collected_at': datetime.now().isoformat()
-                    })
+        if self.logs_dir.exists():
+            for log_file in self.logs_dir.rglob('*.log'):
+                collected.append({
+                    'runtime': 'local',
+                    'file': str(log_file.relative_to(self.root)).replace('\\', '/'),
+                    'collected_at': datetime.now().isoformat()
+                })
         logger.info(f"  Collected {len(collected)} log entries")
         return collected
 
@@ -976,7 +969,7 @@ class OrchestratorLoop:
                     time.sleep(2)
                     continue
 
-                # Priority 2: Run 10-step coordination loop for child repos
+                # Priority 2: Run 10-step coordination loop for the local runtime
                 # Step 1: Read task queue
                 tasks = self.step_1_read_task_queue()
 

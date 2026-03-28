@@ -160,16 +160,16 @@ def verify_dashboard_integrations(runtime_dir: Path):
     state_dir = runtime_dir / "state"
     template_dir = runtime_dir / "web" / "templates"
     app_path = web_dir / "app.py"
-    design_path = template_dir / "dashboard.html"
+    design_path = template_dir / "repo_truth.html"
     app_text = read_text(app_path)
-    design_text = read_text(design_path)
+    design_text = read_text(design_path) + "\n" + app_text
 
     checks = {
         "gui_nav_panels": {
-            "live": 'data-panel="' in design_text and "function handleNavPanel" in app_text,
-            "reason": "dashboard surface routing works from repo-backed panel hooks with an always-on full-page fallback"
-            if 'data-panel="' in design_text and "function handleNavPanel" in app_text
-            else "dashboard surface routing is not wired to repo-backed panel hooks",
+            "live": "function handleNavPanel" in app_text and "view-chip" in design_text,
+            "reason": "dashboard surface routing works from the repo-truth shell with explicit view controls and full-page fallback"
+            if "function handleNavPanel" in app_text and "view-chip" in design_text
+            else "dashboard surface routing is not wired to the repo-truth shell",
         },
         "gui_dag_task_details": {
             "live": 'data-dag-node="' in design_text and "function openDagTaskDetails" in app_text,
@@ -202,51 +202,51 @@ def verify_dashboard_integrations(runtime_dir: Path):
             else "memory file rows are not wired to repo-backed file details",
         },
         "gui_export_jsonl": {
-            "live": 'data-export-format="jsonl"' in design_text and "/api/export/jsonl" in app_text,
+            "live": "function bindExportButtons" in app_text and "/api/export/jsonl" in app_text,
             "reason": "JSONL export button is wired to a real export endpoint"
-            if 'data-export-format="jsonl"' in design_text and "/api/export/jsonl" in app_text
+            if "function bindExportButtons" in app_text and "/api/export/jsonl" in app_text
             else "JSONL export is not wired to repo-backed export logic",
         },
         "gui_export_alpaca": {
-            "live": 'data-export-format="alpaca"' in design_text and "/api/export/alpaca" in app_text,
+            "live": "function bindExportButtons" in app_text and "/api/export/alpaca" in app_text,
             "reason": "Alpaca export button is wired to a real export endpoint"
-            if 'data-export-format="alpaca"' in design_text and "/api/export/alpaca" in app_text
+            if "function bindExportButtons" in app_text and "/api/export/alpaca" in app_text
             else "Alpaca export is not wired to repo-backed export logic",
         },
         "gui_export_sharegpt": {
-            "live": 'data-export-format="sharegpt"' in design_text and "/api/export/sharegpt" in app_text,
+            "live": "function bindExportButtons" in app_text and "/api/export/sharegpt" in app_text,
             "reason": "ShareGPT export button is wired to a real export endpoint"
-            if 'data-export-format="sharegpt"' in design_text and "/api/export/sharegpt" in app_text
+            if "function bindExportButtons" in app_text and "/api/export/sharegpt" in app_text
             else "ShareGPT export is not wired to repo-backed export logic",
         },
         "gui_export_steering": {
-            "live": 'data-export-format="steering"' in design_text and "/api/export/steering" in app_text,
+            "live": "function bindExportButtons" in app_text and "/api/export/steering" in app_text,
             "reason": "Steering-only export button is wired to a real export endpoint"
-            if 'data-export-format="steering"' in design_text and "/api/export/steering" in app_text
+            if "function bindExportButtons" in app_text and "/api/export/steering" in app_text
             else "Steering-only export is not wired to repo-backed export logic",
         },
         "gui_repo_freeze_toggle": {
-            "live": 'data-control="repo-freeze"' in design_text and "/api/control/repo-freeze" in app_text,
+            "live": 'data-control="repo-freeze"' in app_text and "/api/control/repo-freeze" in app_text,
             "reason": "repo freeze toggle can mutate live freeze state through Flask"
-            if 'data-control="repo-freeze"' in design_text and "/api/control/repo-freeze" in app_text
+            if 'data-control="repo-freeze"' in app_text and "/api/control/repo-freeze" in app_text
             else "repo freeze toggle is display-only and has no control endpoint",
         },
         "gui_spawn_loop_controls": {
-            "live": 'data-control="spawn-loop"' in design_text and "/api/control/spawn-loop" in app_text,
+            "live": "spawn-start-btn" in app_text and "spawn-pause-btn" in app_text and "/api/control/spawn-loop" in app_text,
             "reason": "spawn loop controls are wired to a live Flask control plane"
-            if 'data-control="spawn-loop"' in design_text and "/api/control/spawn-loop" in app_text
+            if "spawn-start-btn" in app_text and "spawn-pause-btn" in app_text and "/api/control/spawn-loop" in app_text
             else "spawn loop controls are not wired to a control endpoint",
         },
         "gui_audit_log_details": {
-            "live": 'data-panel="audit-log"' in design_text and "/api/audit/events" in app_text,
+            "live": "audit-body" in app_text and "/api/audit/events" in app_text and "function renderAuditPanels" in app_text,
             "reason": "audit log panel opens repo-backed audit event details"
-            if 'data-panel="audit-log"' in design_text and "/api/audit/events" in app_text
+            if "audit-body" in app_text and "/api/audit/events" in app_text and "function renderAuditPanels" in app_text
             else "audit log panel is not wired to detailed audit events",
         },
         "gui_stray_monitor_details": {
-            "live": 'data-panel="stray-monitor"' in design_text and "/api/stray/events" in app_text,
+            "live": "stray-mon-body" in app_text and "/api/stray/events" in app_text and "function renderStrayLog" in app_text,
             "reason": "stray monitor panel opens repo-backed stray event details"
-            if 'data-panel="stray-monitor"' in design_text and "/api/stray/events" in app_text
+            if "stray-mon-body" in app_text and "/api/stray/events" in app_text and "function renderStrayLog" in app_text
             else "stray monitor panel is not wired to detailed stray events",
         },
         "gui_readiness_tracker_live": {
@@ -256,33 +256,33 @@ def verify_dashboard_integrations(runtime_dir: Path):
             else "readiness tracker is still mostly static text and not a live function surface",
         },
         "gui_training_run_details": {
-            "live": 'data-panel="training-run"' in design_text and "/api/training/run" in app_text,
+            "live": "data-training-run-root" in app_text and "/api/training/run" in app_text and "function renderTrainingRunDetails" in app_text,
             "reason": "training run section opens detailed repo-backed training state"
-            if 'data-panel="training-run"' in design_text and "/api/training/run" in app_text
+            if "data-training-run-root" in app_text and "/api/training/run" in app_text and "function renderTrainingRunDetails" in app_text
             else "training run panel is not wired to detailed repo-backed training state",
         },
         "gui_dataset_details": {
-            "live": 'data-panel="dataset"' in design_text and "/api/dataset/details" in app_text,
+            "live": "data-dataset-root" in app_text and "/api/dataset/details" in app_text and "function renderDatasetDetails" in app_text,
             "reason": "dataset section opens detailed repo-backed dataset state"
-            if 'data-panel="dataset"' in design_text and "/api/dataset/details" in app_text
+            if "data-dataset-root" in app_text and "/api/dataset/details" in app_text and "function renderDatasetDetails" in app_text
             else "dataset panel is not wired to detailed repo-backed dataset state",
         },
         "gui_eta_tracker_live": {
-            "live": 'data-panel="eta-tracker"' in design_text and "function renderEtaTracker" in app_text,
+            "live": "data-eta-root" in app_text and "function renderEtaTracker" in app_text,
             "reason": "ETA tracker renders detailed canonical ETA state"
-            if 'data-panel="eta-tracker"' in design_text and "function renderEtaTracker" in app_text
+            if "data-eta-root" in app_text and "function renderEtaTracker" in app_text
             else "ETA tracker is not wired to canonical repo-backed ETA detail rendering",
         },
         "gui_scale_analysis_page": {
-            "live": 'data-panel="scale-analysis"' in design_text and "function renderScaleAnalysis" in app_text,
+            "live": "scale-analysis-body" in app_text and "function renderScaleAnalysis" in app_text,
             "reason": "scale analysis page renders repo-backed recommendations, thresholds, and viability guidance"
-            if 'data-panel="scale-analysis"' in design_text and "function renderScaleAnalysis" in app_text
+            if "scale-analysis-body" in app_text and "function renderScaleAnalysis" in app_text
             else "scale analysis page is not wired to repo-backed viability rendering",
         },
         "gui_trace_capture_details": {
-            "live": 'data-panel="trace-capture"' in design_text and "/api/traces" in app_text,
+            "live": "trace-body" in app_text and "/api/traces" in app_text and "function renderTraceCapture" in app_text,
             "reason": "trace capture section opens detailed repo-backed trace history"
-            if 'data-panel="trace-capture"' in design_text and "/api/traces" in app_text
+            if "trace-body" in app_text and "/api/traces" in app_text and "function renderTraceCapture" in app_text
             else "trace capture section is not wired to detailed repo-backed trace history",
         },
         "gui_steering_log_details": {
@@ -292,9 +292,9 @@ def verify_dashboard_integrations(runtime_dir: Path):
             else "steering log surface is not wired to detailed repo-backed steering events",
         },
         "gui_mutex_lock_details": {
-            "live": 'data-panel="mutex-lock"' in design_text and "/api/repo-freeze/state" in app_text,
+            "live": "function openMutexLockDetails" in app_text and "/api/repo-freeze/state" in app_text,
             "reason": "mutex status box opens detailed live lock ownership and gating state"
-            if 'data-panel="mutex-lock"' in design_text and "/api/repo-freeze/state" in app_text
+            if "function openMutexLockDetails" in app_text and "/api/repo-freeze/state" in app_text
             else "mutex status box is not wired to detailed live lock state",
         },
         "gui_model_status_panel": {
@@ -451,6 +451,12 @@ def sync_task_md(runtime_dir: Path, graph: dict, tasks: list, task_md: dict | No
     graph_nodes = {node.get("id"): node for node in graph.get("nodes", [])}
     current_node = graph_nodes.get(task_md.get("dag_node_id")) if task_md else None
 
+    # Retire orphaned TASK.md files that reference a node name from an older contract.
+    if task_md and task_md.get("dag_node_id") and current_node is None:
+        if task_md_path.exists():
+            task_md_path.unlink()
+        task_md = None
+
     # When canonical verification says the active task is live, retire the stale TASK.md.
     if task_md and current_node and current_node.get("status") == "green":
         if task_md_path.exists():
@@ -461,6 +467,8 @@ def sync_task_md(runtime_dir: Path, graph: dict, tasks: list, task_md: dict | No
     next_task = find_next_runnable_task(tasks)
 
     if not next_task:
+        if task_md_path.exists():
+            task_md_path.unlink()
         return None
 
     if current_node_id == next_task.get("dag_node_id") and task_md_path.exists():

@@ -6,7 +6,7 @@
     "label": "gui-surface-routing",
     "description": "Keep dashboard surfaces truthfully routed through repo-backed panel hooks, with an always-on full-page fallback when no sidebar is present.",
     "allowed_paths": [
-      "SPAWN/STOP/web/templates/dashboard.html",
+      "SPAWN/STOP/web/templates/repo_truth.html",
       "SPAWN/STOP/web/app.py"
     ],
     "dependencies": [],
@@ -21,7 +21,7 @@
     "label": "gui-dag-view",
     "description": "Make DAG rows open live task details, dependencies, allowed paths, and verification reasons from repo state.",
     "allowed_paths": [
-      "SPAWN/STOP/web/templates/dashboard.html",
+      "SPAWN/STOP/web/templates/repo_truth.html",
       "SPAWN/STOP/web/app.py"
     ],
     "dependencies": [
@@ -38,7 +38,7 @@
     "label": "gui-spawn-loop",
     "description": "Wire the spawn loop controls to a real Flask control plane so start, pause, and related actions work from the GUI.",
     "allowed_paths": [
-      "SPAWN/STOP/web/templates/dashboard.html",
+      "SPAWN/STOP/web/templates/repo_truth.html",
       "SPAWN/STOP/web/app.py"
     ],
     "dependencies": [
@@ -55,7 +55,7 @@
     "label": "gui-training-run",
     "description": "Make the Training Run section open live training-run details, status, and artifacts from canonical repo state.",
     "allowed_paths": [
-      "SPAWN/STOP/web/templates/dashboard.html",
+      "SPAWN/STOP/web/templates/repo_truth.html",
       "SPAWN/STOP/web/app.py"
     ],
     "dependencies": [
@@ -72,7 +72,7 @@
     "label": "gui-dataset",
     "description": "Make the Dataset section open live dataset details, formats, counts, and export-ready state from canonical repo data.",
     "allowed_paths": [
-      "SPAWN/STOP/web/templates/dashboard.html",
+      "SPAWN/STOP/web/templates/repo_truth.html",
       "SPAWN/STOP/web/app.py"
     ],
     "dependencies": [
@@ -89,7 +89,7 @@
     "label": "gui-eta-tracker",
     "description": "Make the ETA Tracker section render live ETA thresholds and progress tiers from canonical repo-backed planning state.",
     "allowed_paths": [
-      "SPAWN/STOP/web/templates/dashboard.html",
+      "SPAWN/STOP/web/templates/repo_truth.html",
       "SPAWN/STOP/web/app.py"
     ],
     "dependencies": [
@@ -106,7 +106,7 @@
     "label": "gui-scale-analysis",
     "description": "Make the Scale Analysis nav/page a fully tracked GUI function with repo-backed scale recommendations, storage thresholds, and fine-tune viability guidance.",
     "allowed_paths": [
-      "SPAWN/STOP/web/templates/dashboard.html",
+      "SPAWN/STOP/web/templates/repo_truth.html",
       "SPAWN/STOP/web/app.py",
       "SPAWN/STOP/.orchestrator/dashboard_state.py"
     ],
@@ -124,7 +124,7 @@
     "label": "gui-audit-log",
     "description": "Make the audit log panel open detailed repo-backed audit events instead of a single summary card.",
     "allowed_paths": [
-      "SPAWN/STOP/web/templates/dashboard.html",
+      "SPAWN/STOP/web/templates/repo_truth.html",
       "SPAWN/STOP/web/app.py"
     ],
     "dependencies": [
@@ -141,7 +141,7 @@
     "label": "gui-repo-freeze",
     "description": "Wire the repo freeze toggle to a real Flask control endpoint so the dashboard can mutate live freeze state.",
     "allowed_paths": [
-      "SPAWN/STOP/web/templates/dashboard.html",
+      "SPAWN/STOP/web/templates/repo_truth.html",
       "SPAWN/STOP/web/app.py"
     ],
     "dependencies": [
@@ -158,7 +158,7 @@
     "label": "gui-stray-monitor",
     "description": "Make the stray monitor panel open detailed repo-backed stray event history and diagnostics.",
     "allowed_paths": [
-      "SPAWN/STOP/web/templates/dashboard.html",
+      "SPAWN/STOP/web/templates/repo_truth.html",
       "SPAWN/STOP/web/app.py"
     ],
     "dependencies": [
@@ -175,7 +175,7 @@
     "label": "gui-trace-capture",
     "description": "Make the Trace Capture section open detailed trace history and artifact views from repo-backed logs and iterations.",
     "allowed_paths": [
-      "SPAWN/STOP/web/templates/dashboard.html",
+      "SPAWN/STOP/web/templates/repo_truth.html",
       "SPAWN/STOP/web/app.py"
     ],
     "dependencies": [
@@ -192,7 +192,7 @@
     "label": "gui-steering-log",
     "description": "Make the steering log surface render detailed steering-event history and reasoning from repo-backed decision artifacts.",
     "allowed_paths": [
-      "SPAWN/STOP/web/templates/dashboard.html",
+      "SPAWN/STOP/web/templates/repo_truth.html",
       "SPAWN/STOP/web/app.py"
     ],
     "dependencies": [
@@ -209,7 +209,7 @@
     "label": "gui-bootstrap-step-details",
     "description": "Make bootstrap rows open live step details and status sourced from repo state.",
     "allowed_paths": [
-      "SPAWN/STOP/web/templates/dashboard.html",
+      "SPAWN/STOP/web/templates/repo_truth.html",
       "SPAWN/STOP/web/app.py"
     ],
     "dependencies": [
@@ -226,7 +226,7 @@
     "label": "gui-repo-structure-details",
     "description": "Make repo structure rows clickable with live detail panels backed by actual repo paths and state.",
     "allowed_paths": [
-      "SPAWN/STOP/web/templates/dashboard.html",
+      "SPAWN/STOP/web/templates/repo_truth.html",
       "SPAWN/STOP/web/app.py"
     ],
     "dependencies": [
@@ -243,7 +243,7 @@
     "label": "gui-vector-phase-details",
     "description": "Make vector phase rows open repo-backed phase details instead of acting like decorative cards.",
     "allowed_paths": [
-      "SPAWN/STOP/web/templates/dashboard.html",
+      "SPAWN/STOP/web/templates/repo_truth.html",
       "SPAWN/STOP/web/app.py"
     ],
     "dependencies": [
@@ -260,7 +260,7 @@
     "label": "gui-memory-file-open",
     "description": "Make memory file rows open real repo file details and context instead of static labels.",
     "allowed_paths": [
-      "SPAWN/STOP/web/templates/dashboard.html",
+      "SPAWN/STOP/web/templates/repo_truth.html",
       "SPAWN/STOP/web/app.py"
     ],
     "dependencies": [
@@ -277,7 +277,7 @@
     "label": "gui-export-jsonl",
     "description": "Wire the JSONL export button to a real Flask endpoint that emits repo-backed export output.",
     "allowed_paths": [
-      "SPAWN/STOP/web/templates/dashboard.html",
+      "SPAWN/STOP/web/templates/repo_truth.html",
       "SPAWN/STOP/web/app.py"
     ],
     "dependencies": [
@@ -294,7 +294,7 @@
     "label": "gui-export-alpaca",
     "description": "Wire the Alpaca export button to a real Flask endpoint that emits canonical dataset output.",
     "allowed_paths": [
-      "SPAWN/STOP/web/templates/dashboard.html",
+      "SPAWN/STOP/web/templates/repo_truth.html",
       "SPAWN/STOP/web/app.py"
     ],
     "dependencies": [
@@ -311,7 +311,7 @@
     "label": "gui-export-sharegpt",
     "description": "Wire the ShareGPT export button to a real Flask endpoint that emits conversation-format data.",
     "allowed_paths": [
-      "SPAWN/STOP/web/templates/dashboard.html",
+      "SPAWN/STOP/web/templates/repo_truth.html",
       "SPAWN/STOP/web/app.py"
     ],
     "dependencies": [
@@ -328,7 +328,7 @@
     "label": "gui-export-steering",
     "description": "Wire the steering-only export button to a real Flask endpoint that emits steering traces only.",
     "allowed_paths": [
-      "SPAWN/STOP/web/templates/dashboard.html",
+      "SPAWN/STOP/web/templates/repo_truth.html",
       "SPAWN/STOP/web/app.py"
     ],
     "dependencies": [
@@ -345,7 +345,7 @@
     "label": "gui-readiness-tracker",
     "description": "Replace the static readiness tracker rows with canonical repo-backed readiness rendering.",
     "allowed_paths": [
-      "SPAWN/STOP/web/templates/dashboard.html",
+      "SPAWN/STOP/web/templates/repo_truth.html",
       "SPAWN/STOP/web/app.py"
     ],
     "dependencies": [
@@ -362,7 +362,7 @@
     "label": "gui-mutex-lock",
     "description": "Make the mutex status box open detailed live lock ownership, expiry, and gating state from repo-backed lock files.",
     "allowed_paths": [
-      "SPAWN/STOP/web/templates/dashboard.html",
+      "SPAWN/STOP/web/templates/repo_truth.html",
       "SPAWN/STOP/web/app.py"
     ],
     "dependencies": [
@@ -379,7 +379,7 @@
     "label": "gui-model-status-panel",
     "description": "Make the full model status surface a first-class tracked GUI function with explicit repo-backed readiness, graph rendering, and training-scale state.",
     "allowed_paths": [
-      "SPAWN/STOP/web/templates/dashboard.html",
+      "SPAWN/STOP/web/templates/repo_truth.html",
       "SPAWN/STOP/web/app.py",
       "SPAWN/STOP/.orchestrator/dashboard_state.py"
     ],

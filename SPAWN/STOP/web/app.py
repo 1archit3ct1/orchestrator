@@ -49,7 +49,6 @@ TASK_QUEUE_PATH = ORCHESTRATOR_DIR / "task_queue.json"
 DESIGN_GRAPH_PATH = STATE_DIR / "design_graph.json"
 TASKS_PATH = STATE_DIR / "tasks.json"
 MEMORY_PATH = RUNTIME_DIR / "MEMORY.md"
-LEGACY_DASHBOARD_TEMPLATE_PATH = SCRIPT_DIR / "templates" / "dashboard.html"
 SECURITY_AUDIT_LOG_PATH = LOGS_DIR / "security" / "security_audit.log"
 ORCHESTRATOR_LOG_PATH = LOGS_DIR / "orchestrator.log"
 if str(ORCHESTRATOR_DIR) not in sys.path:
@@ -3009,16 +3008,6 @@ def api_runtime_mirror():
 @app.route("/api/runtime/misses")
 def api_runtime_misses():
     return jsonify(build_runtime_miss_payload())
-
-
-def render_live_design_html():
-    if not LEGACY_DASHBOARD_TEMPLATE_PATH.exists():
-        return "<h1>dashboard.html not found</h1>"
-
-    html = LEGACY_DASHBOARD_TEMPLATE_PATH.read_text(encoding="utf-8", errors="replace")
-    payload = json.dumps(build_dashboard_payload())
-    injection = f"<script>window.__ORCH_DASHBOARD_STATE__ = {payload};</script>{LIVE_DASHBOARD_SCRIPT}"
-    return html.replace("</body>", injection + "\n</body>")
 
 
 @app.route("/")

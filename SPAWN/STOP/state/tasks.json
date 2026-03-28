@@ -113,7 +113,7 @@
     "dependencies": [
       "gui_nav_panels"
     ],
-    "status": "in_progress",
+    "status": "completed",
     "priority": 7,
     "progress": null
   },
@@ -130,7 +130,7 @@
     "dependencies": [
       "gui_nav_panels"
     ],
-    "status": "pending",
+    "status": "completed",
     "priority": 8,
     "progress": null
   },
@@ -147,7 +147,7 @@
     "dependencies": [
       "gui_nav_panels"
     ],
-    "status": "pending",
+    "status": "completed",
     "priority": 9,
     "progress": null
   },
@@ -164,7 +164,7 @@
     "dependencies": [
       "gui_nav_panels"
     ],
-    "status": "pending",
+    "status": "completed",
     "priority": 10,
     "progress": null
   },
@@ -181,7 +181,7 @@
     "dependencies": [
       "gui_nav_panels"
     ],
-    "status": "pending",
+    "status": "completed",
     "priority": 11,
     "progress": null
   },
@@ -198,7 +198,7 @@
     "dependencies": [
       "gui_nav_panels"
     ],
-    "status": "pending",
+    "status": "completed",
     "priority": 12,
     "progress": null
   },
@@ -215,7 +215,7 @@
     "dependencies": [
       "gui_nav_panels"
     ],
-    "status": "pending",
+    "status": "completed",
     "priority": 13,
     "progress": null
   },
@@ -232,7 +232,7 @@
     "dependencies": [
       "gui_nav_panels"
     ],
-    "status": "pending",
+    "status": "completed",
     "priority": 14,
     "progress": null
   },
@@ -249,7 +249,7 @@
     "dependencies": [
       "gui_nav_panels"
     ],
-    "status": "pending",
+    "status": "completed",
     "priority": 15,
     "progress": null
   },
@@ -266,7 +266,7 @@
     "dependencies": [
       "gui_nav_panels"
     ],
-    "status": "pending",
+    "status": "completed",
     "priority": 16,
     "progress": null
   },
@@ -283,7 +283,7 @@
     "dependencies": [
       "gui_nav_panels"
     ],
-    "status": "pending",
+    "status": "completed",
     "priority": 17,
     "progress": null
   },
@@ -300,7 +300,7 @@
     "dependencies": [
       "gui_nav_panels"
     ],
-    "status": "pending",
+    "status": "completed",
     "priority": 18,
     "progress": null
   },
@@ -317,7 +317,7 @@
     "dependencies": [
       "gui_nav_panels"
     ],
-    "status": "pending",
+    "status": "completed",
     "priority": 19,
     "progress": null
   },
@@ -334,7 +334,7 @@
     "dependencies": [
       "gui_nav_panels"
     ],
-    "status": "pending",
+    "status": "completed",
     "priority": 20,
     "progress": null
   },
@@ -351,7 +351,7 @@
     "dependencies": [
       "gui_nav_panels"
     ],
-    "status": "pending",
+    "status": "completed",
     "priority": 21,
     "progress": null
   },
@@ -368,7 +368,7 @@
     "dependencies": [
       "gui_nav_panels"
     ],
-    "status": "pending",
+    "status": "completed",
     "priority": 22,
     "progress": null
   },
@@ -386,7 +386,7 @@
     "dependencies": [
       "gui_nav_panels"
     ],
-    "status": "pending",
+    "status": "completed",
     "priority": 23,
     "progress": null
   }

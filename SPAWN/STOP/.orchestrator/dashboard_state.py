@@ -267,6 +267,12 @@ def verify_dashboard_integrations(runtime_dir: Path):
             if 'data-panel="eta-tracker"' in design_text and "function renderEtaTracker" in app_text
             else "ETA tracker is not wired to canonical repo-backed ETA detail rendering",
         },
+        "gui_scale_analysis_page": {
+            "live": 'data-panel="scale-analysis"' in design_text and "function renderScaleAnalysis" in app_text,
+            "reason": "scale analysis page renders repo-backed recommendations, thresholds, and viability guidance"
+            if 'data-panel="scale-analysis"' in design_text and "function renderScaleAnalysis" in app_text
+            else "scale analysis page is not wired to repo-backed viability rendering",
+        },
         "gui_trace_capture_details": {
             "live": 'data-panel="trace-capture"' in design_text and "/api/traces" in app_text,
             "reason": "trace capture section opens detailed repo-backed trace history"
@@ -284,6 +290,12 @@ def verify_dashboard_integrations(runtime_dir: Path):
             "reason": "mutex status box opens detailed live lock ownership and gating state"
             if 'data-panel="mutex-lock"' in design_text and "/api/repo-freeze/state" in app_text
             else "mutex status box is not wired to detailed live lock state",
+        },
+        "gui_model_status_panel": {
+            "live": 'data-model-status-root' in design_text and "/api/model/status" in app_text and "function renderModelStatusDetails" in app_text,
+            "reason": "model status surface is a first-class repo-backed function with readiness, graph rendering, and training-scale state"
+            if 'data-model-status-root' in design_text and "/api/model/status" in app_text and "function renderModelStatusDetails" in app_text
+            else "model status surface is not wired to explicit repo-backed status rendering",
         },
     }
     return checks

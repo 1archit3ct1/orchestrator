@@ -124,12 +124,12 @@
       "dependencies": [
         "gui_nav_panels"
       ],
-      "status": "yellow",
+      "status": "green",
       "task_name": "gui-scale-analysis",
       "task_id": "T07",
-      "display_status": "active",
-      "verified_live": false,
-      "verification_reason": "no verification rule",
+      "display_status": "complete",
+      "verified_live": true,
+      "verification_reason": "scale analysis page renders repo-backed recommendations, thresholds, and viability guidance",
       "progress": null
     },
     {
@@ -143,12 +143,12 @@
       "dependencies": [
         "gui_nav_panels"
       ],
-      "status": "red",
+      "status": "green",
       "task_name": "gui-audit-log",
       "task_id": "T08",
-      "display_status": "pending",
-      "verified_live": false,
-      "verification_reason": "audit log panel is not wired to detailed audit events",
+      "display_status": "complete",
+      "verified_live": true,
+      "verification_reason": "audit log panel opens repo-backed audit event details",
       "progress": null
     },
     {
@@ -162,12 +162,12 @@
       "dependencies": [
         "gui_nav_panels"
       ],
-      "status": "red",
+      "status": "green",
       "task_name": "gui-repo-freeze",
       "task_id": "T09",
-      "display_status": "pending",
-      "verified_live": false,
-      "verification_reason": "repo freeze toggle is display-only and has no control endpoint",
+      "display_status": "complete",
+      "verified_live": true,
+      "verification_reason": "repo freeze toggle can mutate live freeze state through Flask",
       "progress": null
     },
     {
@@ -181,12 +181,12 @@
       "dependencies": [
         "gui_nav_panels"
       ],
-      "status": "red",
+      "status": "green",
       "task_name": "gui-stray-monitor",
       "task_id": "T10",
-      "display_status": "pending",
-      "verified_live": false,
-      "verification_reason": "stray monitor panel is not wired to detailed stray events",
+      "display_status": "complete",
+      "verified_live": true,
+      "verification_reason": "stray monitor panel opens repo-backed stray event details",
       "progress": null
     },
     {
@@ -200,12 +200,12 @@
       "dependencies": [
         "gui_nav_panels"
       ],
-      "status": "red",
+      "status": "green",
       "task_name": "gui-trace-capture",
       "task_id": "T11",
-      "display_status": "pending",
-      "verified_live": false,
-      "verification_reason": "trace capture section is not wired to detailed repo-backed trace history",
+      "display_status": "complete",
+      "verified_live": true,
+      "verification_reason": "trace capture section opens detailed repo-backed trace history",
       "progress": null
     },
     {
@@ -219,12 +219,12 @@
       "dependencies": [
         "gui_nav_panels"
       ],
-      "status": "red",
+      "status": "green",
       "task_name": "gui-steering-log",
       "task_id": "T12",
-      "display_status": "pending",
-      "verified_live": false,
-      "verification_reason": "steering log section is not wired to detailed repo-backed steering events",
+      "display_status": "complete",
+      "verified_live": true,
+      "verification_reason": "steering log section opens detailed repo-backed steering events",
       "progress": null
     },
     {
@@ -238,12 +238,12 @@
       "dependencies": [
         "gui_nav_panels"
       ],
-      "status": "red",
+      "status": "green",
       "task_name": "gui-bootstrap-step-details",
       "task_id": "T13",
-      "display_status": "pending",
-      "verified_live": false,
-      "verification_reason": "bootstrap steps are clickable shells without drilldown behavior",
+      "display_status": "complete",
+      "verified_live": true,
+      "verification_reason": "bootstrap steps open repo-backed status details",
       "progress": null
     },
     {
@@ -257,12 +257,12 @@
       "dependencies": [
         "gui_nav_panels"
       ],
-      "status": "red",
+      "status": "green",
       "task_name": "gui-repo-structure-details",
       "task_id": "T14",
-      "display_status": "pending",
-      "verified_live": false,
-      "verification_reason": "repo structure panel has no clickable node drilldowns",
+      "display_status": "complete",
+      "verified_live": true,
+      "verification_reason": "repo structure panel exposes repo-backed node details",
       "progress": null
     },
     {
@@ -276,12 +276,12 @@
       "dependencies": [
         "gui_nav_panels"
       ],
-      "status": "red",
+      "status": "green",
       "task_name": "gui-vector-phase-details",
       "task_id": "T15",
-      "display_status": "pending",
-      "verified_live": false,
-      "verification_reason": "vector memory phases are not wired to drilldowns",
+      "display_status": "complete",
+      "verified_live": true,
+      "verification_reason": "vector memory phases expose repo-backed drilldown state",
       "progress": null
     },
     {
@@ -295,12 +295,12 @@
       "dependencies": [
         "gui_nav_panels"
       ],
-      "status": "red",
+      "status": "green",
       "task_name": "gui-memory-file-open",
       "task_id": "T16",
-      "display_status": "pending",
-      "verified_live": false,
-      "verification_reason": "memory file rows are not wired to repo-backed file details",
+      "display_status": "complete",
+      "verified_live": true,
+      "verification_reason": "memory file rows open real repo file detail state",
       "progress": null
     },
     {
@@ -314,12 +314,12 @@
       "dependencies": [
         "gui_nav_panels"
       ],
-      "status": "red",
+      "status": "green",
       "task_name": "gui-export-jsonl",
       "task_id": "T17",
-      "display_status": "pending",
-      "verified_live": false,
-      "verification_reason": "JSONL export is not wired to repo-backed export logic",
+      "display_status": "complete",
+      "verified_live": true,
+      "verification_reason": "JSONL export button is wired to a real export endpoint",
       "progress": null
     },
     {
@@ -333,12 +333,12 @@
       "dependencies": [
         "gui_nav_panels"
       ],
-      "status": "red",
+      "status": "green",
       "task_name": "gui-export-alpaca",
       "task_id": "T18",
-      "display_status": "pending",
-      "verified_live": false,
-      "verification_reason": "Alpaca export is not wired to repo-backed export logic",
+      "display_status": "complete",
+      "verified_live": true,
+      "verification_reason": "Alpaca export button is wired to a real export endpoint",
       "progress": null
     },
     {
@@ -352,12 +352,12 @@
       "dependencies": [
         "gui_nav_panels"
       ],
-      "status": "red",
+      "status": "green",
       "task_name": "gui-export-sharegpt",
       "task_id": "T19",
-      "display_status": "pending",
-      "verified_live": false,
-      "verification_reason": "ShareGPT export is not wired to repo-backed export logic",
+      "display_status": "complete",
+      "verified_live": true,
+      "verification_reason": "ShareGPT export button is wired to a real export endpoint",
       "progress": null
     },
     {
@@ -371,12 +371,12 @@
       "dependencies": [
         "gui_nav_panels"
       ],
-      "status": "red",
+      "status": "green",
       "task_name": "gui-export-steering",
       "task_id": "T20",
-      "display_status": "pending",
-      "verified_live": false,
-      "verification_reason": "Steering-only export is not wired to repo-backed export logic",
+      "display_status": "complete",
+      "verified_live": true,
+      "verification_reason": "Steering-only export button is wired to a real export endpoint",
       "progress": null
     },
     {
@@ -390,12 +390,12 @@
       "dependencies": [
         "gui_nav_panels"
       ],
-      "status": "red",
+      "status": "green",
       "task_name": "gui-readiness-tracker",
       "task_id": "T21",
-      "display_status": "pending",
-      "verified_live": false,
-      "verification_reason": "readiness tracker is still mostly static text and not a live function surface",
+      "display_status": "complete",
+      "verified_live": true,
+      "verification_reason": "readiness tracker rows are rendered from canonical repo state",
       "progress": null
     },
     {
@@ -409,12 +409,12 @@
       "dependencies": [
         "gui_nav_panels"
       ],
-      "status": "red",
+      "status": "green",
       "task_name": "gui-mutex-lock",
       "task_id": "T22",
-      "display_status": "pending",
-      "verified_live": false,
-      "verification_reason": "mutex status box is not wired to detailed live lock state",
+      "display_status": "complete",
+      "verified_live": true,
+      "verification_reason": "mutex status box opens detailed live lock ownership and gating state",
       "progress": null
     },
     {
@@ -429,12 +429,12 @@
       "dependencies": [
         "gui_nav_panels"
       ],
-      "status": "red",
+      "status": "green",
       "task_name": "gui-model-status-panel",
       "task_id": "T23",
-      "display_status": "pending",
-      "verified_live": false,
-      "verification_reason": "no verification rule",
+      "display_status": "complete",
+      "verified_live": true,
+      "verification_reason": "model status surface is a first-class repo-backed function with readiness, graph rendering, and training-scale state",
       "progress": null
     }
   ],
@@ -528,7 +528,7 @@
       "to": "gui_model_status_panel"
     }
   ],
-  "status": "awaiting_task_completion",
+  "status": "complete",
   "last_cycle": 6,
   "last_updated": "2026-03-28T01:01:28.791154"
 }

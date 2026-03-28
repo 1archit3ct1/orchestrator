@@ -1648,13 +1648,14 @@ body::after {
       </div>
 
       <!-- MODEL STATUS -->
-      <div class="card model-panel" data-panel="all orchestrator training-run eta-tracker">
+      <div class="card model-panel" data-panel="all orchestrator training-run eta-tracker model-status">
         <div class="panel-hdr">
           <span class="panel-icon">◎</span>
           <span class="panel-title">MODEL STATUS</span>
           <span class="panel-badge" data-training-inline-badge>training run pending</span>
         </div>
-        <div class="model-body">
+        <div class="model-body" data-model-status-root>
+          <div data-panel="model-status" style="display:none;"></div>
           <div class="model-name-block">
             <div class="model-name">Qwen2.5-Coder14B</div>
             <div class="model-sub">QLoRA · FINE-TUNE · CHECKPOINT v0.4.1</div>
@@ -1701,8 +1702,9 @@ body::after {
             <span class="panel-title">LLM AUDIT &amp; SECURITY LOG</span>
             <span class="panel-badge warn">1 ALERT</span>
           </div>
-          <div class="audit-body">
-            <div class="stray-alert">
+        <div class="audit-body">
+          <div data-panel="audit-log" style="display:none;"></div>
+          <div class="stray-alert">
               <div class="stray-hdr">
                 <span class="stray-icon">⚠</span>
                 STRAY EVENT DETECTED
@@ -1722,8 +1724,9 @@ body::after {
             <span class="panel-title">STEERING EVENT LOG</span>
             <span class="panel-badge" style="color:rgb(255,200,60);background:rgba(255,180,0,0.08);border-color:rgba(255,180,0,0.25);">★ HIGHEST TRAINING VALUE</span>
           </div>
-          <div class="steering-body">
-            <div class="steering-entry">
+        <div class="steering-body">
+          <div data-panel="steering-log" style="display:none;"></div>
+          <div class="steering-entry">
               <div class="steering-tags">
                 <span class="stag stag-arch">ARCH</span>
                 <span class="stag stag-resolved">RESOLVED</span>
@@ -1872,27 +1875,27 @@ body::after {
           <span class="panel-badge">Start/ → Stop/</span>
         </div>
         <div class="boot-body">
-          <div class="boot-step">
+          <div class="boot-step" data-boot-step="01">
             <span class="boot-step-num">01</span>
             <span class="boot-step-name">init/</span>
             <div class="boot-step-status"></div>
           </div>
-          <div class="boot-step">
+          <div class="boot-step" data-boot-step="02">
             <span class="boot-step-num">02</span>
             <span class="boot-step-name">config/</span>
             <div class="boot-step-status"></div>
           </div>
-          <div class="boot-step">
+          <div class="boot-step" data-boot-step="03">
             <span class="boot-step-num">03</span>
             <span class="boot-step-name">templates/</span>
             <div class="boot-step-status"></div>
           </div>
-          <div class="boot-step">
+          <div class="boot-step" data-boot-step="04">
             <span class="boot-step-num">04</span>
             <span class="boot-step-name">hooks/ · vector index</span>
             <div class="boot-step-status"></div>
           </div>
-          <div class="boot-step">
+          <div class="boot-step" data-boot-step="05">
             <span class="boot-step-num">05</span>
             <span class="boot-step-name">validation/ · handoff</span>
             <div class="boot-step-status"></div>
@@ -1921,18 +1924,18 @@ body::after {
           <div class="repo-zone">
             <div class="zone-box">
               <div class="zone-title">START/ (BOOTSTRAP)</div>
-              <div class="zone-item">prompt.md</div>
-              <div class="zone-item">AGENTS.md (FULL)</div>
-              <div class="zone-item">01–05 dirs</div>
+              <div class="zone-item" data-structure-node="start:prompt.md">prompt.md</div>
+              <div class="zone-item" data-structure-node="start:AGENTS.md">AGENTS.md (FULL)</div>
+              <div class="zone-item" data-structure-node="start:01-05">01–05 dirs</div>
             </div>
             <div class="zone-box">
               <div class="zone-title">STOP/ (AGENT ZONE)</div>
-              <div class="zone-item">.agent/loop.py</div>
-              <div class="zone-item">.agent/planner.sh</div>
-              <div class="zone-item">vector_store/</div>
-              <div class="zone-item">TASK.md</div>
-              <div class="zone-item">MEMORY.md</div>
-              <div class="zone-item">AGENTS.md (reduced)</div>
+              <div class="zone-item" data-structure-node="stop:.orchestrator/loop.py">.agent/loop.py</div>
+              <div class="zone-item" data-structure-node="stop:.orchestrator/planner.sh">.agent/planner.sh</div>
+              <div class="zone-item" data-structure-node="stop:.orchestrator/vector_store/">vector_store/</div>
+              <div class="zone-item" data-structure-node="stop:TASK.md">TASK.md</div>
+              <div class="zone-item" data-structure-node="stop:MEMORY.md">MEMORY.md</div>
+              <div class="zone-item" data-structure-node="stop:AGENTS.md">AGENTS.md (reduced)</div>
             </div>
           </div>
         </div>
@@ -1947,21 +1950,21 @@ body::after {
         </div>
         <div class="vec-body">
           <div class="vec-phases">
-            <div class="vec-phase">
+            <div class="vec-phase" data-vec-phase="BOOTSTRAP INDEX">
               <div class="vec-phase-hdr">
                 <span class="vec-phase-name">BOOTSTRAP INDEX</span>
                 <span class="vec-phase-badge">PHASE 1</span>
               </div>
               <div class="vec-phase-desc">Full repo indexed at init. Code, docs, sessions embedded.</div>
             </div>
-            <div class="vec-phase">
+            <div class="vec-phase" data-vec-phase="RUNTIME QUERY">
               <div class="vec-phase-hdr">
                 <span class="vec-phase-name">RUNTIME QUERY</span>
                 <span class="vec-phase-badge">PHASE 2</span>
               </div>
               <div class="vec-phase-desc">Top-k injected into planner prompt each task cycle.</div>
             </div>
-            <div class="vec-phase">
+            <div class="vec-phase" data-vec-phase="POST-TASK EMBED">
               <div class="vec-phase-hdr">
                 <span class="vec-phase-name">POST-TASK EMBED</span>
                 <span class="vec-phase-badge">PHASE 3</span>
@@ -1978,15 +1981,16 @@ body::after {
     <div class="bento3">
 
       <!-- REPO FREEZE + TASK POLICY -->
-      <div class="card" data-panel="all orchestrator repo-freeze">
+      <div class="card" data-panel="all orchestrator repo-freeze mutex-lock" data-control="repo-freeze">
         <div class="panel-hdr">
           <span class="panel-icon">⚿</span>
           <span class="panel-title">REPO FREEZE</span>
         </div>
         <div class="freeze-body">
+          <div data-panel="mutex-lock" style="display:none;"></div>
           <div class="freeze-status">
             <span class="freeze-label">WRITE LOCK ACTIVE</span>
-            <div class="toggle-wrap">
+            <div class="toggle-wrap" data-control="repo-freeze" data-freeze-action="toggle">
               <div class="toggle-thumb"></div>
             </div>
           </div>
@@ -2025,6 +2029,7 @@ body::after {
           <span class="panel-title">STRAY MONITOR</span>
         </div>
         <div class="stray-mon-body">
+          <div data-panel="stray-monitor" style="display:none;"></div>
           <div class="stray-stat-row">
             <div class="stray-num">1</div>
             <div class="stray-meta">
@@ -2046,6 +2051,7 @@ body::after {
           <span class="panel-badge">+34 this session</span>
         </div>
         <div class="trace-body">
+          <div data-panel="trace-capture" style="display:none;"></div>
           <div class="trace-entry">
             <span class="trace-time">17:59:35</span>
             <span class="trace-event">loop.step completed — T03 dag-monitor 61%</span>
@@ -2092,27 +2098,27 @@ body::after {
         </div>
         <div class="mem-body">
           <div class="mem-files">
-            <div class="mem-file">
+            <div class="mem-file" data-memory-file="MEMORY.md">
               <span class="mem-file-icon">📄</span>
               <span class="mem-file-name">MEMORY.md</span>
               <span class="mem-file-size">append-only · 14.2 KB</span>
             </div>
-            <div class="mem-file">
+            <div class="mem-file" data-memory-file="vector_store/">
               <span class="mem-file-icon">📁</span>
               <span class="mem-file-name">vector_store/ (Chroma/FAISS)</span>
               <span class="mem-file-size">247 entries</span>
             </div>
-            <div class="mem-file">
+            <div class="mem-file" data-memory-file="TASK.md">
               <span class="mem-file-icon">📄</span>
               <span class="mem-file-name">TASK.md</span>
               <span class="mem-file-size">active · YAML frontmatter</span>
             </div>
-            <div class="mem-file">
+            <div class="mem-file" data-memory-file="AGENTS.md">
               <span class="mem-file-icon">📄</span>
               <span class="mem-file-name">AGENTS.md (reduced)</span>
               <span class="mem-file-size">perennial prompt · Stop/</span>
             </div>
-            <div class="mem-file">
+            <div class="mem-file" data-memory-file="retrieval_log.jsonl">
               <span class="mem-file-icon">🔁</span>
               <span class="mem-file-name">retrieval_log.jsonl</span>
               <span class="mem-file-size">1,847 entries · training</span>
@@ -2128,28 +2134,28 @@ body::after {
           <span class="panel-title">EXPORT</span>
         </div>
         <div class="export-body">
-          <button class="export-btn">
+          <button class="export-btn" data-export-format="jsonl" type="button">
             <span class="export-btn-icon">▦</span>
             <div>
               <div>EXPORT JSONL</div>
               <div class="export-desc">Raw training traces · 1,847 samples</div>
             </div>
           </button>
-          <button class="export-btn">
+          <button class="export-btn" data-export-format="alpaca" type="button">
             <span class="export-btn-icon">◎</span>
             <div>
               <div>EXPORT ALPACA</div>
               <div class="export-desc">Instruction-tuning format · instruction/input/output</div>
             </div>
           </button>
-          <button class="export-btn">
+          <button class="export-btn" data-export-format="sharegpt" type="button">
             <span class="export-btn-icon">⬡</span>
             <div>
               <div>EXPORT SHAREGPT</div>
               <div class="export-desc">Conversation format · human/gpt pairs</div>
             </div>
           </button>
-          <button class="export-btn">
+          <button class="export-btn" data-export-format="steering" type="button">
             <span class="export-btn-icon">⋯</span>
             <div>
               <div>EXPORT STEERING ONLY</div>
@@ -2168,19 +2174,19 @@ body::after {
         <div style="padding:14px 16px;">
           <div style="font-size:8px;letter-spacing:2px;color:var(--text-ghost);margin-bottom:8px;">CURRENT READINESS</div>
           <div style="display:flex;flex-direction:column;gap:6px;">
-            <div style="display:flex;justify-content:space-between;font-size:9px;padding:7px 9px;border:1px solid var(--border-dim);border-radius:5px;background:rgba(255,32,32,0.03);">
+            <div class="readiness-row" data-readiness-key="Canonical State" style="display:flex;justify-content:space-between;font-size:9px;padding:7px 9px;border:1px solid var(--border-dim);border-radius:5px;background:rgba(255,32,32,0.03);">
               <span style="color:var(--text-dim);">Canonical State</span>
               <span style="color:var(--red);">LIVE</span>
             </div>
-            <div style="display:flex;justify-content:space-between;font-size:9px;padding:7px 9px;border:1px solid var(--border-dim);border-radius:5px;background:rgba(255,32,32,0.03);">
+            <div class="readiness-row" data-readiness-key="Model Integrated" style="display:flex;justify-content:space-between;font-size:9px;padding:7px 9px;border:1px solid var(--border-dim);border-radius:5px;background:rgba(255,32,32,0.03);">
               <span style="color:var(--text-dim);">Model Integrated</span>
               <span style="color:var(--text-dim);">Pending</span>
             </div>
-            <div style="display:flex;justify-content:space-between;font-size:9px;padding:7px 9px;border:1px solid var(--border-dim);border-radius:5px;background:rgba(255,32,32,0.03);">
+            <div class="readiness-row" data-readiness-key="Flask Controls Live" style="display:flex;justify-content:space-between;font-size:9px;padding:7px 9px;border:1px solid var(--border-dim);border-radius:5px;background:rgba(255,32,32,0.03);">
               <span style="color:var(--text-dim);">Flask Controls Live</span>
               <span style="color:var(--text-dim);">Pending</span>
             </div>
-            <div style="display:flex;justify-content:space-between;font-size:9px;padding:7px 9px;border:1px solid var(--border-dim);border-radius:5px;background:rgba(255,32,32,0.03);">
+            <div class="readiness-row" data-readiness-key="TASK.md Alignment" style="display:flex;justify-content:space-between;font-size:9px;padding:7px 9px;border:1px solid var(--border-dim);border-radius:5px;background:rgba(255,32,32,0.03);">
               <span style="color:var(--text-dim);">TASK.md Alignment</span>
               <span style="color:var(--amber);">ATTENTION</span>
             </div>
@@ -2231,6 +2237,28 @@ body::after {
           <div class="task-detail-section">
             <div class="detail-label">VERIFICATION</div>
             <div class="detail-value task-detail-verification"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="repo-detail-modal" class="task-drilldown-modal" style="display:none;">
+      <div class="task-drilldown-content">
+        <div class="task-drilldown-header">
+          <div>
+            <div class="task-drilldown-id">DETAIL</div>
+            <div class="task-drilldown-label" id="repo-detail-title">Repo Detail</div>
+          </div>
+          <button class="task-drilldown-close" type="button" id="repo-detail-close">×</button>
+        </div>
+        <div class="task-drilldown-body">
+          <div class="task-detail-section">
+            <div class="task-detail-heading">Summary</div>
+            <div class="task-detail-description" id="repo-detail-summary">No detail loaded.</div>
+          </div>
+          <div class="task-detail-section">
+            <div class="task-detail-heading">Data</div>
+            <div class="task-detail-allowed-paths" id="repo-detail-payload"></div>
           </div>
         </div>
       </div>

@@ -281,6 +281,256 @@ def build_dataset_payload():
     }
 
 
+def normalize_event_entries(events):
+    normalized = []
+    for index, entry in enumerate(events or [], start=1):
+        normalized.append(
+            {
+                "id": f"event_{index:02d}",
+                "title": "STRAY EVENT DETECTED" if index == 1 else f"EVENT {index:02d}",
+                "text": str(entry),
+            }
+        )
+    return normalized
+
+
+def build_audit_events_payload():
+    dashboard = build_dashboard_payload()
+    return {
+        "canonical": True,
+        "generated_at": dashboard.get("generated_at"),
+        "task_id": "T08",
+        "count": len(dashboard.get("stray_events", [])),
+        "events": normalize_event_entries(dashboard.get("stray_events", [])),
+        "security_tail": tail_lines(SECURITY_AUDIT_LOG_PATH, 12),
+        "orchestrator_tail": tail_lines(ORCHESTRATOR_LOG_PATH, 12),
+    }
+
+
+def build_stray_events_payload():
+    dashboard = build_dashboard_payload()
+    return {
+        "canonical": True,
+        "generated_at": dashboard.get("generated_at"),
+        "task_id": "T10",
+        "count": len(dashboard.get("stray_events", [])),
+        "events": normalize_event_entries(dashboard.get("stray_events", [])),
+        "active_task": dashboard.get("active_task"),
+        "audit_tail": tail_lines(SECURITY_AUDIT_LOG_PATH, 12),
+    }
+
+
+def build_trace_capture_payload():
+    dashboard = build_dashboard_payload()
+    iterations_dir = ORCHESTRATOR_DIR / "iterations"
+    return {
+        "canonical": True,
+        "generated_at": dashboard.get("generated_at"),
+        "task_id": "T11",
+        "entries": dashboard.get("trace_entries", []),
+        "artifacts": collect_recent_files(iterations_dir, ["iter_*.json", "dec_*.json"], limit=10),
+        "trace_count": len(dashboard.get("trace_entries", [])),
+        "training_traces": dashboard.get("summary", {}).get("training_traces", 0),
+    }
+
+
+def build_steering_events_payload():
+    dashboard = build_dashboard_payload()
+    decisions_dir = ORCHESTRATOR_DIR / "iterations" / "decisions"
+    events = dashboard.get("steering_events", [])
+    return {
+        "canonical": True,
+        "generated_at": dashboard.get("generated_at"),
+        "task_id": "T12",
+        "count": len(events),
+        "events": [
+            {
+                "id": f"steering_{index:02d}",
+                "text": str(item),
+            }
+            for index, item in enumerate(events, start=1)
+        ],
+        "artifacts": collect_recent_files(decisions_dir, ["*.json"], limit=10),
+    }
+
+
+def collect_lock_files():
+    if not LOCKS_DIR.exists():
+        return []
+    locks = []
+    for path in sorted(LOCKS_DIR.rglob("*.lock")):
+        if path.is_file():
+            locks.append(
+                {
+                    "name": path.name,
+                    "path": rel_runtime_path(path),
+                    "modified_at": datetime.fromtimestamp(path.stat().st_mtime).isoformat(),
+                    "content": read_text(path, "").strip(),
+                }
+            )
+    return locks
+
+
+def build_repo_freeze_payload():
+    dashboard = build_dashboard_payload()
+    repo_freeze = dashboard.get("repo_freeze", {})
+    return {
+        "canonical": True,
+        "generated_at": dashboard.get("generated_at"),
+        "task_id": "T09/T22",
+        "mutex_held": bool(repo_freeze.get("mutex_held")),
+        "lock_path": repo_freeze.get("lock_path"),
+        "allowed_paths": repo_freeze.get("allowed_paths", []),
+        "active_task": dashboard.get("active_task"),
+        "lock_files": collect_lock_files(),
+    }
+
+
+def build_bootstrap_step_payload(step_id: str):
+    steps = build_dashboard_payload().get("bootstrap_steps", [])
+    step = next((item for item in steps if str(item.get("id")) == str(step_id)), None)
+    return {
+        "canonical": True,
+        "generated_at": datetime.now().isoformat(),
+        "task_id": "T13",
+        "step": step,
+    }
+
+
+def build_repo_structure_payload(node_key: str):
+    structure = build_dashboard_payload().get("repo_structure", {})
+    group, _, item_key = node_key.partition(":")
+    items = structure.get(group, []) if group in {"start", "stop"} else []
+    item = next((entry for entry in items if entry.get("name") == item_key), None)
+    return {
+        "canonical": True,
+        "generated_at": datetime.now().isoformat(),
+        "task_id": "T14",
+        "group": group,
+        "item": item,
+    }
+
+
+def build_vector_phase_payload(phase_name: str):
+    phases = build_dashboard_payload().get("vector_phases", [])
+    item = next((phase for phase in phases if phase.get("name") == phase_name), None)
+    return {
+        "canonical": True,
+        "generated_at": datetime.now().isoformat(),
+        "task_id": "T15",
+        "phase": item,
+    }
+
+
+def build_memory_file_payload(file_name: str):
+    dashboard = build_dashboard_payload()
+    item = next((entry for entry in dashboard.get("memory_files", []) if entry.get("name") == file_name), None)
+    path_map = {
+        "MEMORY.md": MEMORY_PATH,
+        "TASK.md": RUNTIME_DIR / "TASK.md",
+        "AGENTS.md": RUNTIME_DIR / "AGENTS.md",
+        "retrieval_log.jsonl": RUNTIME_DIR / "retrieval_log.jsonl",
+        "vector_store/": VECTOR_STORE_DIR,
+    }
+    source = path_map.get(file_name)
+    preview = []
+    if source and source.is_file():
+        preview = tail_lines(source, 10)
+    elif source and source.is_dir():
+        preview = [entry["path"] for entry in collect_recent_files(source, ["*"], limit=10)]
+    return {
+        "canonical": True,
+        "generated_at": datetime.now().isoformat(),
+        "task_id": "T16",
+        "item": item,
+        "preview": preview,
+    }
+
+
+def load_dataset_records(limit=200):
+    records = []
+    for path in sorted(DATA_DIR.glob("*.jsonl")):
+        try:
+            with open(path, "r", encoding="utf-8", errors="replace") as handle:
+                for line in handle:
+                    line = line.strip()
+                    if not line:
+                        continue
+                    try:
+                        records.append(json.loads(line))
+                    except json.JSONDecodeError:
+                        records.append({"raw": line})
+                    if len(records) >= limit:
+                        return records
+        except OSError:
+            continue
+    return records
+
+
+def build_export_payload(export_format: str):
+    records = load_dataset_records(limit=200)
+    steering_records = []
+    decisions_dir = ORCHESTRATOR_DIR / "iterations" / "decisions"
+    if decisions_dir.exists():
+        for path in sorted(decisions_dir.glob("*.json"))[:50]:
+            payload = load_json(path, {})
+            if payload:
+                steering_records.append(payload)
+
+    if export_format == "jsonl":
+        preview = records[:12]
+    elif export_format == "alpaca":
+        preview = [
+            {
+                "instruction": item.get("summary") or item.get("type") or item.get("miss_type") or "repo event",
+                "input": json.dumps(item.get("details", {}), default=str),
+                "output": item.get("summary") or item.get("raw") or "",
+            }
+            for item in records[:12]
+        ]
+    elif export_format == "sharegpt":
+        preview = [
+            {
+                "conversations": [
+                    {"from": "human", "value": item.get("summary") or item.get("type") or "repo event"},
+                    {"from": "gpt", "value": json.dumps(item.get("details", {}), default=str)},
+                ]
+            }
+            for item in records[:12]
+        ]
+    else:
+        preview = [
+            {
+                "decision_id": item.get("decision_id"),
+                "question": item.get("decision", {}).get("question"),
+                "chosen": item.get("decision", {}).get("chosen"),
+                "lesson": item.get("outcome", {}).get("lesson"),
+            }
+            for item in steering_records[:12]
+        ]
+
+    return {
+        "canonical": True,
+        "generated_at": datetime.now().isoformat(),
+        "format": export_format,
+        "record_count": len(preview),
+        "preview": preview,
+    }
+
+
+def build_model_status_payload():
+    dashboard = build_dashboard_payload()
+    return {
+        "canonical": True,
+        "generated_at": dashboard.get("generated_at"),
+        "task_id": "T23",
+        "model": dashboard.get("model", {}),
+        "scale_analysis": dashboard.get("scale_analysis", {}),
+        "readiness": dashboard.get("readiness", []),
+        "verification": dashboard.get("verification", {}),
+    }
+
+
 def derive_tasks_from_graph():
     graph = load_json(DESIGN_GRAPH_PATH, {"nodes": [], "edges": []})
     nodes = graph.get("nodes", [])
@@ -1095,6 +1345,110 @@ LIVE_DASHBOARD_SCRIPT = r"""
     if (modal) modal.style.display = 'none';
   }
 
+  function openRepoDetailModal(title, summary, payload) {
+    const modal = document.getElementById('repo-detail-modal');
+    if (!modal) return;
+    setText(document.getElementById('repo-detail-title'), title || 'Repo Detail');
+    setText(document.getElementById('repo-detail-summary'), summary || 'No detail available.');
+    const payloadEl = document.getElementById('repo-detail-payload');
+    if (payloadEl) {
+      payloadEl.innerHTML = Object.keys(payload || {}).map(function(key) {
+        const value = payload[key];
+        const rendered = Array.isArray(value)
+          ? value.map(function(item) { return '<code>' + escapeHtml(typeof item === 'string' ? item : JSON.stringify(item)) + '</code>'; }).join('')
+          : '<code>' + escapeHtml(typeof value === 'string' ? value : JSON.stringify(value)) + '</code>';
+        return '<div style="display:flex;flex-direction:column;gap:4px;margin-bottom:8px;"><strong>' + escapeHtml(key) + '</strong>' + rendered + '</div>';
+      }).join('') || '<span style="color:var(--text-ghost);">No payload data.</span>';
+    }
+    modal.style.display = 'flex';
+  }
+
+  function closeRepoDetailModal() {
+    const modal = document.getElementById('repo-detail-modal');
+    if (modal) modal.style.display = 'none';
+  }
+
+  function bindRepoDetailModal() {
+    const modal = document.getElementById('repo-detail-modal');
+    if (!modal || modal.dataset.bound === 'true') return;
+    modal.dataset.bound = 'true';
+    const closeBtn = document.getElementById('repo-detail-close');
+    if (closeBtn) closeBtn.addEventListener('click', closeRepoDetailModal);
+    modal.addEventListener('click', function (event) {
+      if (event.target === modal) closeRepoDetailModal();
+    });
+  }
+
+  function fetchRepoDetail(url, title, summaryBuilder, payloadBuilder) {
+    fetch(url, {cache: 'no-store'})
+      .then(function(response) {
+        if (!response.ok) throw new Error('detail request failed');
+        return response.json();
+      })
+      .then(function(data) {
+        openRepoDetailModal(title, summaryBuilder(data), payloadBuilder(data));
+      })
+      .catch(function(error) {
+        console.error('[detail] request failed', error);
+      });
+  }
+
+  function openBootstrapStep(stepId) {
+    fetchRepoDetail('/api/bootstrap/steps/' + encodeURIComponent(stepId), 'Bootstrap Step ' + stepId, function(data) {
+      const step = data.step || {};
+      return textOr(step.name, 'Unknown bootstrap step') + ' · ' + textOr(step.status, 'missing');
+    }, function(data) {
+      return data.step || {};
+    });
+  }
+
+  function openRepoStructureNode(nodeKey) {
+    fetchRepoDetail('/api/repo-structure/' + encodeURIComponent(nodeKey), 'Repo Structure', function(data) {
+      const item = data.item || {};
+      return textOr(item.name, nodeKey) + ' · ' + textOr(item.detail, 'no detail');
+    }, function(data) {
+      return data.item || {group: data.group};
+    });
+  }
+
+  function openVectorPhase(phaseName) {
+    fetchRepoDetail('/api/vector-phases/' + encodeURIComponent(phaseName), phaseName, function(data) {
+      const phase = data.phase || {};
+      return textOr(phase.detail, 'No phase detail available.');
+    }, function(data) {
+      return data.phase || {};
+    });
+  }
+
+  function openMemoryFile(fileName) {
+    fetchRepoDetail('/api/memory-files/' + encodeURIComponent(fileName), fileName, function(data) {
+      const item = data.item || {};
+      return textOr(item.size, 'No size metadata available.');
+    }, function(data) {
+      return {item: data.item || {}, preview: data.preview || []};
+    });
+  }
+
+  function openMutexLockDetails() {
+    fetchRepoDetail('/api/repo-freeze/state', 'Mutex Lock State', function(data) {
+      return data.mutex_held ? 'A lock is currently gating writes.' : 'No lock is currently held.';
+    }, function(data) {
+      return {
+        active_task: data.active_task || {},
+        lock_files: data.lock_files || [],
+        allowed_paths: data.allowed_paths || []
+      };
+    });
+  }
+
+  function openExportPreview(format) {
+    fetchRepoDetail('/api/export/' + encodeURIComponent(format), 'Export ' + format.toUpperCase(), function(data) {
+      return 'Repo-backed preview with ' + String(data.record_count || 0) + ' records.';
+    }, function(data) {
+      return {preview: data.preview || []};
+    });
+  }
+
   function renderDagTaskDetails(data) {
     const node = data.node || {};
     const taskRecord = data.task_record || {};
@@ -1162,6 +1516,56 @@ LIVE_DASHBOARD_SCRIPT = r"""
     });
   }
 
+  function bindBootstrapStepDetails() {
+    qsa('[data-boot-step]').forEach(function(item) {
+      if (item.dataset.bootBound === 'true') return;
+      item.dataset.bootBound = 'true';
+      item.addEventListener('click', function() {
+        openBootstrapStep(item.getAttribute('data-boot-step'));
+      });
+    });
+  }
+
+  function bindRepoStructureDetails() {
+    qsa('[data-structure-node]').forEach(function(item) {
+      if (item.dataset.structureBound === 'true') return;
+      item.dataset.structureBound = 'true';
+      item.addEventListener('click', function() {
+        openRepoStructureNode(item.getAttribute('data-structure-node'));
+      });
+    });
+  }
+
+  function bindVectorPhaseDetails() {
+    qsa('[data-vec-phase]').forEach(function(item) {
+      if (item.dataset.vecBound === 'true') return;
+      item.dataset.vecBound = 'true';
+      item.addEventListener('click', function() {
+        openVectorPhase(item.getAttribute('data-vec-phase'));
+      });
+    });
+  }
+
+  function bindMemoryFileDetails() {
+    qsa('[data-memory-file]').forEach(function(item) {
+      if (item.dataset.memBound === 'true') return;
+      item.dataset.memBound = 'true';
+      item.addEventListener('click', function() {
+        openMemoryFile(item.getAttribute('data-memory-file'));
+      });
+    });
+  }
+
+  function bindExportButtons() {
+    qsa('[data-export-format]').forEach(function(item) {
+      if (item.dataset.exportBound === 'true') return;
+      item.dataset.exportBound = 'true';
+      item.addEventListener('click', function() {
+        openExportPreview(item.getAttribute('data-export-format'));
+      });
+    });
+  }
+
   function renderModelPanel(data) {
     const modelCard = qs('.model-name') ? qs('.model-name').closest('.card') : null;
     setText(qs('.model-name'), textOr(data.model.name, '0.0000% OF 24B GOAL DATA COLLECTED'));
@@ -1203,31 +1607,32 @@ LIVE_DASHBOARD_SCRIPT = r"""
     setOperational(modelCard, !!(data.canonical && data.model));
   }
 
-  function renderAuditPanels(data) {
+  async function renderAuditPanels(data) {
     const auditBody = qs('.audit-body');
-    if (auditBody) {
-      const events = Array.isArray(data.stray_events) ? data.stray_events : [];
-      const body = events.length
-        ? events.map(function (eventText, index) {
-            return ''
-              + '<div class="audit-entry">'
-              + '<div class="stray-hdr"><span class="stray-icon">!</span> ' + escapeHtml(index === 0 ? 'STRAY EVENT DETECTED' : ('EVENT ' + String(index + 1).padStart(2, '0'))) + '</div>'
-              + '<div class="stray-body">' + escapeHtml(eventText) + '</div>'
-              + '</div>';
-          }).join('')
-        : '<div class="audit-entry"><div class="stray-hdr"><span class="stray-icon">!</span> AUDIT LOG CLEAR</div><div class="stray-body">No stray writes detected in recent security logs.</div></div>';
-      auditBody.innerHTML = '<div class="audit-log-panel"><div class="event-log">' + body + '</div></div>';
+    try {
+      const response = await fetch('/api/audit/events', {cache: 'no-store'});
+      if (!response.ok) throw new Error('audit events request failed');
+      const detail = await response.json();
+      if (auditBody) {
+        const events = Array.isArray(detail.events) ? detail.events : [];
+        const body = events.length
+          ? events.map(function (event) {
+              return ''
+                + '<div class="audit-entry">'
+                + '<div class="stray-hdr"><span class="stray-icon">!</span> ' + escapeHtml(event.title || 'AUDIT EVENT') + '</div>'
+                + '<div class="stray-body">' + escapeHtml(event.text || '') + '</div>'
+                + '</div>';
+            }).join('')
+          : '<div class="audit-entry"><div class="stray-hdr"><span class="stray-icon">!</span> AUDIT LOG CLEAR</div><div class="stray-body">No stray writes detected in recent security logs.</div></div>';
+        auditBody.innerHTML = '<div class="audit-log-panel"><div class="event-log">' + body + '</div></div>';
+      }
+      setOperational(auditBody ? auditBody.closest('.card') : null, !!detail.canonical);
+    } catch (error) {
+      console.error('[audit] render failed', error);
     }
-
-    setOperational(auditBody ? auditBody.closest('.card') : null, Array.isArray(data.stray_events));
 
     const warnBadge = qs('.panel-badge.warn');
     if (warnBadge) setText(warnBadge, String((data.summary.stray_count || 0) + ' ALERT'));
-
-    const steeringCard = qs('.steering-body') ? qs('.steering-body').closest('.card') : null;
-    if (steeringCard) {
-      steeringCard.style.display = 'none';
-    }
   }
 
   function renderSpawnPanel(data) {
@@ -1287,73 +1692,128 @@ LIVE_DASHBOARD_SCRIPT = r"""
     setOperational(qs('.stray-mon-body') ? qs('.stray-mon-body').closest('.card') : null, !!data.canonical);
   }
 
-  function renderRepoFreeze(data) {
-    const mutexBadge = qs('.repo-lock .mutex-badge');
-    const mutexDot = qs('.repo-lock .mutex-dot');
-    const freezeLabel = qs('.freeze-label');
-    const freezeNote = qs('.freeze-note');
-    const toggle = qs('.toggle-wrap');
-    const toggleThumb = qs('.toggle-thumb');
-    const held = !!(data.repo_freeze && data.repo_freeze.mutex_held);
+  async function renderRepoFreeze() {
+    try {
+      const response = await fetch('/api/repo-freeze/state', {cache: 'no-store'});
+      if (!response.ok) throw new Error('repo freeze request failed');
+      const data = await response.json();
+      const mutexBadge = qs('.repo-lock .mutex-badge');
+      const freezeLabel = qs('.freeze-label');
+      const freezeNote = qs('.freeze-note');
+      const toggle = qs('.toggle-wrap');
+      const toggleThumb = qs('.toggle-thumb');
+      const held = !!data.mutex_held;
 
-    if (mutexBadge) mutexBadge.innerHTML = '<div class="mutex-dot"></div>' + (held ? 'MUTEX HELD' : 'MUTEX OPEN');
-    if (mutexDot) {
-      mutexDot.style.background = held ? 'var(--red)' : 'var(--green)';
-      mutexDot.style.boxShadow = held ? '0 0 8px var(--red-glow)' : '0 0 8px var(--green-glow)';
-    }
-    if (freezeLabel) freezeLabel.textContent = held ? 'WRITE LOCK ACTIVE' : 'WRITE LOCK OPEN';
-    if (freezeNote) {
-      freezeNote.textContent = held
-        ? 'Mutex held. All writes are currently gated by the active task scope.'
-        : 'No active lock is held. Writes should only occur after the next task lock is acquired.';
-    }
-    if (toggle) {
-      toggle.style.background = held ? 'var(--red)' : 'rgba(34,197,94,0.25)';
-      toggle.style.borderColor = held ? 'var(--border)' : 'rgba(34,197,94,0.35)';
-    }
-    if (toggleThumb) {
-      toggleThumb.style.left = held ? '24px' : '2px';
-      toggleThumb.style.background = held ? 'var(--red)' : 'var(--green)';
-      toggleThumb.style.boxShadow = held ? '0 0 8px var(--red-glow)' : '0 0 8px var(--green-glow)';
+      if (mutexBadge) mutexBadge.innerHTML = '<div class="mutex-dot"></div>' + (held ? 'MUTEX HELD' : 'MUTEX OPEN');
+      const badgeDot = qs('.repo-lock .mutex-dot');
+      if (badgeDot) {
+        badgeDot.style.background = held ? 'var(--red)' : 'var(--green)';
+        badgeDot.style.boxShadow = held ? '0 0 8px var(--red-glow)' : '0 0 8px var(--green-glow)';
+      }
+      if (freezeLabel) freezeLabel.textContent = held ? 'WRITE LOCK ACTIVE' : 'WRITE LOCK OPEN';
+      if (freezeNote) {
+        freezeNote.textContent = held
+          ? 'Mutex held. All writes are currently gated by the active task scope.'
+          : 'No active lock is held. Writes should only occur after the next task lock is acquired.';
+      }
+      if (toggle) {
+        toggle.style.background = held ? 'var(--red)' : 'rgba(34,197,94,0.25)';
+        toggle.style.borderColor = held ? 'var(--border)' : 'rgba(34,197,94,0.35)';
+      }
+      if (toggleThumb) {
+        toggleThumb.style.left = held ? '24px' : '2px';
+        toggleThumb.style.background = held ? 'var(--red)' : 'var(--green)';
+        toggleThumb.style.boxShadow = held ? '0 0 8px var(--red-glow)' : '0 0 8px var(--green-glow)';
+      }
+      setOperational(qs('[data-control="repo-freeze"]'), !!data.canonical);
+    } catch (error) {
+      console.error('[repo-freeze] render failed', error);
     }
   }
 
-  function renderStrayLog(data) {
+  function bindRepoFreezeControls() {
+    qsa('[data-control="repo-freeze"]').forEach(function(item) {
+      if (item.dataset.repoFreezeBound === 'true') return;
+      item.dataset.repoFreezeBound = 'true';
+      item.addEventListener('click', function(event) {
+        if (event.target.closest('.repo-lock')) {
+          openMutexLockDetails();
+          return;
+        }
+        if (!event.target.closest('[data-freeze-action="toggle"]')) return;
+        fetch('/api/control/repo-freeze', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({action: 'toggle'})
+        })
+          .then(function(response) { return response.json(); })
+          .then(function() {
+            refreshFromServer();
+          })
+          .catch(function(error) {
+            console.error('[repo-freeze] toggle failed', error);
+          });
+      });
+    });
+
+    const repoLock = qs('.repo-lock');
+    if (repoLock && repoLock.dataset.repoLockBound !== 'true') {
+      repoLock.dataset.repoLockBound = 'true';
+      repoLock.addEventListener('click', openMutexLockDetails);
+    }
+  }
+
+  async function renderStrayLog(data) {
     const strayMonBody = qs('.stray-mon-body');
     if (!strayMonBody) return;
-
     const header = strayMonBody.querySelector('.stray-stat-row');
-    const strayEvents = Array.isArray(data.stray_events) ? data.stray_events : [];
-    const logHtml = strayEvents.length
-      ? strayEvents.map(function (eventText, index) {
-          const timestamp = index === 0 ? (formatClock(data.generated_at) + ' LIVE') : ('EVENT ' + String(index + 1).padStart(2, '0'));
-          return ''
-            + '<div class="stray-event-item">'
-            + '<div class="stray-event-time">' + escapeHtml(timestamp) + '</div>'
-            + '<div class="stray-event-desc">' + escapeHtml(eventText) + '</div>'
-            + '</div>';
-        }).join('')
-      : '<div class="stray-event-item"><div class="stray-event-time">LIVE</div><div class="stray-event-desc">No stray write attempts were found in the latest security scan.</div></div>';
+    try {
+      const response = await fetch('/api/stray/events', {cache: 'no-store'});
+      if (!response.ok) throw new Error('stray events request failed');
+      const detail = await response.json();
+      const strayEvents = Array.isArray(detail.events) ? detail.events : [];
+      const logHtml = strayEvents.length
+        ? strayEvents.map(function (event) {
+            return ''
+              + '<div class="stray-event-item">'
+              + '<div class="stray-event-time">' + escapeHtml(event.title || 'LIVE') + '</div>'
+              + '<div class="stray-event-desc">' + escapeHtml(event.text || '') + '</div>'
+              + '</div>';
+          }).join('')
+        : '<div class="stray-event-item"><div class="stray-event-time">LIVE</div><div class="stray-event-desc">No stray write attempts were found in the latest security scan.</div></div>';
 
-    strayMonBody.innerHTML = ''
-      + (header ? header.outerHTML : '')
-      + '<div class="stray-log">' + logHtml + '</div>';
+      strayMonBody.innerHTML = ''
+        + (header ? header.outerHTML : '')
+        + '<div class="stray-log">' + logHtml + '</div>';
+      setOperational(strayMonBody.closest('.card'), !!detail.canonical);
+    } catch (error) {
+      console.error('[stray] render failed', error);
+    }
   }
 
-  function renderTraceCapture(data) {
+  async function renderTraceCapture(data) {
     const traceBody = qs('.trace-body');
     if (!traceBody) return;
-    traceBody.innerHTML = data.trace_entries.map(function (entry) {
-      return ''
-        + '<div class="trace-entry">'
-        + '<span class="trace-time">' + escapeHtml(textOr(entry.timestamp, formatClock(data.generated_at))) + '</span>'
-        + '<span class="trace-event">' + escapeHtml(entry.text) + '</span>'
-        + '<span class="trace-tag ' + traceTagClass(entry.type) + '">' + escapeHtml((entry.type || 'loop').toUpperCase()) + '</span>'
-        + '</div>';
-    }).join('');
+    try {
+      const response = await fetch('/api/traces', {cache: 'no-store'});
+      if (!response.ok) throw new Error('trace capture request failed');
+      const detail = await response.json();
+      const entries = Array.isArray(detail.entries) ? detail.entries : [];
+      traceBody.innerHTML = entries.map(function (entry) {
+        return ''
+          + '<div class="trace-entry">'
+          + '<span class="trace-time">' + escapeHtml(textOr(entry.timestamp, formatClock(data.generated_at))) + '</span>'
+          + '<span class="trace-event">' + escapeHtml(entry.text) + '</span>'
+          + '<span class="trace-tag ' + traceTagClass(entry.type) + '">' + escapeHtml((entry.type || 'loop').toUpperCase()) + '</span>'
+          + '</div>';
+      }).join('');
 
-    const tracePanelBadge = qsa('.bento3 .panel-badge');
-    if (tracePanelBadge[0]) setText(tracePanelBadge[0], '+' + String(data.trace_entries.length) + ' canonical');
+      const tracePanelBadge = qsa('.bento3 .panel-badge');
+      if (tracePanelBadge[0]) setText(tracePanelBadge[0], '+' + String(detail.training_traces || 0) + ' canonical');
+      setOperational(traceBody.closest('.card'), !!detail.canonical);
+    } catch (error) {
+      console.error('[trace] render failed', error);
+    }
   }
 
   function renderMemoryFiles(data) {
@@ -1361,7 +1821,7 @@ LIVE_DASHBOARD_SCRIPT = r"""
     if (!container) return;
     container.innerHTML = data.memory_files.map(function (item) {
       return ''
-        + '<div class="mem-file">'
+        + '<div class="mem-file" data-memory-file="' + escapeHtml(item.name) + '">'
         + '<span class="mem-file-icon">[]</span>'
         + '<span class="mem-file-name">' + escapeHtml(item.name) + '</span>'
         + '<span class="mem-file-size">' + escapeHtml(item.size) + '</span>'
@@ -1555,7 +2015,7 @@ LIVE_DASHBOARD_SCRIPT = r"""
       bootBody.innerHTML = data.bootstrap_steps.map(function (step) {
         const live = step.status === 'complete';
         return ''
-          + '<div class="boot-step">'
+          + '<div class="boot-step" data-boot-step="' + escapeHtml(step.id) + '">'
           + '<span class="boot-step-num">' + escapeHtml(step.id) + '</span>'
           + '<span class="boot-step-name">' + escapeHtml(step.name + (step.has_prompt ? ' / prompt' : '')) + '</span>'
           + '<div class="boot-step-status" style="background:' + (live ? 'var(--green)' : 'var(--red)') + ';box-shadow:0 0 8px ' + (live ? 'var(--green-glow)' : 'var(--red-glow)') + ';"></div>'
@@ -1573,12 +2033,12 @@ LIVE_DASHBOARD_SCRIPT = r"""
     const structure = data.repo_structure || {};
     if (zoneBoxes[0]) {
       zoneBoxes[0].innerHTML = '<div class="zone-title">START/ (BOOTSTRAP)</div>' + (structure.start || []).map(function (item) {
-        return '<div class="zone-item">' + escapeHtml(item.name) + (item.detail ? ' <span style="color:var(--text-ghost)">· ' + escapeHtml(item.detail) + '</span>' : '') + '</div>';
+        return '<div class="zone-item" data-structure-node="start:' + escapeHtml(item.name) + '">' + escapeHtml(item.name) + (item.detail ? ' <span style="color:var(--text-ghost)">· ' + escapeHtml(item.detail) + '</span>' : '') + '</div>';
       }).join('');
     }
     if (zoneBoxes[1]) {
       zoneBoxes[1].innerHTML = '<div class="zone-title">STOP/ (AGENT ZONE)</div>' + (structure.stop || []).map(function (item) {
-        return '<div class="zone-item">' + escapeHtml(item.name) + (item.detail ? ' <span style="color:var(--text-ghost)">· ' + escapeHtml(item.detail) + '</span>' : '') + '</div>';
+        return '<div class="zone-item" data-structure-node="stop:' + escapeHtml(item.name) + '">' + escapeHtml(item.name) + (item.detail ? ' <span style="color:var(--text-ghost)">· ' + escapeHtml(item.detail) + '</span>' : '') + '</div>';
       }).join('');
     }
   }
@@ -1589,7 +2049,7 @@ LIVE_DASHBOARD_SCRIPT = r"""
     phases.innerHTML = data.vector_phases.map(function (phase) {
       const live = phase.status === 'complete';
       return ''
-        + '<div class="vec-phase">'
+        + '<div class="vec-phase" data-vec-phase="' + escapeHtml(phase.name) + '">'
         + '<div class="vec-phase-hdr"><span class="vec-phase-name">' + escapeHtml(phase.name) + '</span><span class="vec-phase-badge">' + escapeHtml(live ? 'LIVE' : 'PENDING') + '</span></div>'
         + '<div class="vec-phase-desc">' + escapeHtml(phase.detail || '') + '</div>'
         + '</div>';
@@ -1601,16 +2061,16 @@ LIVE_DASHBOARD_SCRIPT = r"""
     if (!exportBody) return;
     const verification = data.verification || {};
     const exportItems = [
-      { task: 'T07', key: 'gui_export_jsonl', title: 'EXPORT JSONL' },
-      { task: 'T08', key: 'gui_export_alpaca', title: 'EXPORT ALPACA' },
-      { task: 'T09', key: 'gui_export_sharegpt', title: 'EXPORT SHAREGPT' },
-      { task: 'T10', key: 'gui_export_steering', title: 'EXPORT STEERING ONLY' }
+      { task: 'T17', key: 'gui_export_jsonl', title: 'EXPORT JSONL', format: 'jsonl' },
+      { task: 'T18', key: 'gui_export_alpaca', title: 'EXPORT ALPACA', format: 'alpaca' },
+      { task: 'T19', key: 'gui_export_sharegpt', title: 'EXPORT SHAREGPT', format: 'sharegpt' },
+      { task: 'T20', key: 'gui_export_steering', title: 'EXPORT STEERING ONLY', format: 'steering' }
     ];
     exportBody.innerHTML = exportItems.map(function (item) {
       const live = !!(verification[item.key] && verification[item.key].live);
       const detail = live ? 'Repo-backed export endpoint is live.' : 'Pending repo-backed export endpoint.';
       return ''
-        + '<button class="export-btn" type="button">'
+        + '<button class="export-btn" type="button" data-export-format="' + escapeHtml(item.format) + '">'
         + '<span class="export-btn-icon">' + escapeHtml(item.task) + '</span>'
         + '<div>'
         + '<div>' + escapeHtml(item.title) + '</div>'
@@ -1639,6 +2099,55 @@ LIVE_DASHBOARD_SCRIPT = r"""
         + '</div>';
     }).join('');
     body.innerHTML = '<div style="font-size:8px;letter-spacing:2px;color:var(--text-ghost);margin-bottom:8px;">CURRENT READINESS</div><div style="display:flex;flex-direction:column;gap:6px;">' + rows + '</div>';
+  }
+
+  async function renderModelStatusDetails() {
+    const root = qs('[data-model-status-root]');
+    if (!root) return;
+    try {
+      const response = await fetch('/api/model/status', {cache: 'no-store'});
+      if (!response.ok) throw new Error('model status request failed');
+      const detail = await response.json();
+      let detailBlock = root.querySelector('[data-model-status-detail]');
+      if (!detailBlock) {
+        detailBlock = document.createElement('div');
+        detailBlock.setAttribute('data-model-status-detail', 'true');
+        detailBlock.style.display = 'grid';
+        detailBlock.style.gridTemplateColumns = 'repeat(auto-fit,minmax(160px,1fr))';
+        detailBlock.style.gap = '8px';
+        detailBlock.style.marginTop = '12px';
+        root.appendChild(detailBlock);
+      }
+      detailBlock.innerHTML = ''
+        + '<div class="training-run-item"><span>READINESS ROWS</span><strong>' + escapeHtml(String((detail.readiness || []).length)) + '</strong></div>'
+        + '<div class="training-run-item"><span>FINE-TUNE PATH</span><strong>' + escapeHtml(detail.scale_analysis && detail.scale_analysis.fine_tune_path_ready ? 'READY' : 'BLOCKED') + '</strong></div>'
+        + '<div class="training-run-item"><span>TRAIN FROM SCRATCH</span><strong>' + escapeHtml(detail.scale_analysis && detail.scale_analysis.can_train_from_scratch ? 'SUPPORTED' : 'NO') + '</strong></div>';
+      setOperational(root.closest('.card'), !!detail.canonical);
+    } catch (error) {
+      console.error('[model-status] render failed', error);
+    }
+  }
+
+  async function renderSteeringDetails() {
+    const body = qs('.steering-body');
+    if (!body) return;
+    try {
+      const response = await fetch('/api/steering/events', {cache: 'no-store'});
+      if (!response.ok) throw new Error('steering events request failed');
+      const detail = await response.json();
+      const items = Array.isArray(detail.events) ? detail.events : [];
+      body.innerHTML = items.length ? items.map(function(item, index) {
+        return ''
+          + '<div class="steering-entry">'
+          + '<div class="steering-tags"><span class="stag stag-arch">LIVE</span><span class="stag stag-resolved">STATE</span><span class="stag">EVENT ' + escapeHtml(String(index + 1).padStart(2, '0')) + '</span></div>'
+          + '<div class="steering-text">' + escapeHtml(item.text || '') + '</div>'
+          + '<div class="steering-note">Trace: NEXTAURA // ORCHESTRATOR · ' + escapeHtml(formatClock(detail.generated_at)) + '</div>'
+          + '</div>';
+      }).join('') : '<div class="steering-entry"><div class="steering-text">No high-priority steering trace has been captured yet.</div></div>';
+      setOperational(body.closest('.card'), !!detail.canonical);
+    } catch (error) {
+      console.error('[steering] render failed', error);
+    }
   }
 
   function renderStatusbar(data) {
@@ -1697,14 +2206,21 @@ LIVE_DASHBOARD_SCRIPT = r"""
     ensureOperationalStyles();
     bindNavPanels();
     bindSpawnControls();
+    bindRepoFreezeControls();
+    bindRepoDetailModal();
     renderTopBar(data);
     renderStatRow(data);
     renderDagList(data);
     bindDagTaskDetails();
+    bindBootstrapStepDetails();
+    bindRepoStructureDetails();
+    bindVectorPhaseDetails();
+    bindMemoryFileDetails();
+    bindExportButtons();
     renderModelPanel(data);
     renderAuditPanels(data);
     renderSpawnPanel(data);
-    renderRepoFreeze(data);
+    renderRepoFreeze();
     renderPolicyAndStray(data);
     renderStrayLog(data);
     renderTraceCapture(data);
@@ -1712,12 +2228,19 @@ LIVE_DASHBOARD_SCRIPT = r"""
     renderRepoStructurePanel(data);
     renderVectorMemoryPanel(data);
     renderMemoryFiles(data);
+    renderSteeringDetails();
     renderTrainingRunDetails();
     renderDatasetDetails();
     renderEtaTracker(data);
     renderExportPanel(data);
     renderReadinessTracker(data);
     renderScaleAnalysis(data);
+    renderModelStatusDetails();
+    bindBootstrapStepDetails();
+    bindRepoStructureDetails();
+    bindVectorPhaseDetails();
+    bindMemoryFileDetails();
+    bindExportButtons();
     renderStatusbar(data);
     renderTaskSurfaceMap();
     const activeNav = qs('#sidebar .nav-item.active[data-nav]');
@@ -1900,6 +2423,103 @@ def api_training_run():
 def api_dataset_details():
     """Return canonical repo-backed dataset details for the dataset dashboard panel."""
     return jsonify(build_dataset_payload())
+
+
+@app.route("/api/audit/events")
+def api_audit_events():
+    return jsonify(build_audit_events_payload())
+
+
+@app.route("/api/stray/events")
+def api_stray_events():
+    return jsonify(build_stray_events_payload())
+
+
+@app.route("/api/traces")
+def api_traces():
+    return jsonify(build_trace_capture_payload())
+
+
+@app.route("/api/steering/events")
+def api_steering_events():
+    return jsonify(build_steering_events_payload())
+
+
+@app.route("/api/repo-freeze/state")
+def api_repo_freeze_state():
+    return jsonify(build_repo_freeze_payload())
+
+
+@app.route("/api/control/repo-freeze", methods=["POST"])
+def api_control_repo_freeze():
+    payload = request.get_json(silent=True) or {}
+    action = payload.get("action") or "toggle"
+    lock_path = LOCKS_DIR / "global_write.lock"
+    held = lock_path.exists()
+
+    if action == "hold" or (action == "toggle" and not held):
+        lock_path.parent.mkdir(parents=True, exist_ok=True)
+        lock_path.write_text(
+            json.dumps(
+                {
+                    "owner": "dashboard",
+                    "timestamp": datetime.utcnow().isoformat() + "Z",
+                    "reason": "manual repo freeze toggle",
+                },
+                indent=2,
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+    elif lock_path.exists():
+        lock_path.unlink()
+
+    return jsonify(build_repo_freeze_payload())
+
+
+@app.route("/api/bootstrap/steps/<step_id>")
+def api_bootstrap_step(step_id):
+    return jsonify(build_bootstrap_step_payload(step_id))
+
+
+@app.route("/api/repo-structure/<path:node_key>")
+def api_repo_structure_detail(node_key):
+    return jsonify(build_repo_structure_payload(node_key))
+
+
+@app.route("/api/vector-phases/<path:phase_name>")
+def api_vector_phase_detail(phase_name):
+    return jsonify(build_vector_phase_payload(phase_name))
+
+
+@app.route("/api/memory-files/<path:file_name>")
+def api_memory_file_detail(file_name):
+    return jsonify(build_memory_file_payload(file_name))
+
+
+@app.route("/api/export/jsonl")
+def api_export_jsonl():
+    return jsonify(build_export_payload("jsonl"))
+
+
+@app.route("/api/export/alpaca")
+def api_export_alpaca():
+    return jsonify(build_export_payload("alpaca"))
+
+
+@app.route("/api/export/sharegpt")
+def api_export_sharegpt():
+    return jsonify(build_export_payload("sharegpt"))
+
+
+@app.route("/api/export/steering")
+def api_export_steering():
+    return jsonify(build_export_payload("steering"))
+
+
+@app.route("/api/model/status")
+def api_model_status():
+    return jsonify(build_model_status_payload())
 
 
 def render_live_design_html():

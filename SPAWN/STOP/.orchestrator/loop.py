@@ -246,52 +246,6 @@ class OrchestratorLoop:
         self._save_json(self.state_dir / 'tasks.json', tasks)
         return tasks
 
-    def _write_task_md(self, task: dict) -> bool:
-        task_md_path = self.root / 'SPAWN' / 'STOP' / 'TASK.md'
-        allowed_paths = task.get('allowed_paths', [])
-        allowed_lines = '\n'.join(f'  - {path}' for path in allowed_paths) if allowed_paths else '  - SPAWN/STOP/state/'
-        label = task.get('label') or task.get('dag_node_id') or task.get('task_id') or 'task'
-        description = task.get('description', '')
-        content = (
-            f"---\n"
-            f"task_id: {task.get('id')}\n"
-            f"dag_node_id: {task.get('dag_node_id')}\n"
-            f"allowed_paths:\n{allowed_lines}\n"
-            f"priority: {task.get('priority', 1)}\n"
-            f"---\n\n"
-            f"# Task: {label}\n\n"
-            f"## Description\n"
-            f"{description}\n\n"
-            f"## Allowed Paths\n"
-            f"You may ONLY write to: {', '.join(f'`{path}`' for path in allowed_paths) if allowed_paths else '`SPAWN/STOP/state/`'}\n\n"
-            f"## Status: PENDING\n"
-        )
-        try:
-            task_md_path.write_text(content, encoding='utf-8')
-            return True
-        except IOError as e:
-            logger.error(f"Failed to write TASK.md: {e}")
-            return False
-
-    def _find_next_runnable_task(self) -> dict | None:
-        tasks = self._sync_tasks_file_from_graph()
-        completed_nodes = {
-            task.get('dag_node_id')
-            for task in tasks
-            if task.get('status') == 'completed'
-        }
-        active_tasks = [task for task in tasks if task.get('status') == 'active']
-        if active_tasks:
-            return active_tasks[0]
-
-        for task in tasks:
-            if task.get('status') != 'pending':
-                continue
-            dependencies = task.get('dependencies', [])
-            if all(dep in completed_nodes for dep in dependencies):
-                return task
-        return None
-
     def _save_config(self) -> bool:
         return self._save_json(self.config_path, self.config)
 
@@ -474,18 +428,6 @@ class OrchestratorLoop:
         logger.info(f"  Scheduled duplicate-parse maintenance task at {current_tokens} tokens")
         return True
 
-    def _promote_next_task(self) -> bool:
-        next_task = self._find_next_runnable_task()
-        if not next_task:
-            logger.info("  No next runnable DAG task was found.")
-            return False
-
-        self._update_task_status(next_task.get('id'), 'active')
-        if self._write_task_md(next_task):
-            logger.info(f"  Promoted next task: {next_task.get('task_id')} -> {next_task.get('label')}")
-            return True
-        return False
-
     # === 10-STEP AUTONOMOUS LOOP ===
 
     def check_and_process_task_md(self) -> str | None:
@@ -600,10 +542,10 @@ class OrchestratorLoop:
                         self._update_dag_node_status(dag_node_id, 'green')
                         logger.info(f"  SECURITY: Task completed successfully")
 
-                        # Delete TASK.md only when the repo truth says the task is satisfied.
+                        # Delete TASK.md, then let canonical sync decide whether a next task exists.
                         task_md_path.unlink()
                         logger.info(f"  Task completed, TASK.md deleted")
-                        self._promote_next_task()
+                        sync_dashboard_state(self.root / 'SPAWN' / 'STOP')
                     else:
                         self._update_task_status(task_id, 'in_progress')
                         self._update_dag_node_status(dag_node_id, 'yellow')

@@ -343,6 +343,9 @@ class SecurityManager:
     def acquire_global_write_lock(self, task_id: str, timeout_seconds: int = 300) -> WriteLock:
         """
         Acquire global write lock for a task.
+        
+        Any agent working on the current TASK.md task can acquire/release the lock.
+        This allows multiple LLMs/agents to collaborate on the same task.
 
         Args:
             task_id: Task requesting the lock
@@ -354,14 +357,35 @@ class SecurityManager:
         lock_id = f"global_{task_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
         expires_at = (datetime.now() + timedelta(seconds=timeout_seconds)).isoformat()
 
-        # Try to acquire lock using file metadata so it works on both Windows and Linux.
         try:
             if self.global_lock_file.exists():
                 with open(self.global_lock_file, 'r', encoding='utf-8') as handle:
                     existing = json.load(handle)
                 expires = existing.get('expires_at')
-                if expires and datetime.fromisoformat(expires) >= datetime.now():
-                    self._audit("Global write lock denied", task_id, {'reason': 'lock held by another task'})
+                
+                # Lock is expired - any agent can take over
+                if expires and datetime.fromisoformat(expires) < datetime.now():
+                    logger.info(f"Lock expired, allowing takeover for task {task_id}")
+                
+                # Lock is held by SAME task - allow (agent continuation)
+                elif existing.get('task_id') == task_id:
+                    logger.info(f"Lock already held by same task {task_id}, allowing continuation")
+                    # Refresh the lock expiry
+                    lock_data = WriteLock(
+                        lock_id=existing.get('lock_id', lock_id),
+                        task_id=task_id,
+                        repo=None,
+                        acquired_at=existing.get('acquired_at', datetime.now().isoformat()),
+                        expires_at=expires_at,
+                        status=LockStatus.ACQUIRED.value
+                    )
+                    with open(self.global_lock_file, 'w', encoding='utf-8') as handle:
+                        json.dump(asdict(lock_data), handle)
+                    return lock_data
+                
+                # Lock held by different task - deny
+                else:
+                    self._audit("Global write lock denied", task_id, {'reason': 'lock held by another task', 'holder': existing.get('task_id')})
                     return WriteLock(
                         lock_id=lock_id,
                         task_id=task_id,
@@ -371,6 +395,7 @@ class SecurityManager:
                         status=LockStatus.DENIED.value
                     )
 
+            # No lock exists - acquire it
             lock_data = WriteLock(
                 lock_id=lock_id,
                 task_id=task_id,
@@ -390,8 +415,8 @@ class SecurityManager:
 
             return lock_data
 
-        except (IOError, json.JSONDecodeError, OSError):
-            self._audit("Global write lock denied", task_id, {'reason': 'lock held by another task'})
+        except (IOError, json.JSONDecodeError, OSError) as e:
+            self._audit("Global write lock denied", task_id, {'reason': 'lock held by another task', 'error': str(e)})
             return WriteLock(
                 lock_id=lock_id,
                 task_id=task_id,

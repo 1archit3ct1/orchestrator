@@ -967,13 +967,32 @@ LIVE_DASHBOARD_SCRIPT = r"""
   }
 
   function renderSpawnPanel(data) {
-    const values = qsa('.spawn-body .spawn-val');
+    const spawnLoop = data.spawn_loop || { state: 'stopped', active_spawns: 0 };
     const activeTask = data.active_task || {};
-    if (values[0]) setText(values[0], String(data.summary.dag_active || 0));
-    if (values[1]) setText(values[1], data.summary.dag_active ? 'RUNNING' : 'IDLE');
-    if (values[2]) setText(values[2], (activeTask.task_id || '--') + ' -> ' + (activeTask.label || 'waiting'));
-    if (values[3]) setText(values[3], activeTask.progress === null || activeTask.progress === undefined ? '--' : String(activeTask.progress) + '%');
-    setText(qs('.spawn-label-text'), data.summary.dag_active ? 'SPAWN ACTIVE' : 'SPAWN IDLE');
+    
+    // Update spawn loop state display
+    const stateBadge = qs('#spawn-loop-badge');
+    const activeCount = qs('#spawn-active-count');
+    const loopState = qs('#spawn-loop-state');
+    const pulseIndicator = qs('#spawn-pulse-indicator');
+    const labelText = qs('#spawn-label-text');
+    const currentTask = qs('#spawn-current-task');
+    const progress = qs('#spawn-progress');
+    
+    if (stateBadge) {
+      stateBadge.textContent = spawnLoop.state.toUpperCase();
+      stateBadge.style.color = spawnLoop.state === 'running' ? 'var(--green)' : (spawnLoop.state === 'paused' ? 'var(--amber)' : 'var(--text-dim)');
+      stateBadge.style.borderColor = spawnLoop.state === 'running' ? 'var(--green)' : (spawnLoop.state === 'paused' ? 'var(--amber)' : 'var(--border)');
+    }
+    if (activeCount) setText(activeCount, String(spawnLoop.active_spawns || 0));
+    if (loopState) setText(loopState, spawnLoop.state.toUpperCase());
+    if (pulseIndicator) {
+      pulseIndicator.style.display = spawnLoop.state === 'running' ? 'block' : 'none';
+    }
+    if (labelText) setText(labelText, spawnLoop.state === 'running' ? 'SPAWN ACTIVE' : 'SPAWN IDLE');
+    if (currentTask) setText(currentTask, (activeTask.task_id || '--') + ' -> ' + (activeTask.label || 'waiting'));
+    if (progress) setText(progress, activeTask.progress === null || activeTask.progress === undefined ? '--' : String(activeTask.progress) + '%');
+    
     setOperational(qs('.spawn-body') ? qs('.spawn-body').closest('.card') : null, !!data.canonical);
   }
 
@@ -1198,9 +1217,43 @@ LIVE_DASHBOARD_SCRIPT = r"""
     if (segments[3]) segments[3].textContent = 'WARN ' + (data.summary.stray_count || 0) + ' STRAY EVENT';
   }
 
+  function bindSpawnControls() {
+    const startBtn = qs('#spawn-start-btn');
+    const pauseBtn = qs('#spawn-pause-btn');
+    
+    if (startBtn) {
+      startBtn.addEventListener('click', function() {
+        fetch('/api/spawn/start', { method: 'POST' })
+          .then(function(response) { return response.json(); })
+          .then(function(data) {
+            console.log('[spawn] start:', data);
+            refreshFromServer();
+          })
+          .catch(function(error) {
+            console.error('[spawn] start failed', error);
+          });
+      });
+    }
+    
+    if (pauseBtn) {
+      pauseBtn.addEventListener('click', function() {
+        fetch('/api/spawn/pause', { method: 'POST' })
+          .then(function(response) { return response.json(); })
+          .then(function(data) {
+            console.log('[spawn] pause:', data);
+            refreshFromServer();
+          })
+          .catch(function(error) {
+            console.error('[spawn] pause failed', error);
+          });
+      });
+    }
+  }
+
   function applyState(data) {
     ensureOperationalStyles();
     bindNavPanels();
+    bindSpawnControls();
     renderTopBar(data);
     renderStatRow(data);
     renderDagList(data);
@@ -1304,6 +1357,36 @@ def api_task_details(task_id):
             result["dependencies"].append(edge.get("from"))
 
     return jsonify(result)
+
+
+@app.route("/api/spawn/start", methods=["POST"])
+def api_spawn_start():
+    """Start the autonomous spawn loop."""
+    config = load_json(CONFIG_PATH, {})
+    config["spawn_loop"] = {"state": "running", "started_at": datetime.utcnow().isoformat() + "Z"}
+    CONFIG_PATH.parent.mkdir(parents=True, exist_ok=True)
+    CONFIG_PATH.write_text(json.dumps(config, indent=2) + "\n", encoding="utf-8")
+    logger.info("Spawn loop started via API")
+    return jsonify({"status": "started", "state": "running", "timestamp": config["spawn_loop"]["started_at"]})
+
+
+@app.route("/api/spawn/pause", methods=["POST"])
+def api_spawn_pause():
+    """Pause the autonomous spawn loop."""
+    config = load_json(CONFIG_PATH, {})
+    config["spawn_loop"] = {"state": "paused", "paused_at": datetime.utcnow().isoformat() + "Z"}
+    CONFIG_PATH.parent.mkdir(parents=True, exist_ok=True)
+    CONFIG_PATH.write_text(json.dumps(config, indent=2) + "\n", encoding="utf-8")
+    logger.info("Spawn loop paused via API")
+    return jsonify({"status": "paused", "state": "paused", "timestamp": config["spawn_loop"]["paused_at"]})
+
+
+@app.route("/api/spawn/status")
+def api_spawn_status():
+    """Return current spawn loop state."""
+    config = load_json(CONFIG_PATH, {})
+    spawn_loop = config.get("spawn_loop", {"state": "stopped"})
+    return jsonify(spawn_loop)
 
 
 def render_live_design_html():

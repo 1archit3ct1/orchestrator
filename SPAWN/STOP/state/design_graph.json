@@ -47,10 +47,10 @@
       "dependencies": [
         "gui_nav_panels"
       ],
-      "status": "yellow",
+      "status": "red",
       "task_name": "gui-spawn-loop",
       "task_id": "T03",
-      "display_status": "active",
+      "display_status": "pending",
       "verified_live": false,
       "verification_reason": "spawn loop controls are not wired to a control endpoint",
       "progress": null
@@ -66,10 +66,10 @@
       "dependencies": [
         "gui_nav_panels"
       ],
-      "status": "red",
+      "status": "yellow",
       "task_name": "gui-training-run",
       "task_id": "T04",
-      "display_status": "pending",
+      "display_status": "active",
       "verified_live": false,
       "verification_reason": "training run panel is not wired to detailed repo-backed training state",
       "progress": null

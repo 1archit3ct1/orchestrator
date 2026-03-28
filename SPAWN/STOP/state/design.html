@@ -768,6 +768,57 @@ body::after {
   letter-spacing: 2px;
 }
 
+/* ── SPAWN CONTROL BUTTONS ───────────────────────────────── */
+.spawn-controls {
+  display: flex;
+  gap: 8px;
+}
+
+.spawn-control-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border-radius: 5px;
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,0.02);
+  color: var(--text);
+  font-size: 9px;
+  font-family: var(--mono);
+  font-weight: 700;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-transform: uppercase;
+}
+
+.spawn-control-btn:hover {
+  background: rgba(255,255,255,0.04);
+  border-color: var(--red);
+}
+
+.spawn-control-btn:active {
+  transform: scale(0.98);
+}
+
+.spawn-start-btn:hover {
+  background: rgba(34,197,94,0.1);
+  border-color: var(--green);
+  color: var(--green);
+}
+
+.spawn-pause-btn:hover {
+  background: rgba(255,107,32,0.1);
+  border-color: var(--amber);
+  color: var(--amber);
+}
+
+.spawn-control-btn span {
+  font-size: 11px;
+}
+
 /* ── SECOND BENTO ROW ─────────────────────────────────────── */
 .bento2 {
   display: grid;
@@ -1686,27 +1737,36 @@ body::after {
           <div class="panel-hdr">
             <span class="panel-icon">⟳</span>
             <span class="panel-title">SPAWN LOOP</span>
+            <span class="panel-badge" id="spawn-loop-badge">STOPPED</span>
           </div>
           <div class="spawn-body">
             <div class="spawn-row">
               <span>ACTIVE SPAWNS</span>
-              <span class="spawn-val">1</span>
+              <span class="spawn-val" id="spawn-active-count">0</span>
             </div>
             <div class="spawn-row">
               <span>LOOP STATE</span>
-              <span class="spawn-val">RUNNING</span>
+              <span class="spawn-val" id="spawn-loop-state">STOPPED</span>
             </div>
             <div class="spawn-vis">
-              <div class="spawn-pulse"></div>
-              <span class="spawn-label-text">SPAWN ACTIVE</span>
+              <div class="spawn-pulse" id="spawn-pulse-indicator"></div>
+              <span class="spawn-label-text" id="spawn-label-text">SPAWN IDLE</span>
             </div>
             <div class="spawn-row">
               <span>TASK</span>
-              <span class="spawn-val">T03 → dag-monitor</span>
+              <span class="spawn-val" id="spawn-current-task">--</span>
             </div>
             <div class="spawn-row">
               <span>PROGRESS</span>
-              <span class="spawn-val">61%</span>
+              <span class="spawn-val" id="spawn-progress">--</span>
+            </div>
+            <div class="spawn-controls" style="display:flex;gap:8px;margin-top:10px;">
+              <button class="spawn-control-btn spawn-start-btn" id="spawn-start-btn" title="Start spawn loop">
+                <span>▶</span> START
+              </button>
+              <button class="spawn-control-btn spawn-pause-btn" id="spawn-pause-btn" title="Pause spawn loop">
+                <span>⏸</span> PAUSE
+              </button>
             </div>
           </div>
         </div>

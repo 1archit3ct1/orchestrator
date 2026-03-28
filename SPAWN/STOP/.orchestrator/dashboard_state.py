@@ -958,6 +958,12 @@ def sync_dashboard_state(runtime_dir: Path):
             "lock_path": str(locks_dir),
             "allowed_paths": task_md.get("allowed_paths", []) if task_md else [],
         },
+        "spawn_loop": {
+            "state": config.get("spawn_loop", {}).get("state", "stopped"),
+            "started_at": config.get("spawn_loop", {}).get("started_at"),
+            "paused_at": config.get("spawn_loop", {}).get("paused_at"),
+            "active_spawns": 1 if config.get("spawn_loop", {}).get("state") == "running" else 0,
+        },
         "readiness": build_readiness_state(model_integrated, graph, task_md, state_warnings, verification),
         "task_queue": load_json(task_queue_path, []),
     }

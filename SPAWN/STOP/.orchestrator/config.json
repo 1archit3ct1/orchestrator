@@ -17,5 +17,9 @@
       "last_requested_tokens": 4300,
       "last_completed_tokens": 0
     }
+  },
+  "spawn_loop": {
+    "state": "paused",
+    "paused_at": "2026-03-28T06:44:43.893817Z"
   }
 }

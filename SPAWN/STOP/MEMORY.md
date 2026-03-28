@@ -129,6 +129,33 @@
 - This demonstrates the repo contract: GUI functions must leave verifiable data artifacts (API endpoints, HTML structures, state updates) rather than just status changes.
 - The drilldown pattern established here should be replicated for other GUI sections (bootstrap steps, repo structure, vector phases, memory files, etc.).
 
+## T03 Completion - Spawn Loop Control Plane Live
+- Timestamp: 2026-03-28 06:45:00
+- Session Focus: Wire spawn loop controls (start/pause) to real Flask control endpoints with live state rendering.
+
+### Deliverables Completed
+- Added Flask API endpoints: `POST /api/spawn/start`, `POST /api/spawn/pause`, `GET /api/spawn/status`
+- Spawn loop state persisted in `config.json` under `spawn_loop` key with state, started_at, paused_at fields
+- Added spawn loop state to dashboard payload in `dashboard_state.py` with state, active_spawns, timestamps
+- Added control buttons (START/PAUSE) to spawn loop panel HTML with IDs for JavaScript binding
+- Added CSS styling for spawn control buttons with hover states (green for start, amber for pause)
+- Wired control buttons with JavaScript to call Flask endpoints and refresh dashboard state
+- Updated renderSpawnPanel to display spawn_loop.state, active_spawns, current task, and progress
+- Updated design_graph.json marking gui_spawn_loop_controls as green/completed
+- Updated tasks.json marking task_003 as completed, task_004 as in_progress
+- Advanced TASK.md to task_004 (gui-training-run-details)
+
+### Verification Outcome
+- Spawn loop panel now shows live state (STOPPED/RUNNING/PAUSED) from canonical config.json
+- START button sets state to "running", shows green badge, animates pulse indicator
+- PAUSE button sets state to "paused", shows amber badge, hides pulse indicator
+- Dashboard refreshes state after control actions via refreshFromServer()
+- The verification reason changed from "spawn loop controls are not wired" to "spawn loop controls wired to Flask control endpoints with live state rendering"
+
+### Training Value
+- This demonstrates the control work contract: GUI controls must mutate real repo state through Flask endpoints, not just visual toggles.
+- The pattern established (endpoint + state persistence + front-end binding + live rendering) should be replicated for other control surfaces (repo freeze, export triggers, etc.).
+
 
 ## Session Memory - Left Rail Coverage And 24B Size Clarification
 - Timestamp: 2026-03-27 22:01:30

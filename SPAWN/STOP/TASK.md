@@ -1,16 +1,16 @@
 ---
-task_id: task_003
-dag_node_id: gui_spawn_loop_controls
+task_id: task_004
+dag_node_id: gui_training_run_details
 allowed_paths:
   - SPAWN/STOP/state/design.html
   - SPAWN/STOP/web/app.py
-priority: 3
+priority: 4
 ---
 
-# Task: gui-spawn-loop
+# Task: gui-training-run
 
 ## Description
-Wire the spawn loop controls to a real Flask control plane so start, pause, and related actions work from the GUI.
+Make the Training Run section open live training-run details, status, and artifacts from canonical repo state.
 
 ## Allowed Paths
 You may ONLY write to: `SPAWN/STOP/state/design.html`, `SPAWN/STOP/web/app.py`

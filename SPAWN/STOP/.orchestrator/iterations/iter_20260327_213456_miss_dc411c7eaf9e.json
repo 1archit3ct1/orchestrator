@@ -1,0 +1,12 @@
+{
+  "id": "iter_miss_dc411c7eaf9e",
+  "timestamp": "2026-03-27T21:34:56.290155",
+  "type": "miss_capture",
+  "status": "success",
+  "summary": "Active task gui_dag_task_details did not satisfy repo verification yet.",
+  "details": {
+    "task_id": "task_002",
+    "dag_node_id": "gui_dag_task_details",
+    "reason": "task DAG rows are still visual-only and do not open task details"
+  }
+}

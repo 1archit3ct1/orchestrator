@@ -28,6 +28,7 @@ Initialize `SPAWN/STOP/` so the autonomous orchestration loop can run truthfully
 - Unknown state should remain null, pending, empty, or absent.
 - Every task MUST deliver repo-visible data artifacts, not just status changes or plans.
 - A task is incomplete until its expected files, folders, or records exist on disk and can be verified from repo state.
+- Misses are useful training data: whenever the loop, verifier, audit log, or chat reveals a miss, blocked action, wrong assumption, or failed attempt, capture it as memory instead of discarding it.
 
 ## Mandatory Data Delivery Contract
 
@@ -38,6 +39,7 @@ For every task, produce concrete GUI-visible deliverables that the repo can read
 - export work must leave real Flask endpoints plus matching front-end bindings
 - control work must leave real Flask control endpoints plus matching front-end bindings
 - readiness work must render from canonical repo state rather than static placeholder text
+- miss analysis work must leave repo-visible memory artifacts in `MEMORY.md`, `.orchestrator/vector_store/`, `.orchestrator/data/`, `.orchestrator/iterations/`, and `retrieval_log.jsonl`
 
 If a task does not leave behind verifiable repo data, do not advance the DAG.
 
@@ -50,10 +52,11 @@ If a task does not leave behind verifiable repo data, do not advance the DAG.
 4. Dispatch tasks to child repos via their allowed_paths (task-scoped coordination)
 5. Collect logs/outputs from child repos into SPAWN/STOP/.orchestrator/logs/
 6. Train/update models if training data available
-7. Append orchestration result to vector store
-8. Update task_queue.json with next batch of task priorities
-9. If orchestration complete, finalize state
-10. Repeat until all coordinated tasks complete
+7. Check for misses: verifier failures, lock denials, stray writes, wrong assumptions, and user-corrected mistakes
+8. Dump useful misses into MEMORY.md, vector store, data pipeline, iteration artifacts, and retrieval log
+9. Update task_queue.json with next batch of task priorities
+10. If orchestration complete, finalize state
+11. Repeat until all coordinated tasks complete
 ```
 
 ## Current Expected DAG
@@ -104,4 +107,3 @@ Do not complete a task unless it delivers the following:
 ## Operator Use
 
 After reading this prompt, work inside `SPAWN/STOP/`.
-Do not treat `SPAWN/START/` as an executable shell bootstrap anymore.

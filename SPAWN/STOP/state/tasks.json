@@ -27,7 +27,7 @@
     "dependencies": [
       "gui_nav_panels"
     ],
-    "status": "active",
+    "status": "in_progress",
     "priority": 2,
     "progress": null
   },

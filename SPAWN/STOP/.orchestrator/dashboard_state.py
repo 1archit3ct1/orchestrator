@@ -9,6 +9,7 @@ This module consolidates repo state into an in-memory dashboard payload.
 from __future__ import annotations
 
 import json
+import math
 import re
 from datetime import datetime
 from pathlib import Path
@@ -87,6 +88,16 @@ def count_lines(path: Path):
             return sum(1 for _ in handle)
     except OSError:
         return 0
+
+
+def estimate_text_tokens(path: Path):
+    text = read_text(path, default="")
+    if not text:
+        return 0
+    words = re.findall(r"\S+", text)
+    if words:
+        return max(1, math.ceil(len(words) * 1.3))
+    return max(1, math.ceil(len(text) / 4))
 
 
 def normalize_tasks(graph, tasks):
@@ -487,33 +498,34 @@ def build_memory_files(runtime_dir: Path, task_md: Path, memory_md: Path, vector
 
 
 def build_memory_progress(memory_path: Path, retrieval_log: Path, vector_dir: Path, data_dir: Path, iterations_dir: Path, config: dict):
-    target_units = int(config.get("training_config", {}).get("memory_goal_units", 100) or 100)
+    target_model_params = int(config.get("training_config", {}).get("target_model_params", 24_000_000_000) or 24_000_000_000)
+    target_tokens = int(config.get("training_config", {}).get("target_data_tokens", target_model_params * 20) or (target_model_params * 20))
     events = []
 
     if memory_path.exists():
-        events.append({"ts": memory_path.stat().st_mtime, "type": "memory"})
+        events.append({"ts": memory_path.stat().st_mtime, "type": "memory", "tokens": estimate_text_tokens(memory_path)})
     if retrieval_log.exists():
-        events.append({"ts": retrieval_log.stat().st_mtime, "type": "retrieval"})
+        events.append({"ts": retrieval_log.stat().st_mtime, "type": "retrieval", "tokens": estimate_text_tokens(retrieval_log)})
     if vector_dir.exists():
         for path in vector_dir.glob("*.json"):
-            events.append({"ts": path.stat().st_mtime, "type": "vector"})
+            events.append({"ts": path.stat().st_mtime, "type": "vector", "tokens": estimate_text_tokens(path)})
     if data_dir.exists():
         for path in data_dir.glob("*"):
             if path.is_file():
-                events.append({"ts": path.stat().st_mtime, "type": "data"})
+                events.append({"ts": path.stat().st_mtime, "type": "data", "tokens": estimate_text_tokens(path)})
     if iterations_dir.exists():
         for path in iterations_dir.glob("iter_*.json"):
-            events.append({"ts": path.stat().st_mtime, "type": "iteration"})
+            events.append({"ts": path.stat().st_mtime, "type": "iteration", "tokens": estimate_text_tokens(path)})
         decisions_dir = iterations_dir / "decisions"
         if decisions_dir.exists():
             for path in decisions_dir.glob("dec_*.json"):
-                events.append({"ts": path.stat().st_mtime, "type": "decision"})
+                events.append({"ts": path.stat().st_mtime, "type": "decision", "tokens": estimate_text_tokens(path)})
 
     events.sort(key=lambda item: item["ts"])
     points = []
     running_total = 0
     for event in events:
-        running_total += 1
+        running_total += int(event.get("tokens", 0))
         points.append(
             {
                 "timestamp": datetime.fromtimestamp(event["ts"]).isoformat(),
@@ -522,14 +534,22 @@ def build_memory_progress(memory_path: Path, retrieval_log: Path, vector_dir: Pa
             }
         )
 
-    collected_units = running_total
+    collected_tokens = running_total
     retrieval_lines = count_lines(retrieval_log)
-    percent = min(100.0, round((collected_units / target_units) * 100, 1)) if target_units else 0.0
+    percent = min(100.0, (collected_tokens / target_tokens) * 100) if target_tokens else 0.0
+    if percent >= 1:
+        percent_display = f"{percent:.1f}"
+    elif percent >= 0.01:
+        percent_display = f"{percent:.2f}"
+    else:
+        percent_display = f"{percent:.4f}"
 
     return {
         "percent": percent,
-        "collected_units": collected_units,
-        "target_units": target_units,
+        "percent_display": percent_display,
+        "collected_tokens": collected_tokens,
+        "target_tokens": target_tokens,
+        "target_model_params": target_model_params,
         "retrieval_lines": retrieval_lines,
         "points": points[-24:],
     }
@@ -687,8 +707,8 @@ def sync_dashboard_state(runtime_dir: Path):
             "stray_count": len(security_events),
         },
         "model": {
-            "name": f"{memory_progress['percent']:.1f}% MODEL DATA COLLECTED",
-            "sub": "LIVE MEMORY INJECTION TOWARD 24B CODING GOAL",
+            "name": f"{memory_progress['percent_display']}% OF 24B GOAL DATA COLLECTED",
+            "sub": "LIVE MEMORY INJECTION TOWARD 24B CODING MODEL TARGET",
             "eta_days": None,
             "collection_progress": memory_progress["percent"],
             "success_traces": success_traces,
@@ -696,8 +716,10 @@ def sync_dashboard_state(runtime_dir: Path):
             "error_traces": error_traces,
             "integrated": model_integrated,
             "memory_graph": memory_progress["points"],
-            "memory_collected_units": memory_progress["collected_units"],
-            "memory_target_units": memory_progress["target_units"],
+            "memory_collected_tokens": memory_progress["collected_tokens"],
+            "memory_target_tokens": memory_progress["target_tokens"],
+            "target_model_params": memory_progress["target_model_params"],
+            "collection_percent_display": memory_progress["percent_display"],
             "retrieval_lines": memory_progress["retrieval_lines"],
         },
         "logs": [

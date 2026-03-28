@@ -1,0 +1,8 @@
+{
+  "timestamp": "2026-03-27T21:30:00",
+  "decision": {
+    "question": "How should the orchestrator treat misses, blocked actions, and user-corrected mistakes?",
+    "chosen": "Capture them as memory and training data instead of discarding them.",
+    "rationale": "Lock denials, verifier misses, wrong assumptions, and user corrections are high-value supervision for a truthful orchestration system and coding model."
+  }
+}

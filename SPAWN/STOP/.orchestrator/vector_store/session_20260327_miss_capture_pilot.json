@@ -1,0 +1,27 @@
+{
+  "id": "session_20260327_miss_capture_pilot",
+  "timestamp": "2026-03-27T21:30:00",
+  "type": "miss_capture",
+  "topic": "loop_misses_and_user_corrections",
+  "summary": [
+    "Global write lock denials blocked active GUI task execution on multiple loop attempts.",
+    "The loop originally fell through into queue dispatch after lock denial and created misleading artifacts.",
+    "The active DAG task was previously downgraded from active to pending when incomplete.",
+    "The dashboard initially showed placeholder model text instead of repo-backed model data collection progress.",
+    "User corrections about task framing and dashboard truth are preserved as steering-relevant misses."
+  ],
+  "source_files": [
+    "SPAWN/STOP/MEMORY.md",
+    "SPAWN/STOP/.orchestrator/logs/security/security_audit.log",
+    "SPAWN/STOP/.orchestrator/loop.py",
+    "SPAWN/STOP/web/app.py"
+  ],
+  "tags": [
+    "misses",
+    "lock-denial",
+    "loop-control",
+    "ui-truth",
+    "steering",
+    "training"
+  ]
+}

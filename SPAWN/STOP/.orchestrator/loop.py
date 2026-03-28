@@ -16,6 +16,7 @@ SECURITY: Integrated with SecurityManager for:
 """
 
 import json
+import hashlib
 import logging
 import os
 import sys
@@ -55,6 +56,8 @@ class OrchestratorLoop:
     # SPAWN/START/ is immutable after bootstrap lock.
     ALLOWED_WRITE_PATHS = [
         'SPAWN/STOP/.orchestrator',
+        'SPAWN/STOP/MEMORY.md',
+        'SPAWN/STOP/retrieval_log.jsonl',
         'SPAWN/STOP/state',
         'SPAWN/STOP/repos',
         'SPAWN/STOP/training',
@@ -132,6 +135,65 @@ class OrchestratorLoop:
         except IOError as e:
             logger.error(f"Failed to save {path}: {e}")
             return False
+
+    def _append_text(self, path: Path, text: str) -> bool:
+        if not self._is_write_allowed(str(path)):
+            raise PermissionError(f"Write access denied: {path}")
+        try:
+            path.parent.mkdir(parents=True, exist_ok=True)
+            with open(path, 'a', encoding='utf-8') as handle:
+                handle.write(text)
+            return True
+        except IOError as e:
+            logger.error(f"Failed to append {path}: {e}")
+            return False
+
+    def _capture_miss_memory(self, miss_type: str, summary: str, details: dict | None = None):
+        details = details or {}
+        timestamp = datetime.now().isoformat()
+        slug = hashlib.sha1(f"{timestamp}|{miss_type}|{summary}".encode('utf-8')).hexdigest()[:12]
+
+        memory_path = self.root / 'SPAWN' / 'STOP' / 'MEMORY.md'
+        retrieval_log = self.root / 'SPAWN' / 'STOP' / 'retrieval_log.jsonl'
+        vector_path = self.vector_store_dir / f"miss_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{slug}.json"
+        data_path = self.data_dir / f"miss_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{slug}.jsonl"
+        iter_path = self.orchestrator_dir / 'iterations' / f"iter_{datetime.now().strftime('%Y%m%d_%H%M%S')}_miss_{slug}.json"
+
+        memory_block = (
+            f"\n## Loop Miss Capture - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
+            f"- Type: {miss_type}\n"
+            f"- Summary: {summary}\n"
+            f"- Details: {json.dumps(details, default=str)}\n"
+        )
+        self._append_text(memory_path, memory_block)
+
+        vector_payload = {
+            'id': f'miss_{slug}',
+            'timestamp': timestamp,
+            'type': 'miss_capture',
+            'miss_type': miss_type,
+            'summary': summary,
+            'details': details,
+        }
+        self._save_json(vector_path, vector_payload)
+        self._append_text(data_path, json.dumps(vector_payload, default=str) + '\n')
+        self._save_json(iter_path, {
+            'id': f'iter_miss_{slug}',
+            'timestamp': timestamp,
+            'type': 'miss_capture',
+            'status': 'success',
+            'summary': summary,
+            'details': details,
+        })
+        self._append_text(
+            retrieval_log,
+            json.dumps({
+                'timestamp': timestamp,
+                'query': f'loop miss capture: {miss_type}',
+                'top_hits': ['SPAWN/STOP/MEMORY.md', str(vector_path.relative_to(self.root)), str(iter_path.relative_to(self.root))],
+                'notes': summary,
+            }, default=str) + '\n'
+        )
 
     def _load_design_graph(self) -> dict:
         return self._load_json(self.state_dir / 'design_graph.json')
@@ -314,6 +376,16 @@ class OrchestratorLoop:
                             'repo': repo_name,
                             'reason': 'Lock held by another task'
                         })
+                        self._capture_miss_memory(
+                            'lock_denied',
+                            f'Active task {dag_node_id} was blocked by a global write lock denial.',
+                            {
+                                'task_id': task_id,
+                                'dag_node_id': dag_node_id,
+                                'repo': repo_name,
+                                'reason': 'Lock held by another task',
+                            }
+                        )
                         return 'blocked'
 
                     logger.info(f"  SECURITY: Write lock acquired")
@@ -336,6 +408,15 @@ class OrchestratorLoop:
                     else:
                         self._update_task_status(task_id, 'in_progress')
                         self._update_dag_node_status(dag_node_id, 'yellow')
+                        self._capture_miss_memory(
+                            'verification_miss',
+                            f'Active task {dag_node_id} did not satisfy repo verification yet.',
+                            {
+                                'task_id': task_id,
+                                'dag_node_id': dag_node_id,
+                                'reason': result.get('reason', 'verification failed'),
+                            }
+                        )
                         logger.warning(f"  Task not satisfied yet: {result.get('reason', 'verification failed')}")
 
                 # Context manager automatically:

@@ -62,3 +62,24 @@
 - Core goals were committed into the repo brief and task queue.
 - Engine memory artifacts increased live metrics through vector store, data, retrieval, iteration, and steering files.
 - The dashboard styling logic was updated so operational panels can display green while unfinished DAG tasks remain task-level red.
+
+## Session Memory - Miss Capture Pilot
+- Timestamp: 2026-03-27 21:30:00
+- Session Focus: Treat misses, blocked actions, and corrected assumptions as useful model data and persist them into the engine.
+
+### Misses Captured
+- Global write lock denials blocked active GUI task execution on multiple loop attempts.
+- The loop previously fell through into the generic queue path after lock denial, creating misleading vector/loop artifacts.
+- The active DAG task was previously being downgraded from active to pending when verification failed instead of staying active.
+- The dashboard initially showed placeholder model status text instead of repo-backed model data collection progress.
+- The user corrected the task framing multiple times when the DAG was mapping the wrong problem space.
+
+### Why These Misses Matter
+- They show where control-flow, verifier expectations, and UI truth can diverge.
+- They capture blocked execution states that are useful for training safer and more truthful orchestration behavior.
+- They preserve user corrections as steering data so future runs can avoid repeating the same assumptions.
+
+## Loop Miss Capture - 2026-03-27 21:34:56
+- Type: verification_miss
+- Summary: Active task gui_dag_task_details did not satisfy repo verification yet.
+- Details: {"task_id": "task_002", "dag_node_id": "gui_dag_task_details", "reason": "task DAG rows are still visual-only and do not open task details"}

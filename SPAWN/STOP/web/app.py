@@ -411,6 +411,14 @@ LIVE_DASHBOARD_SCRIPT = r"""
     if (!el) return;
     el.classList.toggle('card-operational', !!live);
   }
+  function compactNumber(value) {
+    const num = Number(value || 0);
+    if (num >= 1e12) return (num / 1e12).toFixed(2) + 'T';
+    if (num >= 1e9) return (num / 1e9).toFixed(2) + 'B';
+    if (num >= 1e6) return (num / 1e6).toFixed(2) + 'M';
+    if (num >= 1e3) return (num / 1e3).toFixed(2) + 'K';
+    return num.toLocaleString();
+  }
   function buildMemoryGraph(points) {
     const series = Array.isArray(points) ? points : [];
     if (!series.length) {
@@ -515,11 +523,11 @@ LIVE_DASHBOARD_SCRIPT = r"""
   }
 
   function renderModelPanel(data) {
-    setText(qs('.model-name'), textOr(data.model.name, '0.0% MODEL DATA COLLECTED'));
-    setText(qs('.model-sub'), textOr(data.model.sub, 'LIVE MEMORY INJECTION TOWARD 24B CODING GOAL'));
-    setText(qs('.eta-num'), String((data.model && data.model.memory_collected_units) || 0));
-    setText(qs('.eta-unit'), 'UNITS');
-    setText(qs('.eta-label'), 'REPO-BACKED MEMORY INJECTIONS TOWARD MODEL GOAL');
+    setText(qs('.model-name'), textOr(data.model.name, '0.0000% OF 24B GOAL DATA COLLECTED'));
+    setText(qs('.model-sub'), textOr(data.model.sub, 'LIVE MEMORY INJECTION TOWARD 24B CODING MODEL TARGET'));
+    setText(qs('.eta-num'), compactNumber((data.model && data.model.memory_collected_tokens) || 0));
+    setText(qs('.eta-unit'), 'TOKENS');
+    setText(qs('.eta-label'), 'REPO-BACKED TOKENS COLLECTED TOWARD 24B MODEL DATA TARGET');
     setText(qs('.coll-pct'), String(Number(data.model.collection_progress || 0).toFixed(1) + '%'));
 
     const progressFill = qs('.prog-fill');
@@ -533,10 +541,10 @@ LIVE_DASHBOARD_SCRIPT = r"""
 
     const traceVals = qsa('.trace-box-val');
     const traceLabels = qsa('.trace-box-label');
-    if (traceLabels[0]) setText(traceLabels[0], 'MEMORY INJECTIONS');
-    if (traceLabels[1]) setText(traceLabels[1], 'TARGET UNITS');
-    if (traceVals[0]) setText(traceVals[0], ((data.model && data.model.memory_collected_units) || 0).toLocaleString());
-    if (traceVals[1]) setText(traceVals[1], ((data.model && data.model.memory_target_units) || 0).toLocaleString());
+    if (traceLabels[0]) setText(traceLabels[0], 'COLLECTED TOKENS');
+    if (traceLabels[1]) setText(traceLabels[1], 'TARGET TOKENS');
+    if (traceVals[0]) setText(traceVals[0], compactNumber((data.model && data.model.memory_collected_tokens) || 0));
+    if (traceVals[1]) setText(traceVals[1], compactNumber((data.model && data.model.memory_target_tokens) || 0));
 
     const traceSplit = qs('.trace-split');
     if (traceSplit) {

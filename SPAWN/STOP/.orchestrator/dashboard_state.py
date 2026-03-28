@@ -34,6 +34,11 @@ def write_json_if_changed(path: Path, data):
         path.write_text(rendered, encoding="utf-8")
 
 
+def ensure_json_exists(path: Path, data):
+    if not path.exists():
+        write_json_if_changed(path, data)
+
+
 def read_text(path: Path, default=""):
     try:
         if path.exists():
@@ -153,17 +158,18 @@ def verify_dashboard_integrations(runtime_dir: Path):
     orchestrator_dir = runtime_dir / ".orchestrator"
     web_dir = runtime_dir / "web"
     state_dir = runtime_dir / "state"
+    template_dir = runtime_dir / "web" / "templates"
     app_path = web_dir / "app.py"
-    design_path = state_dir / "design.html"
+    design_path = template_dir / "dashboard.html"
     app_text = read_text(app_path)
     design_text = read_text(design_path)
 
     checks = {
         "gui_nav_panels": {
-            "live": has_all(design_text, "data-nav=", "data-panel=") and "function handleNavPanel" in app_text,
-            "reason": "sidebar navigation routes between dashboard panels from repo-backed hooks"
-            if has_all(design_text, "data-nav=", "data-panel=") and "function handleNavPanel" in app_text
-            else "sidebar nav items are still visual-only and lack panel routing hooks",
+            "live": 'data-panel="' in design_text and "function handleNavPanel" in app_text,
+            "reason": "dashboard surface routing works from repo-backed panel hooks with an always-on full-page fallback"
+            if 'data-panel="' in design_text and "function handleNavPanel" in app_text
+            else "dashboard surface routing is not wired to repo-backed panel hooks",
         },
         "gui_dag_task_details": {
             "live": 'data-dag-node="' in design_text and "function openDagTaskDetails" in app_text,
@@ -280,10 +286,10 @@ def verify_dashboard_integrations(runtime_dir: Path):
             else "trace capture section is not wired to detailed repo-backed trace history",
         },
         "gui_steering_log_details": {
-            "live": 'data-panel="steering-log"' in design_text and "/api/steering/events" in app_text,
-            "reason": "steering log section opens detailed repo-backed steering events"
-            if 'data-panel="steering-log"' in design_text and "/api/steering/events" in app_text
-            else "steering log section is not wired to detailed repo-backed steering events",
+            "live": 'data-steering-root="true"' in app_text and "/api/steering/events" in app_text and "function renderSteeringDetails" in app_text,
+            "reason": "steering log surface renders detailed repo-backed steering events"
+            if 'data-steering-root="true"' in app_text and "/api/steering/events" in app_text and "function renderSteeringDetails" in app_text
+            else "steering log surface is not wired to detailed repo-backed steering events",
         },
         "gui_mutex_lock_details": {
             "live": 'data-panel="mutex-lock"' in design_text and "/api/repo-freeze/state" in app_text,
@@ -712,6 +718,161 @@ def build_memory_files(runtime_dir: Path, task_md: Path, memory_md: Path, vector
     return files
 
 
+def ensure_projection_runtime_files(state_dir: Path):
+    projection_files = {
+        "extraction.json": {
+            "canonical": True,
+            "mode": "projection-first",
+            "stage": "extractor",
+            "status": "draft",
+            "generated_at": None,
+            "structures": [],
+            "warnings": [],
+            "source": "pending_extractor_output",
+        },
+        "operator_overrides.json": {
+            "canonical": True,
+            "mode": "projection-first",
+            "updated_at": None,
+            "renames": [],
+            "merges": [],
+            "splits": [],
+            "suppressions": [],
+            "notes": [],
+        },
+        "projected_tasks.json": {
+            "canonical": True,
+            "mode": "projection-first",
+            "generated_at": None,
+            "approval_state": "draft",
+            "tasks": [],
+        },
+        "projection_graph.json": {
+            "canonical": True,
+            "mode": "projection-first",
+            "generated_at": None,
+            "approval_state": "draft",
+            "nodes": [],
+            "edges": [],
+        },
+        "projection_pipeline.json": {
+            "canonical": True,
+            "mode": "projection-first",
+            "active_stage": "extractor",
+            "approved": False,
+            "promotion_ready": False,
+            "prompt_handoff_ready": False,
+            "stages": [
+                {"id": "extractor", "label": "Extractor", "status": "active"},
+                {"id": "operator_review", "label": "Operator Review", "status": "pending"},
+                {"id": "task_generation", "label": "Task Generator", "status": "pending"},
+                {"id": "promotion_gate", "label": "Promotion Gate", "status": "pending"},
+                {"id": "prompt_handoff", "label": "Prompt Handoff", "status": "pending"},
+            ],
+            "notes": [
+                "Projection state must remain separate from canonical execution state until approval and promotion complete."
+            ],
+        },
+    }
+    for name, payload in projection_files.items():
+        ensure_json_exists(state_dir / name, payload)
+
+
+def ensure_repo_truth_runtime_files(state_dir: Path):
+    repo_truth_files = {
+        "repo_truth_frontend.json": {
+            "canonical": True,
+            "mode": "repo-truth-frontend",
+            "status": "live",
+            "default_route": "/",
+            "legacy_route": "/design",
+            "notes": [
+                "The repo-truth frontend must read canonical backend state domains directly.",
+                "Legacy dashboard surfaces remain available until parity and cutover verification are complete.",
+            ],
+        },
+        "frontend_state_views.json": {
+            "canonical": True,
+            "mode": "repo-truth-frontend",
+            "views": [
+                {"id": "execution", "label": "Execution DAG", "endpoint": "/api/repo-truth/execution"},
+                {"id": "queue", "label": "Strategic Queue", "endpoint": "/api/repo-truth/queue"},
+                {"id": "projection", "label": "Projection Pipeline", "endpoint": "/api/projection/state"},
+                {"id": "runtime", "label": "Backend Runtime", "endpoint": "/api/runtime/mirror"},
+                {"id": "memory", "label": "Memory and Vector", "endpoint": "/api/repo-truth/memory"},
+                {"id": "training", "label": "Training State", "endpoint": "/api/repo-truth/training"},
+                {"id": "misses", "label": "Miss Detection", "endpoint": "/api/runtime/misses"},
+            ],
+            "generated_at": None,
+        },
+    }
+    for name, payload in repo_truth_files.items():
+        ensure_json_exists(state_dir / name, payload)
+
+
+def build_projection_state(state_dir: Path):
+    extraction = load_json(state_dir / "extraction.json", {})
+    overrides = load_json(state_dir / "operator_overrides.json", {})
+    projected_tasks = load_json(state_dir / "projected_tasks.json", {})
+    projection_graph = load_json(state_dir / "projection_graph.json", {})
+    pipeline = load_json(state_dir / "projection_pipeline.json", {})
+
+    stages = pipeline.get("stages", []) if isinstance(pipeline, dict) else []
+    active_stage = pipeline.get("active_stage", "extractor") if isinstance(pipeline, dict) else "extractor"
+    notes = pipeline.get("notes", []) if isinstance(pipeline, dict) else []
+    structures = extraction.get("structures", []) if isinstance(extraction, dict) else []
+    warnings = extraction.get("warnings", []) if isinstance(extraction, dict) else []
+    tasks = projected_tasks.get("tasks", []) if isinstance(projected_tasks, dict) else []
+    nodes = projection_graph.get("nodes", []) if isinstance(projection_graph, dict) else []
+
+    return {
+        "canonical": True,
+        "mode": "projection-first",
+        "active_stage": active_stage,
+        "approved": bool(pipeline.get("approved", False)) if isinstance(pipeline, dict) else False,
+        "promotion_ready": bool(pipeline.get("promotion_ready", False)) if isinstance(pipeline, dict) else False,
+        "prompt_handoff_ready": bool(pipeline.get("prompt_handoff_ready", False)) if isinstance(pipeline, dict) else False,
+        "approval_state": projected_tasks.get("approval_state", "draft") if isinstance(projected_tasks, dict) else "draft",
+        "counts": {
+            "structures": len(structures),
+            "warnings": len(warnings),
+            "overrides": sum(
+                len(overrides.get(key, []))
+                for key in ("renames", "merges", "splits", "suppressions", "notes")
+                if isinstance(overrides, dict)
+            ),
+            "projected_tasks": len(tasks),
+            "graph_nodes": len(nodes),
+        },
+        "stages": stages,
+        "notes": notes,
+        "structures": structures,
+        "warnings": warnings,
+        "projected_tasks": tasks,
+    }
+
+
+def build_repo_truth_state(state_dir: Path, dashboard_state: dict):
+    frontend = load_json(state_dir / "repo_truth_frontend.json", {})
+    views = load_json(state_dir / "frontend_state_views.json", {})
+    task_queue = dashboard_state.get("task_queue", [])
+    task_status_counts = {}
+    for item in task_queue:
+        status = item.get("status", "pending")
+        task_status_counts[status] = task_status_counts.get(status, 0) + 1
+
+    return {
+        "canonical": True,
+        "mode": frontend.get("mode", "repo-truth-frontend"),
+        "status": frontend.get("status", "staged"),
+        "default_route": frontend.get("default_route", "/truth"),
+        "legacy_route": frontend.get("legacy_route", "/design"),
+        "views": views.get("views", []),
+        "notes": frontend.get("notes", []),
+        "queue_counts": task_status_counts,
+    }
+
+
 def build_repo_structure(runtime_dir: Path, start_dir: Path):
     start_items = []
     stop_items = []
@@ -964,6 +1125,8 @@ def sync_dashboard_state(runtime_dir: Path):
     orchestrator_log = logs_dir / "orchestrator.log"
     iteration_log = logs_dir / "iteration_logger.log"
     retrieval_log = runtime_dir / "retrieval_log.jsonl"
+    ensure_projection_runtime_files(state_dir)
+    ensure_repo_truth_runtime_files(state_dir)
     config = load_json(config_path, {})
     training_config = config.get("training_config", {})
     base_graph = load_json(design_graph_path, {"nodes": [], "edges": []})
@@ -1176,7 +1339,9 @@ def sync_dashboard_state(runtime_dir: Path):
             "runner_running": False,  # Updated by Flask app.py at runtime
         },
         "readiness": build_readiness_state(model_integrated, graph, task_md, state_warnings, verification),
+        "projection": build_projection_state(state_dir),
         "task_queue": load_json(task_queue_path, []),
     }
+    dashboard_state["repo_truth"] = build_repo_truth_state(state_dir, dashboard_state)
 
     return dashboard_state

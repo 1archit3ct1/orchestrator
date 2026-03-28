@@ -7,11 +7,11 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-/* ── RESET ─────────────────────────────────────────────────── */
+/* -- RESET --------------------------------------------------- */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html, body { height: 100%; overflow: hidden; }
 
-/* ── TOKENS ─────────────────────────────────────────────────── */
+/* -- TOKENS --------------------------------------------------- */
 :root {
   --red:        #ff2020;
   --red-b:      #cc1010;
@@ -38,7 +38,7 @@ html, body { height: 100%; overflow: hidden; }
   --sans:       'Syne', sans-serif;
 }
 
-/* ── BODY ─────────────────────────────────────────────────── */
+/* -- BODY --------------------------------------------------- */
 body {
   background: var(--bg);
   color: var(--text);
@@ -51,7 +51,7 @@ body {
   position: relative;
 }
 
-/* ── AMBIENT BACKGROUND ──────────────────────────────────── */
+/* -- AMBIENT BACKGROUND ------------------------------------ */
 body::before {
   content: '';
   position: fixed;
@@ -75,7 +75,7 @@ body::after {
   opacity: 0.6;
 }
 
-/* ── TOPBAR ─────────────────────────────────────────────── */
+/* -- TOPBAR ----------------------------------------------- */
 #topbar {
   position: relative;
   z-index: 10;
@@ -196,7 +196,7 @@ body::after {
   margin-left: 14px;
 }
 
-/* ── MAIN LAYOUT ─────────────────────────────────────────── */
+/* -- MAIN LAYOUT ------------------------------------------- */
 #main {
   position: relative;
   z-index: 1;
@@ -205,7 +205,7 @@ body::after {
   overflow: hidden;
 }
 
-/* ── SIDEBAR ─────────────────────────────────────────────── */
+/* -- SIDEBAR ----------------------------------------------- */
 #sidebar {
   display: none !important;
   background: rgba(8,8,12,0.7);
@@ -320,7 +320,7 @@ body::after {
   50%      { box-shadow: 0 0 16px var(--red-glow); }
 }
 
-/* ── CONTENT AREA ────────────────────────────────────────── */
+/* -- CONTENT AREA ------------------------------------------ */
 #content {
   width: 100%;
   max-width: 100%;
@@ -334,14 +334,14 @@ body::after {
   gap: 14px;
 }
 
-/* ── STAT ROW ────────────────────────────────────────────── */
+/* -- STAT ROW ---------------------------------------------- */
 .stat-row {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 10px;
 }
 
-/* ── GLASS CARD BASE ──────────────────────────────────────── */
+/* -- GLASS CARD BASE ---------------------------------------- */
 .card {
   background: var(--surface);
   backdrop-filter: blur(12px);
@@ -364,7 +364,7 @@ body::after {
   box-shadow: 0 0 24px rgba(255,32,32,0.08);
 }
 
-/* ── STAT CARD ───────────────────────────────────────────── */
+/* -- STAT CARD --------------------------------------------- */
 .stat-card {
   padding: 16px;
   display: flex;
@@ -424,7 +424,7 @@ body::after {
   outline-offset: 2px;
 }
 
-/* ── BENTO GRID ──────────────────────────────────────────── */
+/* -- BENTO GRID -------------------------------------------- */
 .bento {
   display: grid;
   grid-template-columns: 1fr 1fr 320px;
@@ -432,7 +432,7 @@ body::after {
   gap: 10px;
 }
 
-/* ── PANEL HEADER ─────────────────────────────────────────── */
+/* -- PANEL HEADER ------------------------------------------- */
 .panel-hdr {
   display: flex;
   align-items: center;
@@ -468,7 +468,7 @@ body::after {
   border-color: rgba(255,107,32,0.25);
 }
 
-/* ── DAG PANEL ───────────────────────────────────────────── */
+/* -- DAG PANEL --------------------------------------------- */
 .dag-panel {
   grid-column: 1 / 2;
   padding-bottom: 14px;
@@ -561,7 +561,7 @@ body::after {
   width: 61%;
 }
 
-/* ── TRAINING MODEL PANEL ─────────────────────────────────── */
+/* -- TRAINING MODEL PANEL ----------------------------------- */
 .model-panel {
   grid-column: 2 / 3;
 }
@@ -669,7 +669,7 @@ body::after {
   text-shadow: 0 0 16px var(--red-glow);
 }
 
-/* ── RIGHT COLUMN ─────────────────────────────────────────── */
+/* -- RIGHT COLUMN ------------------------------------------- */
 .right-col {
   grid-column: 3 / 4;
   display: flex;
@@ -677,7 +677,7 @@ body::after {
   gap: 10px;
 }
 
-/* ── AUDIT LOG ───────────────────────────────────────────── */
+/* -- AUDIT LOG --------------------------------------------- */
 .audit-body {
   padding: 12px 14px;
 }
@@ -706,7 +706,7 @@ body::after {
   line-height: 1.6;
 }
 
-/* ── STEERING LOG ─────────────────────────────────────────── */
+/* -- STEERING LOG ------------------------------------------- */
 .steering-body {
   padding: 12px 14px;
 }
@@ -744,7 +744,7 @@ body::after {
   letter-spacing: 0.5px;
 }
 
-/* ── SPAWN LOOP ───────────────────────────────────────────── */
+/* -- SPAWN LOOP --------------------------------------------- */
 .spawn-body {
   padding: 12px 14px;
   display: flex;
@@ -794,7 +794,7 @@ body::after {
   letter-spacing: 2px;
 }
 
-/* ── SPAWN CONTROL BUTTONS ───────────────────────────────── */
+/* -- SPAWN CONTROL BUTTONS --------------------------------- */
 .spawn-controls {
   display: flex;
   gap: 8px;
@@ -845,14 +845,14 @@ body::after {
   font-size: 11px;
 }
 
-/* ── SECOND BENTO ROW ─────────────────────────────────────── */
+/* -- SECOND BENTO ROW --------------------------------------- */
 .bento2 {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
   gap: 10px;
 }
 
-/* ── BOOTSTRAP ZONE ──────────────────────────────────────── */
+/* -- BOOTSTRAP ZONE ---------------------------------------- */
 .boot-body {
   padding: 12px 14px;
   display: flex;
@@ -891,7 +891,7 @@ body::after {
   flex-shrink: 0;
 }
 
-/* ── REPO STRUCTURE PANEL ─────────────────────────────────── */
+/* -- REPO STRUCTURE PANEL ----------------------------------- */
 .repo-body {
   padding: 12px 14px;
 }
@@ -923,7 +923,7 @@ body::after {
   gap: 5px;
 }
 .zone-item::before {
-  content: '▸';
+  content: '?';
   color: var(--red);
   font-size: 7px;
   opacity: 0.5;
@@ -942,7 +942,7 @@ body::after {
 }
 .flow-arrow { color: var(--red); margin: 0 2px; }
 
-/* ── VECTOR MEMORY PANEL ─────────────────────────────────── */
+/* -- VECTOR MEMORY PANEL ----------------------------------- */
 .vec-body {
   padding: 12px 14px;
 }
@@ -987,7 +987,7 @@ body::after {
   line-height: 1.5;
 }
 
-/* ── DATA EXPORT PANEL ───────────────────────────────────── */
+/* -- DATA EXPORT PANEL ------------------------------------- */
 .export-body {
   padding: 12px 14px;
   display: flex;
@@ -1028,7 +1028,7 @@ body::after {
   margin-top: 1px;
 }
 
-/* ── SECURITY SECTION ─────────────────────────────────────── */
+/* -- SECURITY SECTION --------------------------------------- */
 .bento3 {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
@@ -1123,7 +1123,7 @@ body::after {
   line-height: 1.5;
 }
 
-/* ── TASK POLICY PANEL ───────────────────────────────────── */
+/* -- TASK POLICY PANEL ------------------------------------- */
 .policy-body {
   padding: 12px 14px;
   display: flex;
@@ -1162,7 +1162,7 @@ body::after {
   font-family: var(--mono);
 }
 
-/* ── TRACE PANEL ─────────────────────────────────────────── */
+/* -- TRACE PANEL ------------------------------------------- */
 .trace-body {
   padding: 10px 14px;
 }
@@ -1201,7 +1201,7 @@ body::after {
 .t-mem   { background: rgba(255,80,80,0.07); color: rgba(255,120,120,0.6); border: 1px solid var(--border-dim); }
 .t-task  { background: rgba(255,60,60,0.06); color: rgba(255,140,140,0.5); border: 1px solid var(--border-dim); }
 
-/* ── MEMORY PANEL ────────────────────────────────────────── */
+/* -- MEMORY PANEL ------------------------------------------ */
 .mem-body {
   padding: 12px 14px;
 }
@@ -1226,7 +1226,7 @@ body::after {
 .mem-file-name { font-size: 9px; color: var(--text-dim); flex: 1; letter-spacing: 0.5px; }
 .mem-file-size { font-size: 8px; color: var(--text-ghost); }
 
-/* ── STATUSBAR ───────────────────────────────────────────── */
+/* -- STATUSBAR --------------------------------------------- */
 #statusbar {
   position: relative;
   z-index: 10;
@@ -1258,16 +1258,16 @@ body::after {
 .sb-spacer { flex: 1; }
 .sb-time { font-family: var(--mono); }
 
-/* ── SCROLLBAR ───────────────────────────────────────────── */
+/* -- SCROLLBAR --------------------------------------------- */
 #content::-webkit-scrollbar { width: 3px; }
 #content::-webkit-scrollbar-track { background: transparent; }
 #content::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
 
-/* ── CURSOR CUSTOM ───────────────────────────────────────── */
+/* -- CURSOR CUSTOM ----------------------------------------- */
 * { cursor: default; }
-.nav-item, .dag-task, .boot-step, .vec-phase, .export-btn, .mem-file, .policy-item, .toggle-wrap { cursor: pointer; }
+.dag-task, .boot-step, .vec-phase, .export-btn, .mem-file, .policy-item, .toggle-wrap { cursor: pointer; }
 
-/* ── ANIMATED SCAN LINE ──────────────────────────────────── */
+/* -- ANIMATED SCAN LINE ------------------------------------ */
 @keyframes scanline {
   0%   { transform: translateY(-100%); }
   100% { transform: translateY(100vh); }
@@ -1292,7 +1292,7 @@ body::after {
   pointer-events: none;
 }
 
-/* ── TASK DRILLDOWN MODAL ───────────────────────────────── */
+/* -- TASK DRILLDOWN MODAL --------------------------------- */
 .task-drilldown-modal {
   position: fixed;
   inset: 0;
@@ -1458,7 +1458,7 @@ body::after {
 <!-- scan line effect -->
 <div class="scanline"></div>
 
-<!-- ── TOPBAR ─────────────────────────────────────────────── -->
+<!-- -- TOPBAR ----------------------------------------------- -->
 <div id="topbar">
   <div class="logo-block">
     <div class="logo-mark">
@@ -1499,13 +1499,13 @@ body::after {
   <div class="version-tag">v0.4.1</div>
 </div>
 
-<!-- ── MAIN ───────────────────────────────────────────────── -->
+<!-- -- MAIN ------------------------------------------------- -->
 <div id="main">
 
   <!-- CONTENT -->
   <div id="content">
 
-    <!-- ── STAT ROW ─────────────────────────────────────────── -->
+    <!-- -- STAT ROW ------------------------------------------- -->
     <div class="stat-row" data-panel="all orchestrator">
       <div class="card stat-card">
         <div class="stat-label">AUTONOMY RUNTIME</div>
@@ -1520,22 +1520,22 @@ body::after {
       <div class="card stat-card">
         <div class="stat-label">TASKS IN DAG</div>
         <div class="stat-val" style="font-size:38px;">18</div>
-        <div class="stat-meta">11 pending · 1 active</div>
+        <div class="stat-meta">11 pending � 1 active</div>
       </div>
       <div class="card stat-card">
         <div class="stat-label">STRAY EVENTS</div>
         <div class="stat-val amber">1</div>
-        <div class="stat-meta" style="color:rgba(255,107,32,0.5);">⚠ LLM outside Task DAG</div>
+        <div class="stat-meta" style="color:rgba(255,107,32,0.5);">? LLM outside Task DAG</div>
       </div>
     </div>
 
-    <!-- ── BENTO ROW 1 ─────────────────────────────────────── -->
+    <!-- -- BENTO ROW 1 --------------------------------------- -->
     <div class="bento">
 
       <!-- DAG TASK LIST -->
       <div class="card dag-panel" data-panel="all orchestrator dag-view">
         <div class="panel-hdr">
-          <span class="panel-icon">⬡</span>
+          <span class="panel-icon">?</span>
           <span class="panel-title">TASK DAG</span>
           <span class="panel-badge">tasks.json mirror</span>
         </div>
@@ -1556,7 +1556,7 @@ body::after {
           <div class="dag-task active" data-dag-node="T03">
             <span class="task-id">T03</span>
             <span class="task-name">dag-monitor</span>
-            <span class="task-status status-active">⟳ ACTIVE</span>
+            <span class="task-status status-active">? ACTIVE</span>
             <div class="task-progress-wrap"><div class="task-progress-bar"></div></div>
           </div>
           <div class="dag-task" data-dag-node="T04">
@@ -1605,7 +1605,7 @@ body::after {
       <!-- MODEL STATUS -->
       <div class="card model-panel" data-panel="all orchestrator training-run eta-tracker model-status">
         <div class="panel-hdr">
-          <span class="panel-icon">◎</span>
+          <span class="panel-icon">?</span>
           <span class="panel-title">MODEL STATUS</span>
           <span class="panel-badge" data-training-inline-badge>training run pending</span>
         </div>
@@ -1613,14 +1613,14 @@ body::after {
           <div data-panel="model-status" style="display:none;"></div>
           <div class="model-name-block">
             <div class="model-name">Qwen2.5-Coder14B</div>
-            <div class="model-sub">QLoRA · FINE-TUNE · CHECKPOINT v0.4.1</div>
+            <div class="model-sub">QLoRA � FINE-TUNE � CHECKPOINT v0.4.1</div>
           </div>
 
           <div class="eta-block">
             <div class="eta-num">14</div>
             <div class="eta-unit">DAYS</div>
           </div>
-          <div class="eta-label">TO V1 CHECKPOINT — PROJECTED AT CURRENT TRACE RATE</div>
+          <div class="eta-label">TO V1 CHECKPOINT � PROJECTED AT CURRENT TRACE RATE</div>
 
           <div class="coll-row">
             <span>DAG PROGRESS</span>
@@ -1651,7 +1651,7 @@ body::after {
         <!-- AUDIT LOG -->
         <div class="card" data-panel="all orchestrator audit-log">
           <div class="panel-hdr">
-            <span class="panel-icon">⊘</span>
+            <span class="panel-icon">?</span>
             <span class="panel-title">LLM AUDIT &amp; SECURITY LOG</span>
             <span class="panel-badge warn">1 ALERT</span>
           </div>
@@ -1659,7 +1659,7 @@ body::after {
           <div data-panel="audit-log" style="display:none;"></div>
           <div class="stray-alert">
               <div class="stray-hdr">
-                <span class="stray-icon">⚠</span>
+                <span class="stray-icon">?</span>
                 STRAY EVENT DETECTED
               </div>
               <div class="stray-body">
@@ -1673,7 +1673,7 @@ body::after {
         <!-- SPAWN LOOP -->
         <div class="card" data-panel="all orchestrator spawn-loop" data-control="spawn-loop">
           <div class="panel-hdr">
-            <span class="panel-icon">⟳</span>
+            <span class="panel-icon">?</span>
             <span class="panel-title">SPAWN LOOP</span>
             <span class="panel-badge" id="spawn-loop-badge">STOPPED</span>
           </div>
@@ -1700,10 +1700,10 @@ body::after {
             </div>
             <div class="spawn-controls" style="display:flex;gap:8px;margin-top:10px;">
               <button class="spawn-control-btn spawn-start-btn" id="spawn-start-btn" data-control="spawn-loop" data-spawn-action="start" title="Start spawn loop">
-                <span>▶</span> START
+                <span>?</span> START
               </button>
               <button class="spawn-control-btn spawn-pause-btn" id="spawn-pause-btn" data-control="spawn-loop" data-spawn-action="pause" title="Pause spawn loop">
-                <span>⏸</span> PAUSE
+                <span>?</span> PAUSE
               </button>
             </div>
           </div>
@@ -1712,10 +1712,10 @@ body::after {
       </div>
     </div>
 
-    <!-- ── BENTO ROW 2 ─────────────────────────────────────── -->
+    <!-- -- BENTO ROW 2 --------------------------------------- -->
     <div class="card" data-panel="scale-analysis">
       <div class="panel-hdr">
-        <span class="panel-icon">≈</span>
+        <span class="panel-icon">�</span>
         <span class="panel-title">FINE-TUNE SCALE ANALYSIS</span>
         <span class="panel-badge">repo-backed</span>
       </div>
@@ -1726,7 +1726,7 @@ body::after {
 
     <div class="card" data-panel="training-run">
       <div class="panel-hdr">
-        <span class="panel-icon">◎</span>
+        <span class="panel-icon">?</span>
         <span class="panel-title">TRAINING RUN DETAILS</span>
         <span class="panel-badge">/api/training/run</span>
       </div>
@@ -1758,7 +1758,7 @@ body::after {
 
     <div class="card" data-panel="dataset">
       <div class="panel-hdr">
-        <span class="panel-icon">▦</span>
+        <span class="panel-icon">?</span>
         <span class="panel-title">DATASET DETAILS</span>
         <span class="panel-badge">/api/dataset/details</span>
       </div>
@@ -1784,7 +1784,7 @@ body::after {
 
     <div class="card" data-panel="eta-tracker">
       <div class="panel-hdr">
-        <span class="panel-icon">◷</span>
+        <span class="panel-icon">?</span>
         <span class="panel-title">ETA TRACKER</span>
         <span class="panel-badge">repo-backed</span>
       </div>
@@ -1800,9 +1800,9 @@ body::after {
       <!-- BOOTSTRAP / REPO STRUCTURE -->
       <div class="card" data-panel="all orchestrator">
         <div class="panel-hdr">
-          <span class="panel-icon">⬡</span>
+          <span class="panel-icon">?</span>
           <span class="panel-title">BOOTSTRAP ZONE</span>
-          <span class="panel-badge">Start/ → Stop/</span>
+          <span class="panel-badge">Start/ ? Stop/</span>
         </div>
         <div class="boot-body">
           <div class="boot-step" data-boot-step="01">
@@ -1822,23 +1822,23 @@ body::after {
           </div>
           <div class="boot-step" data-boot-step="04">
             <span class="boot-step-num">04</span>
-            <span class="boot-step-name">hooks/ · vector index</span>
+            <span class="boot-step-name">hooks/ � vector index</span>
             <div class="boot-step-status"></div>
           </div>
           <div class="boot-step" data-boot-step="05">
             <span class="boot-step-num">05</span>
-            <span class="boot-step-name">validation/ · handoff</span>
+            <span class="boot-step-name">validation/ � handoff</span>
             <div class="boot-step-status"></div>
           </div>
         </div>
         <div style="padding: 0 14px 12px;">
           <div class="repo-flow">
             <span>Clone</span>
-            <span class="flow-arrow">→</span>
+            <span class="flow-arrow">?</span>
             <span>prompt.md</span>
-            <span class="flow-arrow">→</span>
+            <span class="flow-arrow">?</span>
             <span>Initialized</span>
-            <span class="flow-arrow">→</span>
+            <span class="flow-arrow">?</span>
             <span>Stop/ Agent</span>
           </div>
         </div>
@@ -1847,7 +1847,7 @@ body::after {
       <!-- REPO STRUCTURE -->
       <div class="card" data-panel="all orchestrator">
         <div class="panel-hdr">
-          <span class="panel-icon">▦</span>
+          <span class="panel-icon">?</span>
           <span class="panel-title">REPO STRUCTURE</span>
         </div>
         <div class="repo-body">
@@ -1856,7 +1856,7 @@ body::after {
               <div class="zone-title">START/ (BOOTSTRAP)</div>
               <div class="zone-item" data-structure-node="start:prompt.md">prompt.md</div>
               <div class="zone-item" data-structure-node="start:AGENTS.md">AGENTS.md (FULL)</div>
-              <div class="zone-item" data-structure-node="start:01-05">01–05 dirs</div>
+              <div class="zone-item" data-structure-node="start:01-05">01�05 dirs</div>
             </div>
             <div class="zone-box">
               <div class="zone-title">STOP/ (AGENT ZONE)</div>
@@ -1874,7 +1874,7 @@ body::after {
       <!-- VECTOR MEMORY -->
       <div class="card" data-panel="all orchestrator dataset">
         <div class="panel-hdr">
-          <span class="panel-icon">◈</span>
+          <span class="panel-icon">?</span>
           <span class="panel-title">VECTOR MEMORY</span>
           <span class="panel-badge">.agent/vector_store/</span>
         </div>
@@ -1907,13 +1907,13 @@ body::after {
 
     </div>
 
-    <!-- ── BENTO ROW 3 ─────────────────────────────────────── -->
+    <!-- -- BENTO ROW 3 --------------------------------------- -->
     <div class="bento3">
 
       <!-- REPO FREEZE + TASK POLICY -->
       <div class="card" data-panel="all orchestrator repo-freeze mutex-lock" data-control="repo-freeze">
         <div class="panel-hdr">
-          <span class="panel-icon">⚿</span>
+          <span class="panel-icon">?</span>
           <span class="panel-title">REPO FREEZE</span>
         </div>
         <div class="freeze-body">
@@ -1929,7 +1929,7 @@ body::after {
           </div>
         </div>
         <div class="panel-hdr" style="margin-top:0;">
-          <span class="panel-icon">▦</span>
+          <span class="panel-icon">?</span>
           <span class="panel-title">TASK-SCOPED WRITE POLICY</span>
         </div>
         <div class="policy-body">
@@ -1947,7 +1947,7 @@ body::after {
           </div>
           <div class="policy-item">
             <span class="policy-key">ON STRAY</span>
-            <span class="policy-val">Flag → audit log → steering trace → HALT</span>
+            <span class="policy-val">Flag ? audit log ? steering trace ? HALT</span>
           </div>
         </div>
       </div>
@@ -1955,7 +1955,7 @@ body::after {
       <!-- STRAY MONITOR -->
       <div class="card" data-panel="all orchestrator stray-monitor">
         <div class="panel-hdr">
-          <span class="panel-icon">◈</span>
+          <span class="panel-icon">?</span>
           <span class="panel-title">STRAY MONITOR</span>
         </div>
         <div class="stray-mon-body">
@@ -1967,7 +1967,7 @@ body::after {
             </div>
           </div>
           <div class="stray-event-item">
-            <div class="stray-event-time">14:22:07 · SESSION 04</div>
+            <div class="stray-event-time">14:22:07 � SESSION 04</div>
             <div class="stray-event-desc">LLM attempted write to <code style="background:rgba(255,107,32,0.1);padding:0 3px;border-radius:2px;color:var(--amber);">src/core/</code> outside spawn context. Write blocked. Trace flagged MISSED. Steering sample captured.</div>
           </div>
         </div>
@@ -1976,7 +1976,7 @@ body::after {
       <!-- TRACE CAPTURE -->
       <div class="card" data-panel="all orchestrator trace-capture">
         <div class="panel-hdr">
-          <span class="panel-icon">⋯</span>
+          <span class="panel-icon">?</span>
           <span class="panel-title">TRACE CAPTURE</span>
           <span class="panel-badge">+34 this session</span>
         </div>
@@ -1984,32 +1984,32 @@ body::after {
           <div data-panel="trace-capture" style="display:none;"></div>
           <div class="trace-entry">
             <span class="trace-time">17:59:35</span>
-            <span class="trace-event">loop.step completed — T03 dag-monitor 61%</span>
+            <span class="trace-event">loop.step completed � T03 dag-monitor 61%</span>
             <span class="trace-tag t-loop">LOOP</span>
           </div>
           <div class="trace-entry">
             <span class="trace-time">17:58:12</span>
-            <span class="trace-event">model.response received — 487 tokens</span>
+            <span class="trace-event">model.response received � 487 tokens</span>
             <span class="trace-tag t-model">MODEL</span>
           </div>
           <div class="trace-entry">
             <span class="trace-time">17:57:44</span>
-            <span class="trace-event">memory.retrieved — top-3 injected to planner</span>
+            <span class="trace-event">memory.retrieved � top-3 injected to planner</span>
             <span class="trace-tag t-mem">MEM</span>
           </div>
           <div class="trace-entry">
             <span class="trace-time">17:55:01</span>
-            <span class="trace-event">task.started — T03 dag-monitor assigned</span>
+            <span class="trace-event">task.started � T03 dag-monitor assigned</span>
             <span class="trace-tag t-task">TASK</span>
           </div>
           <div class="trace-entry">
             <span class="trace-time">17:54:30</span>
-            <span class="trace-event">task.completed — T02 dash-shell · result logged</span>
+            <span class="trace-event">task.completed � T02 dash-shell � result logged</span>
             <span class="trace-tag t-task">TASK</span>
           </div>
           <div class="trace-entry">
             <span class="trace-time">17:52:11</span>
-            <span class="trace-event">memory.stored — dash-shell outcome embedded</span>
+            <span class="trace-event">memory.stored � dash-shell outcome embedded</span>
             <span class="trace-tag t-mem">MEM</span>
           </div>
         </div>
@@ -2017,41 +2017,41 @@ body::after {
 
     </div>
 
-    <!-- ── BENTO ROW 4 ─────────────────────────────────────── -->
+    <!-- -- BENTO ROW 4 --------------------------------------- -->
     <div class="bento2">
 
       <!-- MEMORY FILES -->
       <div class="card" data-panel="all orchestrator dataset">
         <div class="panel-hdr">
-          <span class="panel-icon">▦</span>
+          <span class="panel-icon">?</span>
           <span class="panel-title">MEMORY FILES</span>
         </div>
         <div class="mem-body">
           <div class="mem-files">
             <div class="mem-file" data-memory-file="MEMORY.md">
-              <span class="mem-file-icon">📄</span>
+              <span class="mem-file-icon">??</span>
               <span class="mem-file-name">MEMORY.md</span>
-              <span class="mem-file-size">append-only · 14.2 KB</span>
+              <span class="mem-file-size">append-only � 14.2 KB</span>
             </div>
             <div class="mem-file" data-memory-file="vector_store/">
-              <span class="mem-file-icon">📁</span>
+              <span class="mem-file-icon">??</span>
               <span class="mem-file-name">vector_store/ (Chroma/FAISS)</span>
               <span class="mem-file-size">247 entries</span>
             </div>
             <div class="mem-file" data-memory-file="TASK.md">
-              <span class="mem-file-icon">📄</span>
+              <span class="mem-file-icon">??</span>
               <span class="mem-file-name">TASK.md</span>
-              <span class="mem-file-size">active · YAML frontmatter</span>
+              <span class="mem-file-size">active � YAML frontmatter</span>
             </div>
             <div class="mem-file" data-memory-file="AGENTS.md">
-              <span class="mem-file-icon">📄</span>
+              <span class="mem-file-icon">??</span>
               <span class="mem-file-name">AGENTS.md (reduced)</span>
-              <span class="mem-file-size">perennial prompt · Stop/</span>
+              <span class="mem-file-size">perennial prompt � Stop/</span>
             </div>
             <div class="mem-file" data-memory-file="retrieval_log.jsonl">
-              <span class="mem-file-icon">🔁</span>
+              <span class="mem-file-icon">??</span>
               <span class="mem-file-name">retrieval_log.jsonl</span>
-              <span class="mem-file-size">1,847 entries · training</span>
+              <span class="mem-file-size">1,847 entries � training</span>
             </div>
           </div>
         </div>
@@ -2060,36 +2060,36 @@ body::after {
       <!-- EXPORT -->
       <div class="card" data-panel="all orchestrator export">
         <div class="panel-hdr">
-          <span class="panel-icon">↗</span>
+          <span class="panel-icon">?</span>
           <span class="panel-title">EXPORT</span>
         </div>
         <div class="export-body">
           <button class="export-btn" data-export-format="jsonl" type="button">
-            <span class="export-btn-icon">▦</span>
+            <span class="export-btn-icon">?</span>
             <div>
               <div>EXPORT JSONL</div>
-              <div class="export-desc">Raw training traces · 1,847 samples</div>
+              <div class="export-desc">Raw training traces � 1,847 samples</div>
             </div>
           </button>
           <button class="export-btn" data-export-format="alpaca" type="button">
-            <span class="export-btn-icon">◎</span>
+            <span class="export-btn-icon">?</span>
             <div>
               <div>EXPORT ALPACA</div>
-              <div class="export-desc">Instruction-tuning format · instruction/input/output</div>
+              <div class="export-desc">Instruction-tuning format � instruction/input/output</div>
             </div>
           </button>
           <button class="export-btn" data-export-format="sharegpt" type="button">
-            <span class="export-btn-icon">⬡</span>
+            <span class="export-btn-icon">?</span>
             <div>
               <div>EXPORT SHAREGPT</div>
-              <div class="export-desc">Conversation format · human/gpt pairs</div>
+              <div class="export-desc">Conversation format � human/gpt pairs</div>
             </div>
           </button>
           <button class="export-btn" data-export-format="steering" type="button">
-            <span class="export-btn-icon">⋯</span>
+            <span class="export-btn-icon">?</span>
             <div>
               <div>EXPORT STEERING ONLY</div>
-              <div class="export-desc">235 high-value steering traces · highest weight</div>
+              <div class="export-desc">235 high-value steering traces � highest weight</div>
             </div>
           </button>
         </div>
@@ -2098,7 +2098,7 @@ body::after {
       <!-- READINESS TRACKER -->
       <div class="card" data-panel="all orchestrator">
         <div class="panel-hdr">
-          <span class="panel-icon">◷</span>
+          <span class="panel-icon">?</span>
           <span class="panel-title">READINESS TRACKER</span>
         </div>
         <div style="padding:14px 16px;">
@@ -2130,7 +2130,7 @@ body::after {
 
     </div>
 
-    <!-- ── TASK DRILLDOWN MODAL ─────────────────────────────────────── -->
+    <!-- -- TASK DRILLDOWN MODAL --------------------------------------- -->
     <div id="task-drilldown-modal" class="task-drilldown-modal" style="display:none;">
       <div class="task-drilldown-content">
         <div class="task-drilldown-header">
@@ -2138,7 +2138,7 @@ body::after {
             <span class="task-drilldown-id"></span>
             <span class="task-drilldown-label"></span>
           </div>
-          <button class="task-drilldown-close" title="Close">×</button>
+          <button class="task-drilldown-close" title="Close">�</button>
         </div>
         <div class="task-drilldown-body">
           <div class="task-detail-section">
@@ -2179,7 +2179,7 @@ body::after {
             <div class="task-drilldown-id">DETAIL</div>
             <div class="task-drilldown-label" id="repo-detail-title">Repo Detail</div>
           </div>
-          <button class="task-drilldown-close" type="button" id="repo-detail-close">×</button>
+          <button class="task-drilldown-close" type="button" id="repo-detail-close">�</button>
         </div>
         <div class="task-drilldown-body">
           <div class="task-detail-section">
@@ -2197,7 +2197,7 @@ body::after {
   </div>
 </div>
 
-<!-- ── STATUSBAR ───────────────────────────────────────────── -->
+<!-- -- STATUSBAR --------------------------------------------- -->
 <div id="statusbar">
   <div class="sb-seg">
     <div class="sb-dot"></div>
@@ -2207,10 +2207,10 @@ body::after {
     <span>MUTEX HELD</span>
   </div>
   <div class="sb-seg">
-    <span>T03 → dag-monitor · 61%</span>
+    <span>T03 ? dag-monitor � 61%</span>
   </div>
   <div class="sb-seg" style="color:rgba(255,107,32,0.6);">
-    ⚠ 1 STRAY EVENT — INSPECT
+    ? 1 STRAY EVENT � INSPECT
   </div>
   <div class="sb-spacer"></div>
   <div class="sb-seg">
@@ -2233,7 +2233,7 @@ function tick() {
 setInterval(tick, 1000);
 tick();
 
-// ── TASK DRILLDOWN MODAL ──────────────────────────────────
+// -- TASK DRILLDOWN MODAL ----------------------------------
 let currentDrilldownTask = null;
 
 function openTaskDrilldown(taskId) {
@@ -2281,7 +2281,7 @@ function renderDrilldownModal(data) {
   // Verification
   const verifiedEl = document.querySelector('.task-detail-verified');
   const verifiedLive = node.verified_live || false;
-  verifiedEl.textContent = verifiedLive ? '✓ VERIFIED LIVE' : '○ NOT VERIFIED';
+  verifiedEl.textContent = verifiedLive ? '? VERIFIED LIVE' : '? NOT VERIFIED';
   verifiedEl.className = 'task-detail-verified' + (verifiedLive ? ' verified' : '');
   
   // Dependencies
@@ -2348,10 +2348,10 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 });
 
-// all buttons clickable — DAG tasks open drilldown, others visual only
-document.querySelectorAll('.nav-item, .boot-step, .vec-phase, .export-btn, .mem-file, .toggle-wrap').forEach(el => {
+// all buttons clickable � DAG tasks open drilldown, others visual only
+document.querySelectorAll('.boot-step, .vec-phase, .export-btn, .mem-file, .toggle-wrap').forEach(el => {
   el.addEventListener('click', function(e) {
-    // ripple effect on click — visual only
+    // ripple effect on click � visual only
     const r = document.createElement('span');
     r.style.cssText = `
       position:absolute;pointer-events:none;border-radius:inherit;
@@ -2365,7 +2365,7 @@ document.querySelectorAll('.nav-item, .boot-step, .vec-phase, .export-btn, .mem-
   });
 });
 
-// DAG tasks — open drilldown on click
+// DAG tasks � open drilldown on click
 document.querySelectorAll('.dag-task').forEach(el => {
   el.addEventListener('click', function(e) {
     e.stopPropagation();

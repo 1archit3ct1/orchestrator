@@ -1,0 +1,7 @@
+{
+  "generated_at": "2026-03-28T11:05:24.725751",
+  "memory_tail": "ction graph, and promotion readiness.\n- Preserved separation between projection planning state and canonical execution state so future extractor/task-generator work can evolve without mutating `design_graph.json` or `tasks.json` prematurely.\n- Surfaced projection status in the live dashboard payload and scale-analysis rendering so the repo can inspect planning readiness from the GUI while the executor remains stable.\n- [1025] steering_backfill_from_conversation: Added derived decision records so steering telemetry reflects corrections, objections, and verifier refinements from the thread.\n\n## Projection Feedback - 2026-03-28 11:04:38\n- Summary: Projection pipeline promoted 7 tasks from 7 extracted structures with 3 overrides.\n- Promotion Ready: True\n- Prompt Handoff: SPAWN/START/prompt.md\n",
+  "latest_vector_feedback": "projection_feedback_73ecf95b80f6.json",
+  "latest_iteration_feedback": "projection_feedback_73ecf95b80f6.json",
+  "latest_data_feedback": "projection_feedback_73ecf95b80f6.jsonl"
+}

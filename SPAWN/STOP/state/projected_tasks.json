@@ -1,0 +1,79 @@
+{
+  "canonical": true,
+  "mode": "projection-first",
+  "generated_at": "2026-03-28T11:02:33.217576",
+  "approval_state": "approved",
+  "tasks": [
+    {
+      "id": "proj_001",
+      "task_id": "P01",
+      "label": "Execution DAG",
+      "description": "Implement approved projected structure for Execution DAG.",
+      "source_id": "struct_01",
+      "status": "pending",
+      "priority": 1,
+      "goal": "projection_first_orchestration"
+    },
+    {
+      "id": "proj_002",
+      "task_id": "P02",
+      "label": "Strategic Queue",
+      "description": "Implement approved projected structure for Strategic Queue.",
+      "source_id": "struct_02",
+      "status": "pending",
+      "priority": 2,
+      "goal": "projection_first_orchestration"
+    },
+    {
+      "id": "proj_003",
+      "task_id": "P03",
+      "label": "Projection Pipeline",
+      "description": "Implement approved projected structure for Projection Pipeline.",
+      "source_id": "struct_03",
+      "status": "pending",
+      "priority": 3,
+      "goal": "projection_first_orchestration"
+    },
+    {
+      "id": "proj_004",
+      "task_id": "P04",
+      "label": "Backend Runtime Mirror",
+      "description": "Implement approved projected structure for Backend Runtime Mirror.",
+      "source_id": "struct_04",
+      "status": "pending",
+      "priority": 4,
+      "goal": "projection_first_orchestration"
+    },
+    {
+      "id": "proj_005",
+      "task_id": "P05",
+      "label": "Memory and Vector",
+      "description": "Implement approved projected structure for Memory and Vector.",
+      "source_id": "struct_05",
+      "status": "pending",
+      "priority": 5,
+      "goal": "projection_first_orchestration"
+    },
+    {
+      "id": "proj_006",
+      "task_id": "P06",
+      "label": "Training State",
+      "description": "Implement approved projected structure for Training State.",
+      "source_id": "struct_06",
+      "status": "pending",
+      "priority": 6,
+      "goal": "projection_first_orchestration"
+    },
+    {
+      "id": "proj_007",
+      "task_id": "P07",
+      "label": "Miss Detection",
+      "description": "Implement approved projected structure for Miss Detection.",
+      "source_id": "struct_07",
+      "status": "pending",
+      "priority": 7,
+      "goal": "projection_first_orchestration"
+    }
+  ],
+  "promoted_at": "2026-03-28T11:04:38.330285"
+}

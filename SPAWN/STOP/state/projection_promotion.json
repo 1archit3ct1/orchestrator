@@ -1,0 +1,17 @@
+{
+  "canonical": true,
+  "generated_at": "2026-03-28T11:04:38.331190",
+  "promoted": true,
+  "promoted_count": 7,
+  "promoted_ids": [
+    "projection_exec_proj_001",
+    "projection_exec_proj_002",
+    "projection_exec_proj_003",
+    "projection_exec_proj_004",
+    "projection_exec_proj_005",
+    "projection_exec_proj_006",
+    "projection_exec_proj_007"
+  ],
+  "prompt_path": "SPAWN/START/prompt.md",
+  "queue_path": "SPAWN/STOP/.orchestrator/task_queue.json"
+}

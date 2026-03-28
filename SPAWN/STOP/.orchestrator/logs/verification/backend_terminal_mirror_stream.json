@@ -1,0 +1,19 @@
+{
+  "generated_at": "2026-03-28T10:57:29.775597",
+  "name": "backend_terminal_mirror_stream",
+  "all_ok": false,
+  "results": [
+    {
+      "url": "http://localhost:5000/api/runtime/mirror",
+      "status": 200,
+      "ok": true,
+      "preview": "{\n  \"active_task\": null,\n  \"canonical\": true,\n  \"entries\": [\n    {\n      \"display_time\": \"10:50:02\",\n      \"source\": \"web/orchestrator.log\",\n      \"text\": \"2026-03-28 10:50:02,967 [INFO] 127.0.0.1 - - [28/Mar/2026 10:50:02] \\\"GET /truth HTTP/1.1\\\" 200 -\",\n      \"timestamp\": \"2026-03-28T10:50:02\"\n   "
+    },
+    {
+      "url": "http://localhost:5000/events/repo-truth",
+      "status": null,
+      "ok": false,
+      "error": "[WinError 10054] An existing connection was forcibly closed by the remote host"
+    }
+  ]
+}

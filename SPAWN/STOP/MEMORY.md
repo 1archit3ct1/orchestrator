@@ -1464,4 +1464,14 @@
 - [1022] conversation_backfill_request: Long collaborative debugging sessions should become first-class training corpora, not disappear into transient chat.
 - [1023] endpoint_shape_verification: Route existence is weaker than route usefulness; payload shape is part of runtime truth.
 - [1024] browser_vs_api_truth: A stale browser can explain a mismatch, but it should not be an excuse for low-signal UI.
+
+## Projection Pipeline Scaffold - 2026-03-28 10:26:00
+- Added non-destructive projection-first runtime artifacts under `SPAWN/STOP/state/` for extractor output, operator overrides, projected tasks, projection graph, and promotion readiness.
+- Preserved separation between projection planning state and canonical execution state so future extractor/task-generator work can evolve without mutating `design_graph.json` or `tasks.json` prematurely.
+- Surfaced projection status in the live dashboard payload and scale-analysis rendering so the repo can inspect planning readiness from the GUI while the executor remains stable.
 - [1025] steering_backfill_from_conversation: Added derived decision records so steering telemetry reflects corrections, objections, and verifier refinements from the thread.
+
+## Projection Feedback - 2026-03-28 11:04:38
+- Summary: Projection pipeline promoted 7 tasks from 7 extracted structures with 3 overrides.
+- Promotion Ready: True
+- Prompt Handoff: SPAWN/START/prompt.md

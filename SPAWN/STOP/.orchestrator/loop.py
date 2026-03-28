@@ -19,6 +19,7 @@ import json
 import hashlib
 import logging
 import os
+import re
 import sys
 import time
 from datetime import datetime
@@ -41,6 +42,14 @@ logging.basicConfig(
     ]
 )
 logger = logging.getLogger('orchestrator')
+
+STOPWORDS = {
+    'the', 'and', 'for', 'with', 'that', 'this', 'from', 'into', 'will', 'only',
+    'your', 'their', 'have', 'has', 'had', 'are', 'was', 'were', 'but', 'not',
+    'can', 'all', 'any', 'our', 'out', 'use', 'uses', 'using', 'about', 'after',
+    'before', 'through', 'when', 'what', 'where', 'which', 'while', 'still',
+    'make', 'made', 'make', 'task', 'tasks', 'repo', 'stop', 'spawn'
+}
 
 
 class OrchestratorLoop:
@@ -699,16 +708,120 @@ class OrchestratorLoop:
             return tasks
         return tasks.get('pending', [])
 
+    def _append_retrieval_log(self, payload: dict) -> None:
+        retrieval_log = self.root / 'SPAWN' / 'STOP' / 'retrieval_log.jsonl'
+        self._append_text(retrieval_log, json.dumps(payload, default=str) + '\n')
+
+    def _tokenize_retrieval_text(self, text: str) -> set[str]:
+        tokens = {
+            token for token in re.findall(r"[a-z0-9_]{3,}", (text or '').lower())
+            if token not in STOPWORDS
+        }
+        return tokens
+
+    def _entry_search_text(self, entry: dict) -> str:
+        parts = []
+        for key in ('topic', 'session_focus', 'summary', 'description', 'notes', 'type', 'query'):
+            value = entry.get(key)
+            if value:
+                parts.append(str(value))
+        for key in ('user_directives', 'assistant_responses', 'training_value', 'top_hits'):
+            value = entry.get(key)
+            if isinstance(value, list):
+                parts.extend(str(item) for item in value if item)
+        training = entry.get('training')
+        if isinstance(training, dict):
+            parts.extend(f"{key} {value}" for key, value in training.items())
+        return ' '.join(parts)
+
+    def _build_retrieval_query(self, tasks: list) -> str:
+        if not tasks:
+            return 'orchestrator runtime dashboard memory vector retrieval training'
+        fragments = []
+        for task in tasks[:8]:
+            fragments.extend(
+                str(task.get(key, ''))
+                for key in ('id', 'task_id', 'dag_node_id', 'label', 'description', 'goal', 'job', 'repo')
+                if task.get(key)
+            )
+        return ' '.join(fragments)
+
+    def _score_vector_entry(self, entry: dict, query_text: str, query_tokens: set[str]) -> tuple[float, set[str]]:
+        haystack = self._entry_search_text(entry)
+        entry_tokens = self._tokenize_retrieval_text(haystack)
+        if not entry_tokens:
+            return 0.0, set()
+        overlaps = entry_tokens.intersection(query_tokens)
+        score = float(len(overlaps) * 4)
+
+        lowered_haystack = haystack.lower()
+        for phrase in (entry.get('topic'), entry.get('summary'), entry.get('session_focus')):
+            phrase_text = str(phrase or '').strip().lower()
+            if phrase_text and phrase_text in query_text:
+                score += 8.0
+
+        entry_type = str(entry.get('type', '')).lower()
+        if 'miss' in entry_type:
+            score += 1.5
+        if 'session' in entry_type:
+            score += 1.0
+
+        return score, overlaps
+
     def step_2_query_vector_store(self, tasks: list) -> dict:
         """Step 2: Query vector store for relevant context"""
         logger.info("Step 2: Querying vector store for context")
-        context = {}
+        query_text = self._build_retrieval_query(tasks).lower()
+        query_tokens = self._tokenize_retrieval_text(query_text)
+        scored = []
+
         if self.vector_store_dir.exists():
             for entry_file in self.vector_store_dir.glob('*.json'):
                 entry = self._load_json(entry_file)
-                if entry:
-                    context[entry_file.stem] = entry
-        logger.info(f"  Retrieved {len(context)} context entries")
+                if not entry:
+                    continue
+                score, overlaps = self._score_vector_entry(entry, query_text, query_tokens)
+                if score <= 0:
+                    continue
+                scored.append({
+                    'entry_id': entry_file.stem,
+                    'path': str(entry_file.relative_to(self.root)).replace('\\', '/'),
+                    'score': score,
+                    'matched_terms': sorted(overlaps)[:12],
+                    'entry': entry,
+                    'mtime': entry_file.stat().st_mtime,
+                })
+
+        scored.sort(key=lambda item: (item['score'], item['mtime']), reverse=True)
+        top_hits = scored[:12]
+        context = {
+            'query': query_text,
+            'query_terms': sorted(query_tokens),
+            'top_hits': [
+                {
+                    'id': item['entry_id'],
+                    'path': item['path'],
+                    'score': round(item['score'], 2),
+                    'matched_terms': item['matched_terms'],
+                    'type': item['entry'].get('type'),
+                    'topic': item['entry'].get('topic') or item['entry'].get('summary'),
+                }
+                for item in top_hits
+            ],
+            'entries': {
+                item['entry_id']: item['entry']
+                for item in top_hits
+            },
+        }
+        self._append_retrieval_log({
+            'timestamp': datetime.now().isoformat(),
+            'query': query_text,
+            'top_hits': [item['path'] for item in top_hits],
+            'notes': f"ranked_vector_retrieval returned {len(top_hits)} hits from {len(scored)} scored entries",
+            'source': 'orchestrator_loop_step_2',
+            'matched_terms': sorted(query_tokens)[:20],
+        })
+        logger.info(f"  Retrieved {len(top_hits)} ranked context entries from {len(scored)} scored entries")
         return context
 
     def step_3_process_state(self, tasks: list, context: dict) -> dict:
@@ -797,7 +910,10 @@ class OrchestratorLoop:
             'cycle': self.cycle_count,
             'timestamp': datetime.now().isoformat(),
             'tasks_processed': len(state.get('tasks', [])),
-            'training': training_result
+            'training': training_result,
+            'summary': f"cycle {self.cycle_count} processed {len(state.get('tasks', []))} tasks",
+            'query': state.get('context', {}).get('query'),
+            'top_hits': [item.get('path') for item in state.get('context', {}).get('top_hits', [])],
         }
         entry_path = self.vector_store_dir / f"cycle_{self.cycle_count}.json"
         return self._save_json(entry_path, entry)

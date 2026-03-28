@@ -2,13 +2,14 @@
 """
 Orchestrator Dashboard - Flask Backend
 
-Serves the designed dashboard from `state/design.html` and hydrates it with
+Serves the live dashboard shell from `web/templates/dashboard.html` and hydrates it with
 live orchestrator state so the browser always reflects the repo as-built.
 """
 
 import json
 import logging
 import os
+import re
 import subprocess
 import sys
 import time
@@ -48,7 +49,7 @@ TASK_QUEUE_PATH = ORCHESTRATOR_DIR / "task_queue.json"
 DESIGN_GRAPH_PATH = STATE_DIR / "design_graph.json"
 TASKS_PATH = STATE_DIR / "tasks.json"
 MEMORY_PATH = RUNTIME_DIR / "MEMORY.md"
-DESIGN_HTML_PATH = STATE_DIR / "design.html"
+DASHBOARD_TEMPLATE_PATH = SCRIPT_DIR / "templates" / "dashboard.html"
 SECURITY_AUDIT_LOG_PATH = LOGS_DIR / "security" / "security_audit.log"
 ORCHESTRATOR_LOG_PATH = LOGS_DIR / "orchestrator.log"
 if str(ORCHESTRATOR_DIR) not in sys.path:
@@ -164,9 +165,9 @@ def collect_training_queue_items(limit=6):
     return items[:limit]
 
 
-def build_training_run_payload():
+def build_training_run_payload(dashboard=None):
     config = load_json(CONFIG_PATH, {})
-    dashboard = build_dashboard_payload()
+    dashboard = dashboard or build_dashboard_payload()
     training_config = config.get("training_config", {}) if isinstance(config, dict) else {}
     output_dir = training_config.get("output_dir")
     output_path = Path(output_dir) if output_dir else None
@@ -238,8 +239,8 @@ def build_training_run_payload():
     }
 
 
-def build_dataset_payload():
-    dashboard = build_dashboard_payload()
+def build_dataset_payload(dashboard=None):
+    dashboard = dashboard or build_dashboard_payload()
     queue = load_json(TASK_QUEUE_PATH, [])
     dataset_files = collect_recent_files(DATA_DIR, ["*.jsonl", "*.json", "*.csv"], limit=12)
     export_targets = {
@@ -735,6 +736,351 @@ def build_dashboard_payload():
     return sync_dashboard_state(RUNTIME_DIR)
 
 
+def build_projection_payload():
+    return build_dashboard_payload().get("projection", {})
+
+
+def load_task_queue():
+    queue = load_json(TASK_QUEUE_PATH, [])
+    return queue if isinstance(queue, list) else []
+
+
+def build_execution_view_payload(dashboard=None):
+    dashboard = dashboard or build_dashboard_payload()
+    return {
+        "canonical": True,
+        "generated_at": dashboard.get("generated_at"),
+        "graph": dashboard.get("graph", {}),
+        "tasks": dashboard.get("tasks", []),
+        "active_task": dashboard.get("active_task"),
+        "readiness": dashboard.get("readiness", []),
+    }
+
+
+def build_task_queue_view_payload(dashboard=None):
+    dashboard = dashboard or build_dashboard_payload()
+    queue = load_task_queue()
+    counts = {}
+    grouped = {}
+    for item in queue:
+        status = item.get("status", "pending")
+        goal = item.get("goal", "ungrouped")
+        counts[status] = counts.get(status, 0) + 1
+        grouped.setdefault(goal, []).append(item)
+    return {
+        "canonical": True,
+        "generated_at": dashboard.get("generated_at"),
+        "active_task": dashboard.get("active_task"),
+        "queue_counts": counts,
+        "goals": grouped,
+        "items": queue,
+    }
+
+
+def build_memory_overview_payload(dashboard=None):
+    dashboard = dashboard or build_dashboard_payload()
+    model = dashboard.get("model", {})
+    scale = dashboard.get("scale_analysis", {})
+    return {
+        "canonical": True,
+        "generated_at": dashboard.get("generated_at"),
+        "memory_files": dashboard.get("memory_files", []),
+        "vector_entries": dashboard.get("metrics", {}).get("vector_store_entries", 0),
+        "retrieval_lines": model.get("retrieval_lines", 0),
+        "memory_tokens": model.get("memory_collected_tokens", 0),
+        "memory_bytes": model.get("memory_collected_bytes", 0),
+        "top_counts": scale.get("rows", []),
+    }
+
+
+def build_training_state_payload(dashboard=None):
+    dashboard = dashboard or build_dashboard_payload()
+    return {
+        "canonical": True,
+        "generated_at": dashboard.get("generated_at"),
+        "summary": dashboard.get("summary", {}),
+        "model": dashboard.get("model", {}),
+        "scale_analysis": dashboard.get("scale_analysis", {}),
+        "training_run": build_training_run_payload(dashboard),
+        "dataset": build_dataset_payload(dashboard),
+    }
+
+
+def parse_log_timestamp(line: str):
+    match = re.match(r"(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})", line or "")
+    if not match:
+        return None
+    try:
+        return datetime.strptime(match.group(1), "%Y-%m-%d %H:%M:%S")
+    except ValueError:
+        return None
+
+
+def collect_runtime_log_entries(limit=80):
+    candidates = [
+        SCRIPT_DIR / "orchestrator.log",
+        LOGS_DIR / "orchestrator.log",
+        LOGS_DIR / "spawn_runner.log",
+        LOGS_DIR / "loop-actual.err.log",
+        LOGS_DIR / "loop-test.err.log",
+    ]
+    entries = []
+    for path in candidates:
+        if not path.exists():
+            continue
+        for line in tail_lines(path, limit):
+            timestamp = parse_log_timestamp(line)
+            entries.append(
+                {
+                    "source": rel_runtime_path(path),
+                    "text": line,
+                    "timestamp": timestamp.isoformat() if timestamp else None,
+                    "display_time": timestamp.strftime("%H:%M:%S") if timestamp else "",
+                }
+            )
+    entries.sort(key=lambda item: item.get("timestamp") or "", reverse=True)
+    return entries[:limit]
+
+
+def latest_file_event(base_dir: Path, patterns):
+    if not base_dir.exists():
+        return None
+    newest = None
+    for pattern in patterns:
+        for path in base_dir.rglob(pattern):
+            if not path.is_file():
+                continue
+            stat = path.stat()
+            if newest is None or stat.st_mtime > newest["mtime"]:
+                newest = {
+                    "path": rel_runtime_path(path),
+                    "mtime": stat.st_mtime,
+                    "timestamp": datetime.fromtimestamp(stat.st_mtime).isoformat(),
+                }
+    return newest
+
+
+def build_runtime_mirror_payload(dashboard=None):
+    dashboard = dashboard or build_dashboard_payload()
+    entries = collect_runtime_log_entries(limit=120)
+    return {
+        "canonical": True,
+        "generated_at": dashboard.get("generated_at"),
+        "spawn_loop": dashboard.get("spawn_loop", {}),
+        "active_task": dashboard.get("active_task"),
+        "entries": entries,
+        "sources": sorted({entry["source"] for entry in entries}),
+    }
+
+
+def build_runtime_miss_payload(dashboard=None):
+    dashboard = dashboard or build_dashboard_payload()
+    runtime_entries = collect_runtime_log_entries(limit=120)
+    runtime_active = any("/api/" in (entry.get("text") or "") or "CYCLE " in (entry.get("text") or "") for entry in runtime_entries[:40])
+    newest_runtime = None
+    for entry in runtime_entries:
+        if entry.get("timestamp"):
+            newest_runtime = datetime.fromisoformat(entry["timestamp"])
+            break
+
+    trace_event = latest_file_event(ORCHESTRATOR_DIR / "iterations", ["iter_*.json", "dec_*.json"])
+    data_event = latest_file_event(DATA_DIR, ["*.json", "*.jsonl", "*.csv"])
+    retrieval_event = None
+    if (RUNTIME_DIR / "retrieval_log.jsonl").exists():
+        stat = (RUNTIME_DIR / "retrieval_log.jsonl").stat()
+        retrieval_event = {
+            "path": rel_runtime_path(RUNTIME_DIR / "retrieval_log.jsonl"),
+            "mtime": stat.st_mtime,
+            "timestamp": datetime.fromtimestamp(stat.st_mtime).isoformat(),
+        }
+
+    stale_seconds = None
+    status = "unknown"
+    findings = []
+    if newest_runtime:
+        freshest = max(
+            [item["mtime"] for item in [trace_event, data_event, retrieval_event] if item and item.get("mtime")],
+            default=0,
+        )
+        stale_seconds = max(0, int(newest_runtime.timestamp() - freshest)) if freshest else None
+        if runtime_active and (freshest == 0 or stale_seconds is None or stale_seconds > 120):
+            status = "missed"
+            findings.append("Backend runtime activity was observed without a recent trace, retrieval, or dataset write.")
+        elif runtime_active:
+            status = "healthy"
+            findings.append("Backend runtime activity and data-writing surfaces are moving together.")
+        else:
+            status = "idle"
+            findings.append("No recent backend runtime activity was detected.")
+    else:
+        findings.append("No parseable backend runtime timestamps were found in the mirrored logs.")
+
+    return {
+        "canonical": True,
+        "generated_at": dashboard.get("generated_at"),
+        "status": status,
+        "runtime_active": runtime_active,
+        "stale_seconds": stale_seconds,
+        "findings": findings,
+        "latest_runtime": runtime_entries[0] if runtime_entries else None,
+        "latest_trace": trace_event,
+        "latest_data": data_event,
+        "latest_retrieval": retrieval_event,
+    }
+
+
+def build_repo_truth_payload():
+    dashboard = build_dashboard_payload()
+    return {
+        "canonical": True,
+        "generated_at": dashboard.get("generated_at"),
+        "repo_truth": dashboard.get("repo_truth", {}),
+        "execution": build_execution_view_payload(dashboard),
+        "queue": build_task_queue_view_payload(dashboard),
+        "projection": dashboard.get("projection", {}),
+        "memory": build_memory_overview_payload(dashboard),
+        "training": build_training_state_payload(dashboard),
+        "runtime": build_runtime_mirror_payload(dashboard),
+        "misses": build_runtime_miss_payload(dashboard),
+    }
+
+
+def projection_state_path(name: str) -> Path:
+    return STATE_DIR / name
+
+
+def seed_projection_structures():
+    dashboard = build_dashboard_payload()
+    repo_truth = dashboard.get("repo_truth", {})
+    views = repo_truth.get("views", [])
+    structures = []
+    for index, view in enumerate(views, start=1):
+        structures.append(
+            {
+                "id": f"struct_{index:02d}",
+                "label": view.get("label"),
+                "endpoint": view.get("endpoint"),
+                "kind": view.get("id"),
+                "confidence": 0.86,
+                "status": "draft",
+            }
+        )
+    extraction = {
+        "canonical": True,
+        "mode": "projection-first",
+        "stage": "extractor",
+        "status": "draft",
+        "generated_at": datetime.now().isoformat(),
+        "structures": structures,
+        "warnings": [],
+        "source": "repo_truth_state_contract_views",
+    }
+    save_json(projection_state_path("extraction.json"), extraction)
+
+    pipeline = load_json(projection_state_path("projection_pipeline.json"), {})
+    pipeline["active_stage"] = "operator_review"
+    for stage in pipeline.get("stages", []):
+        if stage.get("id") == "extractor":
+            stage["status"] = "complete"
+        elif stage.get("id") == "operator_review":
+            stage["status"] = "active"
+        elif stage.get("id") in {"task_generation", "promotion_gate", "prompt_handoff"}:
+            stage["status"] = "pending"
+    save_json(projection_state_path("projection_pipeline.json"), pipeline)
+    return extraction
+
+
+def save_projection_overrides(payload: dict):
+    overrides = load_json(projection_state_path("operator_overrides.json"), {})
+    normalized = {
+        "canonical": True,
+        "mode": "projection-first",
+        "updated_at": datetime.now().isoformat(),
+        "renames": payload.get("renames", []),
+        "merges": payload.get("merges", []),
+        "splits": payload.get("splits", []),
+        "suppressions": payload.get("suppressions", []),
+        "notes": payload.get("notes", []),
+    }
+    overrides.update(normalized)
+    save_json(projection_state_path("operator_overrides.json"), overrides)
+    return overrides
+
+
+def generate_projected_tasks():
+    extraction = load_json(projection_state_path("extraction.json"), {})
+    overrides = load_json(projection_state_path("operator_overrides.json"), {})
+    structures = extraction.get("structures", []) if isinstance(extraction, dict) else []
+    renames = {item.get("source_id"): item.get("label") for item in overrides.get("renames", []) if isinstance(item, dict)}
+    suppressions = {item.get("source_id") for item in overrides.get("suppressions", []) if isinstance(item, dict)}
+
+    tasks = []
+    nodes = []
+    edges = []
+    previous_id = None
+    for index, structure in enumerate(structures, start=1):
+        source_id = structure.get("id")
+        if source_id in suppressions:
+            continue
+        label = renames.get(source_id) or structure.get("label") or source_id
+        task_id = f"proj_{index:03d}"
+        node_id = f"projection_{index:03d}"
+        tasks.append(
+            {
+                "id": task_id,
+                "task_id": f"P{index:02d}",
+                "label": label,
+                "description": f"Implement approved projected structure for {label}.",
+                "source_id": source_id,
+                "status": "pending",
+                "priority": index,
+                "goal": "projection_first_orchestration",
+            }
+        )
+        nodes.append(
+            {
+                "id": node_id,
+                "task_id": f"P{index:02d}",
+                "label": label,
+                "source_id": source_id,
+                "status": "red",
+            }
+        )
+        if previous_id:
+            edges.append({"from": previous_id, "to": node_id})
+        previous_id = node_id
+
+    projected_tasks = {
+        "canonical": True,
+        "mode": "projection-first",
+        "generated_at": datetime.now().isoformat(),
+        "approval_state": "draft",
+        "tasks": tasks,
+    }
+    projection_graph = {
+        "canonical": True,
+        "mode": "projection-first",
+        "generated_at": datetime.now().isoformat(),
+        "approval_state": "draft",
+        "nodes": nodes,
+        "edges": edges,
+    }
+    save_json(projection_state_path("projected_tasks.json"), projected_tasks)
+    save_json(projection_state_path("projection_graph.json"), projection_graph)
+
+    pipeline = load_json(projection_state_path("projection_pipeline.json"), {})
+    pipeline["active_stage"] = "task_generation"
+    for stage in pipeline.get("stages", []):
+        if stage.get("id") in {"extractor", "operator_review"}:
+            stage["status"] = "complete"
+        elif stage.get("id") == "task_generation":
+            stage["status"] = "active"
+        elif stage.get("id") in {"promotion_gate", "prompt_handoff"}:
+            stage["status"] = "pending"
+    save_json(projection_state_path("projection_pipeline.json"), pipeline)
+    return projected_tasks
+
+
 LIVE_DASHBOARD_SCRIPT = r"""
 <script>
 (function () {
@@ -1115,7 +1461,7 @@ LIVE_DASHBOARD_SCRIPT = r"""
       : '<div class="steering-entry"><div class="steering-text">No high-priority steering trace has been captured yet.</div></div>';
 
     return ''
-      + '<div class="steering-log-panel">'
+      + '<div class="steering-log-panel" data-panel="steering-log" data-steering-root="true">'
       + '<div class="panel-title-row"><div class="panel-title"><span class="panel-icon">...</span>STEERING EVENT LOG</div><div class="panel-badge">LIVE TRAINING SIGNAL</div></div>'
       + '<div class="event-log">' + body + '</div>'
       + '</div>';
@@ -1133,6 +1479,7 @@ LIVE_DASHBOARD_SCRIPT = r"""
     const body = qs('.scale-analysis-body');
     if (!body) return;
     const analysis = data.scale_analysis || {};
+    const projection = data.projection || {};
     const rowHtml = Array.isArray(analysis.rows) && analysis.rows.length ? analysis.rows.map(function (row) {
       return ''
         + '<div class="training-run-item">'
@@ -1180,27 +1527,21 @@ LIVE_DASHBOARD_SCRIPT = r"""
       + buildScaleItems(analysis.unknown || {})
       + '</div>'
       + '</div>'
+      + '<div class="scale-box">'
+      + '<div class="scale-box-title">PROJECTION PIPELINE</div>'
+      + '<div class="scale-line"><strong>Mode:</strong> ' + escapeHtml(textOr(projection.mode, 'projection-first')) + '</div>'
+      + '<div class="scale-line"><strong>Active stage:</strong> ' + escapeHtml(textOr(projection.active_stage, 'extractor')) + '</div>'
+      + '<div class="scale-line"><strong>Approval:</strong> ' + escapeHtml(textOr(projection.approval_state, 'draft').toUpperCase()) + '</div>'
+      + '<div class="scale-line"><strong>Structures:</strong> ' + escapeHtml(String((projection.counts && projection.counts.structures) || 0)) + ' Â· <strong>Projected tasks:</strong> ' + escapeHtml(String((projection.counts && projection.counts.projected_tasks) || 0)) + '</div>'
+      + '<div class="scale-line"><strong>Overrides:</strong> ' + escapeHtml(String((projection.counts && projection.counts.overrides) || 0)) + ' Â· <strong>Promotion ready:</strong> ' + escapeHtml(projection.promotion_ready ? 'YES' : 'NO') + '</div>'
+      + '<div class="scale-line"><strong>Prompt handoff:</strong> ' + escapeHtml(projection.prompt_handoff_ready ? 'READY' : 'BLOCKED') + '</div>'
+      + '</div>'
       + '</div>'
       + '</div>';
     setOperational(body.closest('.card'), !!data.canonical);
   }
   function taskMapConfig() {
     return {
-      nav: {
-        'dag-view': 'T02',
-        'spawn-loop': 'T03',
-        'training-run': 'T04',
-        'dataset': 'T05',
-        'eta-tracker': 'T06',
-        'scale-analysis': 'T07',
-        'audit-log': 'T08',
-        'repo-freeze': 'T09',
-        'stray-monitor': 'T10',
-        'trace-capture': 'T11',
-        'steering-log': 'T12',
-        'export': 'T17-T20',
-        'orchestrator': 'T01'
-      },
       panels: {
         'TASK DAG': 'T02',
         'MODEL STATUS': 'T23',
@@ -1262,13 +1603,6 @@ LIVE_DASHBOARD_SCRIPT = r"""
   }
   function renderTaskSurfaceMap() {
     const config = taskMapConfig();
-    qsa('#sidebar .nav-item[data-nav]').forEach(function (item) {
-      const key = item.getAttribute('data-nav');
-      const value = config.nav[key];
-      if (!value) return;
-      ensureTaskBadge(item, value, 'nav-task-badge');
-    });
-
     qsa('.panel-title').forEach(function (title) {
       const label = (title.textContent || '').trim();
       const value = config.panels[label];
@@ -1285,24 +1619,11 @@ LIVE_DASHBOARD_SCRIPT = r"""
     qsa('.readiness-row').forEach(function (el) { ensureTaskBadge(el, config.itemGroups.readiness, 'panel-task-badge'); });
   }
   function handleNavPanel(panelKey) {
-    const hasSidebar = !!qs('#sidebar .nav-item[data-nav]');
-    const selected = hasSidebar ? (panelKey || 'orchestrator') : 'all';
-    qsa('#sidebar .nav-item[data-nav]').forEach(function (item) {
-      item.classList.toggle('active', item.getAttribute('data-nav') === selected);
-    });
+    const selected = panelKey || 'all';
     qsa('#content [data-panel]').forEach(function (panel) {
       const keys = (panel.getAttribute('data-panel') || '').split(/\s+/).filter(Boolean);
-      const visible = selected === 'all' || selected === 'orchestrator' || keys.includes('all') || keys.includes(selected);
+      const visible = selected === 'all' || keys.includes('all') || keys.includes(selected);
       panel.style.display = visible ? '' : 'none';
-    });
-  }
-  function bindNavPanels() {
-    qsa('#sidebar .nav-item[data-nav]').forEach(function (item) {
-      if (item.dataset.navBound === 'true') return;
-      item.dataset.navBound = 'true';
-      item.addEventListener('click', function () {
-        handleNavPanel(item.getAttribute('data-nav'));
-      });
     });
   }
 
@@ -1315,10 +1636,6 @@ LIVE_DASHBOARD_SCRIPT = r"""
     const pills = qsa('#topbar .pill');
     if (pills[0]) pills[0].innerHTML = '<div class="pill-dot"></div>' + escapeHtml((data.summary.dag_active || 0) + ' SPAWN ACTIVE');
     if (pills[1]) pills[1].innerHTML = '<div class="pill-dot"></div>' + escapeHtml((data.summary.stray_count || 0) + ' STRAY EVENT');
-
-    const navBadges = qsa('#sidebar .nav-badge');
-    if (navBadges[0]) setText(navBadges[0], String(data.metrics.task_status.total || 0));
-    if (navBadges[1]) setText(navBadges[1], String(data.summary.stray_count || 0));
 
     const version = qs('.version-tag');
     if (version) setText(version, 'live');
@@ -2355,8 +2672,7 @@ LIVE_DASHBOARD_SCRIPT = r"""
     bindExportButtons();
     renderStatusbar(data);
     renderTaskSurfaceMap();
-    const activeNav = qs('#sidebar .nav-item.active[data-nav]');
-    handleNavPanel(activeNav ? activeNav.getAttribute('data-nav') : 'all');
+    handleNavPanel('all');
   }
 
   async function refreshFromServer() {
@@ -2634,20 +2950,88 @@ def api_model_status():
     return jsonify(build_model_status_payload())
 
 
-def render_live_design_html():
-    if not DESIGN_HTML_PATH.exists():
-        return "<h1>design.html not found</h1>"
+@app.route("/api/projection/state")
+def api_projection_state():
+    return jsonify(build_projection_payload())
 
-    html = DESIGN_HTML_PATH.read_text(encoding="utf-8", errors="replace")
+
+@app.route("/api/projection/extract-draft", methods=["POST"])
+def api_projection_extract_draft():
+    return jsonify(seed_projection_structures())
+
+
+@app.route("/api/projection/overrides", methods=["POST"])
+def api_projection_overrides():
+    payload = request.get_json(silent=True) or {}
+    return jsonify(save_projection_overrides(payload))
+
+
+@app.route("/api/projection/generate", methods=["POST"])
+def api_projection_generate():
+    return jsonify(generate_projected_tasks())
+
+
+@app.route("/api/frontend/state-views")
+def api_frontend_state_views():
+    return jsonify(build_dashboard_payload().get("repo_truth", {}))
+
+
+@app.route("/api/repo-truth/dashboard")
+def api_repo_truth_dashboard():
+    return jsonify(build_repo_truth_payload())
+
+
+@app.route("/api/repo-truth/execution")
+def api_repo_truth_execution():
+    return jsonify(build_execution_view_payload())
+
+
+@app.route("/api/repo-truth/queue")
+def api_repo_truth_queue():
+    return jsonify(build_task_queue_view_payload())
+
+
+@app.route("/api/repo-truth/memory")
+def api_repo_truth_memory():
+    return jsonify(build_memory_overview_payload())
+
+
+@app.route("/api/repo-truth/training")
+def api_repo_truth_training():
+    return jsonify(build_training_state_payload())
+
+
+@app.route("/api/runtime/mirror")
+def api_runtime_mirror():
+    return jsonify(build_runtime_mirror_payload())
+
+
+@app.route("/api/runtime/misses")
+def api_runtime_misses():
+    return jsonify(build_runtime_miss_payload())
+
+
+def render_live_design_html():
+    if not DASHBOARD_TEMPLATE_PATH.exists():
+        return "<h1>dashboard.html not found</h1>"
+
+    html = DASHBOARD_TEMPLATE_PATH.read_text(encoding="utf-8", errors="replace")
     payload = json.dumps(build_dashboard_payload())
     injection = f"<script>window.__ORCH_DASHBOARD_STATE__ = {payload};</script>{LIVE_DASHBOARD_SCRIPT}"
     return html.replace("</body>", injection + "\n</body>")
 
 
 @app.route("/")
+@app.route("/truth")
+def repo_truth_dashboard():
+    """Serve the repo-truth frontend shell."""
+    return render_template("repo_truth.html")
+
+
 @app.route("/design")
+@app.route("/legacy-design")
 def design_dashboard():
-    """Serve the as-designed live dashboard."""
+    """Serve the legacy dashboard shell for fallback and comparison."""
     return Response(render_live_design_html(), mimetype="text/html")
 
 
@@ -2731,11 +3115,43 @@ def sse_events():
     )
 
 
+@app.route("/events/repo-truth")
+def sse_repo_truth_events():
+    """Real-time repo-truth frontend updates."""
+
+    def emit(event_name, payload):
+        return f"event: {event_name}\ndata: {json.dumps(payload)}\n\n"
+
+    def generate():
+        client_id = id(request)
+        logger.info("Repo-truth SSE client connected: %s", client_id)
+        try:
+            while True:
+                payload = build_repo_truth_payload()
+                yield emit("repo_truth", payload)
+                yield emit("runtime", payload["runtime"])
+                yield emit("misses", payload["misses"])
+                yield emit("queue", payload["queue"])
+                time.sleep(5)
+        except GeneratorExit:
+            logger.info("Repo-truth SSE client disconnected: %s", client_id)
+
+    return Response(
+        generate(),
+        mimetype="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",
+        },
+    )
+
+
 if __name__ == "__main__":
     logger.info("=" * 60)
     logger.info("ORCHESTRATOR DASHBOARD SERVER STARTING")
     logger.info("Runtime dir: %s", RUNTIME_DIR)
-    logger.info("Design source: %s", DESIGN_HTML_PATH)
+    logger.info("Dashboard source: %s", DASHBOARD_TEMPLATE_PATH)
     logger.info("=" * 60)
 
     for dir_path in [LOGS_DIR, DATA_DIR, MODELS_DIR, VECTOR_STORE_DIR, STATE_DIR]:

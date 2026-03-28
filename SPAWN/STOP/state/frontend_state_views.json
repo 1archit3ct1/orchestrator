@@ -1,0 +1,42 @@
+{
+  "canonical": true,
+  "mode": "repo-truth-frontend",
+  "views": [
+    {
+      "id": "execution",
+      "label": "Execution DAG",
+      "endpoint": "/api/repo-truth/execution"
+    },
+    {
+      "id": "queue",
+      "label": "Strategic Queue",
+      "endpoint": "/api/repo-truth/queue"
+    },
+    {
+      "id": "projection",
+      "label": "Projection Pipeline",
+      "endpoint": "/api/projection/state"
+    },
+    {
+      "id": "runtime",
+      "label": "Backend Runtime",
+      "endpoint": "/api/runtime/mirror"
+    },
+    {
+      "id": "memory",
+      "label": "Memory and Vector",
+      "endpoint": "/api/repo-truth/memory"
+    },
+    {
+      "id": "training",
+      "label": "Training State",
+      "endpoint": "/api/repo-truth/training"
+    },
+    {
+      "id": "misses",
+      "label": "Miss Detection",
+      "endpoint": "/api/runtime/misses"
+    }
+  ],
+  "generated_at": null
+}

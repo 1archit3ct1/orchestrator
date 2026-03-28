@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>NEXTAURA // REPO-TRUTH FRONTEND</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #06080b;
+    --surface: rgba(255,255,255,0.03);
+    --surface-2: rgba(34,197,94,0.06);
+    --border: rgba(34,197,94,0.18);
+    --border-strong: rgba(34,197,94,0.32);
+    --text: rgba(220,255,232,0.92);
+    --text-dim: rgba(160,210,176,0.62);
+    --text-ghost: rgba(120,170,138,0.42);
+    --green: #22c55e;
+    --green-glow: rgba(34,197,94,0.28);
+    --amber: #ff9f43;
+    --red: #ff5858;
+    --mono: "Space Mono", monospace;
+    --sans: "Syne", sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; min-height: 100%; background: var(--bg); color: var(--text); font-family: var(--mono); }
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(circle at top left, rgba(34,197,94,0.16), transparent 34%),
+      radial-gradient(circle at bottom right, rgba(34,197,94,0.10), transparent 28%);
+    pointer-events: none;
+  }
+  .shell { position: relative; z-index: 1; padding: 18px; }
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 14px 18px;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    background: rgba(6,8,11,0.88);
+    backdrop-filter: blur(18px);
+    margin-bottom: 16px;
+  }
+  .brand h1 {
+    margin: 0;
+    font-family: var(--sans);
+    font-size: 18px;
+    letter-spacing: 2px;
+    color: var(--green);
+  }
+  .brand p, .meta {
+    margin: 2px 0 0;
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 1.5px;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: 12px;
+  }
+  .card {
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(34,197,94,0.03));
+    overflow: hidden;
+    min-height: 180px;
+  }
+  .card header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 14px 16px;
+    border-bottom: 1px solid rgba(34,197,94,0.12);
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+  }
+  .card .body { padding: 16px; }
+  .span-3 { grid-column: span 3; }
+  .span-4 { grid-column: span 4; }
+  .span-5 { grid-column: span 5; }
+  .span-6 { grid-column: span 6; }
+  .span-7 { grid-column: span 7; }
+  .span-8 { grid-column: span 8; }
+  .span-12 { grid-column: span 12; }
+  .metric {
+    font-family: var(--sans);
+    font-size: 36px;
+    line-height: 1;
+    color: var(--green);
+    text-shadow: 0 0 22px var(--green-glow);
+    margin-bottom: 6px;
+  }
+  .metric-meta { font-size: 10px; color: var(--text-dim); letter-spacing: 1px; }
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    border: 1px solid var(--border-strong);
+    background: var(--surface-2);
+    color: var(--green);
+    font-size: 9px;
+    letter-spacing: 1px;
+    font-weight: 700;
+  }
+  .pill.warn { color: var(--amber); border-color: rgba(255,159,67,0.35); background: rgba(255,159,67,0.08); }
+  .pill.bad { color: var(--red); border-color: rgba(255,88,88,0.35); background: rgba(255,88,88,0.08); }
+  .kv {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 10px;
+  }
+  .kv-item, .list-item {
+    border: 1px solid rgba(34,197,94,0.12);
+    background: rgba(255,255,255,0.02);
+    border-radius: 10px;
+    padding: 10px 12px;
+  }
+  .kv-item strong, .list-item strong {
+    display: block;
+    font-size: 9px;
+    color: var(--text-ghost);
+    letter-spacing: 1.2px;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+  }
+  .kv-item span, .list-item span, .list-item div {
+    font-size: 11px;
+    color: var(--text);
+    line-height: 1.55;
+  }
+  .list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 380px;
+    overflow: auto;
+  }
+  .queue-item {
+    border-left: 3px solid var(--green);
+    padding-left: 10px;
+  }
+  .queue-item.pending { border-left-color: var(--amber); }
+  .queue-item.active { border-left-color: var(--green); }
+  .queue-item .qid {
+    color: var(--green);
+    font-weight: 700;
+  }
+  .queue-item.pending .qid { color: var(--amber); }
+  .muted { color: var(--text-dim); }
+  pre {
+    margin: 0;
+    white-space: pre-wrap;
+    word-break: break-word;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text);
+  }
+  .runtime-list {
+    max-height: 420px;
+    overflow: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .runtime-line {
+    border: 1px solid rgba(34,197,94,0.10);
+    border-radius: 10px;
+    padding: 9px 10px;
+    background: rgba(255,255,255,0.02);
+  }
+  .runtime-line .src {
+    color: var(--text-ghost);
+    font-size: 9px;
+    letter-spacing: 1px;
+    margin-bottom: 4px;
+  }
+  .runtime-line .txt {
+    color: var(--text);
+    font-size: 10px;
+    line-height: 1.5;
+  }
+  .view-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .view-chip {
+    padding: 8px 10px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: rgba(34,197,94,0.05);
+    min-width: 160px;
+  }
+  .view-chip div:first-child {
+    font-size: 10px;
+    color: var(--green);
+    margin-bottom: 4px;
+  }
+  .view-chip div:last-child {
+    font-size: 9px;
+    color: var(--text-dim);
+  }
+  @media (max-width: 1200px) {
+    .span-3, .span-4, .span-5, .span-6, .span-7, .span-8 { grid-column: span 12; }
+  }
+</style>
+</head>
+<body>
+  <div class="shell">
+    <div class="topbar">
+      <div class="brand">
+        <h1>NEXTAURA // REPO-TRUTH FRONTEND</h1>
+        <p>Canonical backend state views, live runtime mirror, and missed-data detection.</p>
+      </div>
+      <div class="meta" id="generated-at">waiting for repo truth...</div>
+    </div>
+
+    <div class="grid">
+      <section class="card span-3">
+        <header><span>Execution</span><span class="pill" id="exec-pill">loading</span></header>
+        <div class="body">
+          <div class="metric" id="exec-green">0</div>
+          <div class="metric-meta" id="exec-meta">green nodes / total</div>
+        </div>
+      </section>
+
+      <section class="card span-3">
+        <header><span>Strategic Queue</span><span class="pill" id="queue-pill">loading</span></header>
+        <div class="body">
+          <div class="metric" id="queue-count">0</div>
+          <div class="metric-meta" id="queue-meta">queued tasks</div>
+        </div>
+      </section>
+
+      <section class="card span-3">
+        <header><span>Runtime Mirror</span><span class="pill" id="runtime-pill">loading</span></header>
+        <div class="body">
+          <div class="metric" id="runtime-count">0</div>
+          <div class="metric-meta" id="runtime-meta">mirrored backend lines</div>
+        </div>
+      </section>
+
+      <section class="card span-3">
+        <header><span>Miss Detection</span><span class="pill" id="miss-pill">loading</span></header>
+        <div class="body">
+          <div class="metric" id="miss-seconds">--</div>
+          <div class="metric-meta" id="miss-meta">seconds since last data write gap check</div>
+        </div>
+      </section>
+
+      <section class="card span-12">
+        <header><span>Frontend State Contracts</span><span class="pill" id="route-pill">/truth</span></header>
+        <div class="body">
+          <div class="view-list" id="state-views"></div>
+        </div>
+      </section>
+
+      <section class="card span-5">
+        <header><span>Execution DAG</span><span class="pill" id="active-task-pill">queue</span></header>
+        <div class="body list" id="execution-list"></div>
+      </section>
+
+      <section class="card span-7">
+        <header><span>Strategic Queue</span><span class="pill" id="goal-pill">goals</span></header>
+        <div class="body list" id="queue-list"></div>
+      </section>
+
+      <section class="card span-7">
+        <header><span>Backend Runtime Mirror</span><span class="pill" id="runtime-sources">sources</span></header>
+        <div class="body runtime-list" id="runtime-list"></div>
+      </section>
+
+      <section class="card span-5">
+        <header><span>Miss Analysis</span><span class="pill" id="miss-status-card">state</span></header>
+        <div class="body">
+          <div class="kv" id="miss-kv"></div>
+        </div>
+      </section>
+
+      <section class="card span-6">
+        <header><span>Projection Pipeline</span><span class="pill" id="projection-pill">draft</span></header>
+        <div class="body">
+          <div class="kv" id="projection-kv"></div>
+        </div>
+      </section>
+
+      <section class="card span-12">
+        <header><span>Projection Operator Review</span><span class="pill" id="review-pill">draft review</span></header>
+        <div class="body">
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
+            <button type="button" class="pill" id="seed-projection-btn">Seed Extractor Draft</button>
+            <button type="button" class="pill" id="save-overrides-btn">Save Overrides</button>
+            <button type="button" class="pill" id="generate-projection-btn">Generate Projected Tasks</button>
+          </div>
+          <div class="grid" style="grid-template-columns:repeat(12,minmax(0,1fr));gap:12px;">
+            <div class="span-4">
+              <div class="kv-item">
+                <strong>Review Notes</strong>
+                <textarea id="projection-notes" style="width:100%;min-height:160px;background:rgba(255,255,255,0.02);border:1px solid rgba(34,197,94,0.12);border-radius:8px;color:var(--text);padding:10px;font-family:var(--mono);font-size:10px;"></textarea>
+              </div>
+            </div>
+            <div class="span-4">
+              <div class="kv-item">
+                <strong>Rename Overrides JSON</strong>
+                <textarea id="projection-renames" style="width:100%;min-height:160px;background:rgba(255,255,255,0.02);border:1px solid rgba(34,197,94,0.12);border-radius:8px;color:var(--text);padding:10px;font-family:var(--mono);font-size:10px;">[]</textarea>
+              </div>
+            </div>
+            <div class="span-4">
+              <div class="kv-item">
+                <strong>Extracted Structures</strong>
+                <div class="list" id="projection-structures" style="max-height:180px;"></div>
+              </div>
+            </div>
+          </div>
+          <div style="margin-top:12px;" class="list" id="projected-task-list"></div>
+        </div>
+      </section>
+
+      <section class="card span-6">
+        <header><span>Memory and Training</span><span class="pill" id="training-pill">model</span></header>
+        <div class="body">
+          <div class="kv" id="memory-training-kv"></div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+<script>
+(function () {
+  const qs = (s) => document.querySelector(s);
+
+  function esc(value) {
+    const div = document.createElement('div');
+    div.textContent = value == null ? '' : String(value);
+    return div.innerHTML;
+  }
+
+  function pillClass(status) {
+    if (status === 'missed' || status === 'blocked' || status === 'bad') return 'pill bad';
+    if (status === 'pending' || status === 'warn' || status === 'idle') return 'pill warn';
+    return 'pill';
+  }
+
+  function renderViews(views) {
+    qs('#state-views').innerHTML = (views || []).map(function (item) {
+      return '<div class="view-chip"><div>' + esc(item.label) + '</div><div>' + esc(item.endpoint) + '</div></div>';
+    }).join('');
+  }
+
+  function renderExecution(data) {
+    const graph = (data.execution && data.execution.graph) || {};
+    const nodes = graph.nodes || [];
+    const green = nodes.filter((node) => node.status === 'green').length;
+    qs('#exec-green').textContent = green;
+    qs('#exec-meta').textContent = green + ' green / ' + nodes.length + ' total';
+    qs('#exec-pill').className = pillClass(graph.status === 'complete' ? 'live' : 'pending');
+    qs('#exec-pill').textContent = graph.status || 'pending';
+    qs('#active-task-pill').textContent = data.execution.active_task ? data.execution.active_task.task_id : 'no active task';
+    qs('#execution-list').innerHTML = nodes.map(function (node) {
+      return '<div class="list-item queue-item ' + esc(node.display_status || 'pending') + '">'
+        + '<strong>' + esc(node.task_id || node.id) + '</strong>'
+        + '<div><span class="qid">' + esc(node.task_name || node.label || node.id) + '</span></div>'
+        + '<div class="muted">' + esc(node.verification_reason || '') + '</div>'
+        + '</div>';
+    }).join('');
+  }
+
+  function renderQueue(data) {
+    const items = (data.queue && data.queue.items) || [];
+    const counts = (data.queue && data.queue.queue_counts) || {};
+    qs('#queue-count').textContent = items.length;
+    qs('#queue-meta').textContent = (counts.pending || 0) + ' pending / ' + (counts.completed || 0) + ' completed';
+    qs('#queue-pill').className = pillClass(items.length ? 'pending' : 'live');
+    qs('#queue-pill').textContent = items.length ? 'queued' : 'clear';
+    qs('#goal-pill').textContent = Object.keys((data.queue && data.queue.goals) || {}).length + ' goals';
+    qs('#queue-list').innerHTML = items.map(function (item) {
+      return '<div class="list-item queue-item ' + esc(item.status || 'pending') + '">'
+        + '<strong>' + esc(item.goal || 'ungrouped') + '</strong>'
+        + '<div><span class="qid">' + esc(item.id) + '</span></div>'
+        + '<div>' + esc(item.description || '') + '</div>'
+        + '</div>';
+    }).join('');
+  }
+
+  function renderRuntime(data) {
+    const runtime = data.runtime || {};
+    const entries = runtime.entries || [];
+    qs('#runtime-count').textContent = entries.length;
+    qs('#runtime-meta').textContent = (runtime.spawn_loop && runtime.spawn_loop.state ? runtime.spawn_loop.state : 'unknown') + ' backend state';
+    qs('#runtime-pill').className = pillClass(runtime.spawn_loop && runtime.spawn_loop.state === 'running' ? 'live' : 'idle');
+    qs('#runtime-pill').textContent = runtime.spawn_loop && runtime.spawn_loop.state ? runtime.spawn_loop.state : 'unknown';
+    qs('#runtime-sources').textContent = (runtime.sources || []).length + ' sources';
+    qs('#runtime-list').innerHTML = entries.map(function (entry) {
+      return '<div class="runtime-line"><div class="src">' + esc(entry.display_time || '') + ' · ' + esc(entry.source) + '</div><div class="txt">' + esc(entry.text) + '</div></div>';
+    }).join('');
+  }
+
+  function renderMisses(data) {
+    const misses = data.misses || {};
+    qs('#miss-pill').className = pillClass(misses.status || 'unknown');
+    qs('#miss-pill').textContent = misses.status || 'unknown';
+    qs('#miss-status-card').className = pillClass(misses.status || 'unknown');
+    qs('#miss-status-card').textContent = misses.runtime_active ? 'runtime active' : 'runtime idle';
+    qs('#miss-seconds').textContent = misses.stale_seconds == null ? '--' : String(misses.stale_seconds);
+    qs('#miss-meta').textContent = (misses.findings || []).join(' ');
+    const latestRuntime = misses.latest_runtime || {};
+    const latestTrace = misses.latest_trace || {};
+    const latestData = misses.latest_data || {};
+    const latestRetrieval = misses.latest_retrieval || {};
+    qs('#miss-kv').innerHTML = [
+      ['Latest runtime', latestRuntime.source || 'none'],
+      ['Latest trace write', latestTrace.path || 'none'],
+      ['Latest data write', latestData.path || 'none'],
+      ['Latest retrieval write', latestRetrieval.path || 'none'],
+      ['Findings', (misses.findings || []).join(' ') || 'none'],
+    ].map(function (row) {
+      return '<div class="kv-item"><strong>' + esc(row[0]) + '</strong><span>' + esc(row[1]) + '</span></div>';
+    }).join('');
+  }
+
+  function renderProjection(data) {
+    const projection = data.projection || {};
+    qs('#projection-pill').textContent = projection.approval_state || 'draft';
+    qs('#review-pill').textContent = projection.active_stage || 'extractor';
+    qs('#projection-kv').innerHTML = [
+      ['Mode', projection.mode || 'projection-first'],
+      ['Active stage', projection.active_stage || 'extractor'],
+      ['Structures', (projection.counts && projection.counts.structures) || 0],
+      ['Projected tasks', (projection.counts && projection.counts.projected_tasks) || 0],
+      ['Overrides', (projection.counts && projection.counts.overrides) || 0],
+      ['Prompt handoff', projection.prompt_handoff_ready ? 'ready' : 'blocked'],
+    ].map(function (row) {
+      return '<div class="kv-item"><strong>' + esc(row[0]) + '</strong><span>' + esc(row[1]) + '</span></div>';
+    }).join('');
+
+    const structures = projection.structures || [];
+    qs('#projection-structures').innerHTML = structures.length ? structures.map(function (item) {
+      return '<div class="list-item"><strong>' + esc(item.kind || item.id) + '</strong><span>' + esc(item.label || item.id) + ' · ' + esc(item.endpoint || '') + '</span></div>';
+    }).join('') : '<div class="list-item"><span>No extracted structures yet.</span></div>';
+
+    const projectedTasks = projection.projected_tasks || [];
+    qs('#projected-task-list').innerHTML = projectedTasks.length ? projectedTasks.map(function (item) {
+      return '<div class="list-item"><strong>' + esc(item.task_id || item.id) + '</strong><div>' + esc(item.label || item.id) + '</div><div class="muted">' + esc(item.description || '') + '</div></div>';
+    }).join('') : '<div class="list-item"><span>No projected tasks generated yet.</span></div>';
+  }
+
+  function renderMemoryTraining(data) {
+    const memory = data.memory || {};
+    const training = data.training || {};
+    const model = training.model || {};
+    qs('#training-pill').textContent = (training.training_run && training.training_run.training_config && training.training_run.training_config.integrated) ? 'integrated' : 'pending';
+    qs('#memory-training-kv').innerHTML = [
+      ['Memory tokens', model.memory_collected_tokens || 0],
+      ['Retrieval lines', memory.retrieval_lines || 0],
+      ['Vector entries', memory.vector_entries || 0],
+      ['Training traces', (training.summary && training.summary.training_traces) || 0],
+      ['Dataset files', (training.dataset && training.dataset.counts && training.dataset.counts.dataset_files) || 0],
+      ['Training blockers', ((training.training_run && training.training_run.blockers) || []).length],
+    ].map(function (row) {
+      return '<div class="kv-item"><strong>' + esc(row[0]) + '</strong><span>' + esc(row[1]) + '</span></div>';
+    }).join('');
+  }
+
+  function applyState(data) {
+    qs('#generated-at').textContent = 'generated ' + esc(data.generated_at || '');
+    qs('#route-pill').textContent = (data.repo_truth && data.repo_truth.default_route) || '/truth';
+    renderViews((data.repo_truth && data.repo_truth.views) || []);
+    renderExecution(data);
+    renderQueue(data);
+    renderRuntime(data);
+    renderMisses(data);
+    renderProjection(data);
+    renderMemoryTraining(data);
+  }
+
+  function readJsonTextarea(id) {
+    const raw = qs(id).value.trim() || '[]';
+    try {
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (error) {
+      console.error('[projection] invalid json', error);
+      return [];
+    }
+  }
+
+  async function postJson(url, payload) {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(payload || {}),
+    });
+    return response.json();
+  }
+
+  function bindProjectionControls() {
+    qs('#seed-projection-btn').addEventListener('click', async function () {
+      await postJson('/api/projection/extract-draft', {});
+      refresh();
+    });
+    qs('#save-overrides-btn').addEventListener('click', async function () {
+      const notes = qs('#projection-notes').value.split('\n').map((line) => line.trim()).filter(Boolean);
+      const renames = readJsonTextarea('#projection-renames');
+      await postJson('/api/projection/overrides', { notes: notes, renames: renames });
+      refresh();
+    });
+    qs('#generate-projection-btn').addEventListener('click', async function () {
+      await postJson('/api/projection/generate', {});
+      refresh();
+    });
+  }
+
+  async function refresh() {
+    const response = await fetch('/api/repo-truth/dashboard', { cache: 'no-store' });
+    if (!response.ok) return;
+    applyState(await response.json());
+  }
+
+  refresh();
+  bindProjectionControls();
+  setInterval(refresh, 15000);
+
+  try {
+    const source = new EventSource('/events/repo-truth');
+    source.addEventListener('repo_truth', function (event) {
+      applyState(JSON.parse(event.data));
+    });
+    source.onerror = function () {
+      source.close();
+      setTimeout(refresh, 3000);
+    };
+  } catch (error) {
+    console.error('[repo-truth] SSE unavailable', error);
+  }
+})();
+</script>
+</body>
+</html>

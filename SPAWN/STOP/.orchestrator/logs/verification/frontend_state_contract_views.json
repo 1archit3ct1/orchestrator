@@ -1,0 +1,37 @@
+{
+  "generated_at": "2026-03-28T10:52:45.137038",
+  "name": "frontend_state_contract_views",
+  "all_ok": true,
+  "results": [
+    {
+      "url": "http://localhost:5000/api/frontend/state-views",
+      "status": 200,
+      "ok": true,
+      "preview": "{\n  \"canonical\": true,\n  \"default_route\": \"/\",\n  \"legacy_route\": \"/design\",\n  \"mode\": \"repo-truth-frontend\",\n  \"notes\": [\n    \"The repo-truth frontend must read canonical backend state domains directly.\",\n    \"Legacy dashboard surfaces remain available until parity and cutover verification are compl"
+    },
+    {
+      "url": "http://localhost:5000/api/repo-truth/execution",
+      "status": 200,
+      "ok": true,
+      "preview": "{\n  \"active_task\": null,\n  \"canonical\": true,\n  \"generated_at\": \"2026-03-28T10:52:36.200950\",\n  \"graph\": {\n    \"edges\": [\n      {\n        \"from\": \"gui_nav_panels\",\n        \"to\": \"gui_dag_task_details\"\n      },\n      {\n        \"from\": \"gui_nav_panels\",\n        \"to\": \"gui_spawn_loop_controls\"\n      },"
+    },
+    {
+      "url": "http://localhost:5000/api/repo-truth/queue",
+      "status": 200,
+      "ok": true,
+      "preview": "{\n  \"active_task\": null,\n  \"canonical\": true,\n  \"generated_at\": \"2026-03-28T10:52:39.200363\",\n  \"goals\": {\n    \"deliver_24b_model\": [\n      {\n        \"allowed_paths\": [\n          \"SPAWN/STOP/training/\",\n          \"SPAWN/STOP/.orchestrator/data/\",\n          \"SPAWN/STOP/.orchestrator/iterations/\"\n    "
+    },
+    {
+      "url": "http://localhost:5000/api/repo-truth/memory",
+      "status": 200,
+      "ok": true,
+      "preview": "{\n  \"canonical\": true,\n  \"generated_at\": \"2026-03-28T10:52:42.135364\",\n  \"memory_bytes\": 4320268,\n  \"memory_files\": [\n    {\n      \"name\": \"MEMORY.md\",\n      \"size\": \"append-only - 159.5 KB\"\n    },\n    {\n      \"name\": \"vector_store/\",\n      \"size\": \"1054 entries - 1.3 MB\"\n    },\n    {\n      \"name\": \""
+    },
+    {
+      "url": "http://localhost:5000/api/repo-truth/training",
+      "status": 200,
+      "ok": true,
+      "preview": "{\n  \"canonical\": true,\n  \"dataset\": {\n    \"canonical\": true,\n    \"counts\": {\n      \"dataset_files\": 12,\n      \"retrieval_lines\": 1055,\n      \"training_traces\": 1210\n    },\n    \"export_targets\": {\n      \"alpaca_ready\": true,\n      \"jsonl_ready\": true,\n      \"sharegpt_ready\": true,\n      \"steering_rea"
+    }
+  ]
+}

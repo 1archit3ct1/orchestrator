@@ -1,0 +1,20 @@
+{
+  "generated_at": "2026-03-28T10:55:37.926409",
+  "name": "projection_state_schema",
+  "all_ok": true,
+  "state_files": [
+    "SPAWN/STOP/state/extraction.json",
+    "SPAWN/STOP/state/operator_overrides.json",
+    "SPAWN/STOP/state/projected_tasks.json",
+    "SPAWN/STOP/state/projection_graph.json",
+    "SPAWN/STOP/state/projection_pipeline.json"
+  ],
+  "results": [
+    {
+      "url": "http://localhost:5000/api/projection/state",
+      "status": 200,
+      "ok": true,
+      "preview": "{\n  \"active_stage\": \"extractor\",\n  \"approval_state\": \"draft\",\n  \"approved\": false,\n  \"canonical\": true,\n  \"counts\": {\n    \"graph_nodes\": 0,\n    \"overrides\": 0,\n    \"projected_tasks\": 0,\n    \"structures\": 0,\n    \"warnings\": 0\n  },\n  \"mode\": \"projection-first\",\n  \"notes\": [\n    \"Projection state must "
+    }
+  ]
+}

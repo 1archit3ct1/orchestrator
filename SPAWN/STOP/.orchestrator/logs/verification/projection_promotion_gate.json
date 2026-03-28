@@ -1,0 +1,325 @@
+{
+  "generated_at": "2026-03-28T11:05:24.725533",
+  "projection_state": {
+    "active_stage": "prompt_handoff",
+    "approval_state": "approved",
+    "approved": true,
+    "canonical": true,
+    "counts": {
+      "graph_nodes": 7,
+      "overrides": 3,
+      "projected_tasks": 7,
+      "structures": 7,
+      "warnings": 0
+    },
+    "mode": "projection-first",
+    "notes": [
+      "Projection state must remain separate from canonical execution state until approval and promotion complete."
+    ],
+    "projected_tasks": [
+      {
+        "description": "Implement approved projected structure for Execution DAG.",
+        "goal": "projection_first_orchestration",
+        "id": "proj_001",
+        "label": "Execution DAG",
+        "priority": 1,
+        "source_id": "struct_01",
+        "status": "pending",
+        "task_id": "P01"
+      },
+      {
+        "description": "Implement approved projected structure for Strategic Queue.",
+        "goal": "projection_first_orchestration",
+        "id": "proj_002",
+        "label": "Strategic Queue",
+        "priority": 2,
+        "source_id": "struct_02",
+        "status": "pending",
+        "task_id": "P02"
+      },
+      {
+        "description": "Implement approved projected structure for Projection Pipeline.",
+        "goal": "projection_first_orchestration",
+        "id": "proj_003",
+        "label": "Projection Pipeline",
+        "priority": 3,
+        "source_id": "struct_03",
+        "status": "pending",
+        "task_id": "P03"
+      },
+      {
+        "description": "Implement approved projected structure for Backend Runtime Mirror.",
+        "goal": "projection_first_orchestration",
+        "id": "proj_004",
+        "label": "Backend Runtime Mirror",
+        "priority": 4,
+        "source_id": "struct_04",
+        "status": "pending",
+        "task_id": "P04"
+      },
+      {
+        "description": "Implement approved projected structure for Memory and Vector.",
+        "goal": "projection_first_orchestration",
+        "id": "proj_005",
+        "label": "Memory and Vector",
+        "priority": 5,
+        "source_id": "struct_05",
+        "status": "pending",
+        "task_id": "P05"
+      },
+      {
+        "description": "Implement approved projected structure for Training State.",
+        "goal": "projection_first_orchestration",
+        "id": "proj_006",
+        "label": "Training State",
+        "priority": 6,
+        "source_id": "struct_06",
+        "status": "pending",
+        "task_id": "P06"
+      },
+      {
+        "description": "Implement approved projected structure for Miss Detection.",
+        "goal": "projection_first_orchestration",
+        "id": "proj_007",
+        "label": "Miss Detection",
+        "priority": 7,
+        "source_id": "struct_07",
+        "status": "pending",
+        "task_id": "P07"
+      }
+    ],
+    "promotion_ready": true,
+    "prompt_handoff_ready": true,
+    "stages": [
+      {
+        "id": "extractor",
+        "label": "Extractor",
+        "status": "complete"
+      },
+      {
+        "id": "operator_review",
+        "label": "Operator Review",
+        "status": "complete"
+      },
+      {
+        "id": "task_generation",
+        "label": "Task Generator",
+        "status": "complete"
+      },
+      {
+        "id": "promotion_gate",
+        "label": "Promotion Gate",
+        "status": "complete"
+      },
+      {
+        "id": "prompt_handoff",
+        "label": "Prompt Handoff",
+        "status": "active"
+      }
+    ],
+    "structures": [
+      {
+        "confidence": 0.86,
+        "endpoint": "/api/repo-truth/execution",
+        "id": "struct_01",
+        "kind": "execution",
+        "label": "Execution DAG",
+        "status": "draft"
+      },
+      {
+        "confidence": 0.86,
+        "endpoint": "/api/repo-truth/queue",
+        "id": "struct_02",
+        "kind": "queue",
+        "label": "Strategic Queue",
+        "status": "draft"
+      },
+      {
+        "confidence": 0.86,
+        "endpoint": "/api/projection/state",
+        "id": "struct_03",
+        "kind": "projection",
+        "label": "Projection Pipeline",
+        "status": "draft"
+      },
+      {
+        "confidence": 0.86,
+        "endpoint": "/api/runtime/mirror",
+        "id": "struct_04",
+        "kind": "runtime",
+        "label": "Backend Runtime",
+        "status": "draft"
+      },
+      {
+        "confidence": 0.86,
+        "endpoint": "/api/repo-truth/memory",
+        "id": "struct_05",
+        "kind": "memory",
+        "label": "Memory and Vector",
+        "status": "draft"
+      },
+      {
+        "confidence": 0.86,
+        "endpoint": "/api/repo-truth/training",
+        "id": "struct_06",
+        "kind": "training",
+        "label": "Training State",
+        "status": "draft"
+      },
+      {
+        "confidence": 0.86,
+        "endpoint": "/api/runtime/misses",
+        "id": "struct_07",
+        "kind": "misses",
+        "label": "Miss Detection",
+        "status": "draft"
+      }
+    ],
+    "warnings": []
+  },
+  "promotion_summary": {
+    "canonical": true,
+    "generated_at": "2026-03-28T11:04:38.331190",
+    "promoted": true,
+    "promoted_count": 7,
+    "promoted_ids": [
+      "projection_exec_proj_001",
+      "projection_exec_proj_002",
+      "projection_exec_proj_003",
+      "projection_exec_proj_004",
+      "projection_exec_proj_005",
+      "projection_exec_proj_006",
+      "projection_exec_proj_007"
+    ],
+    "prompt_path": "SPAWN/START/prompt.md",
+    "queue_path": "SPAWN/STOP/.orchestrator/task_queue.json"
+  },
+  "promoted_queue_items": [
+    {
+      "id": "projection_exec_proj_001",
+      "repo": "orchestrator",
+      "description": "Implement approved projected structure for Execution DAG.",
+      "allowed_paths": [
+        "SPAWN/STOP/state/",
+        "SPAWN/STOP/.orchestrator/",
+        "SPAWN/STOP/web/",
+        "README.md"
+      ],
+      "priority": 44,
+      "status": "pending",
+      "goal": "projection_first_orchestration",
+      "source_id": "struct_01",
+      "projected_task_id": "proj_001",
+      "task_id": "P01",
+      "label": "Execution DAG"
+    },
+    {
+      "id": "projection_exec_proj_002",
+      "repo": "orchestrator",
+      "description": "Implement approved projected structure for Strategic Queue.",
+      "allowed_paths": [
+        "SPAWN/STOP/state/",
+        "SPAWN/STOP/.orchestrator/",
+        "SPAWN/STOP/web/",
+        "README.md"
+      ],
+      "priority": 45,
+      "status": "pending",
+      "goal": "projection_first_orchestration",
+      "source_id": "struct_02",
+      "projected_task_id": "proj_002",
+      "task_id": "P02",
+      "label": "Strategic Queue"
+    },
+    {
+      "id": "projection_exec_proj_003",
+      "repo": "orchestrator",
+      "description": "Implement approved projected structure for Projection Pipeline.",
+      "allowed_paths": [
+        "SPAWN/STOP/state/",
+        "SPAWN/STOP/.orchestrator/",
+        "SPAWN/STOP/web/",
+        "README.md"
+      ],
+      "priority": 46,
+      "status": "pending",
+      "goal": "projection_first_orchestration",
+      "source_id": "struct_03",
+      "projected_task_id": "proj_003",
+      "task_id": "P03",
+      "label": "Projection Pipeline"
+    },
+    {
+      "id": "projection_exec_proj_004",
+      "repo": "orchestrator",
+      "description": "Implement approved projected structure for Backend Runtime Mirror.",
+      "allowed_paths": [
+        "SPAWN/STOP/state/",
+        "SPAWN/STOP/.orchestrator/",
+        "SPAWN/STOP/web/",
+        "README.md"
+      ],
+      "priority": 47,
+      "status": "pending",
+      "goal": "projection_first_orchestration",
+      "source_id": "struct_04",
+      "projected_task_id": "proj_004",
+      "task_id": "P04",
+      "label": "Backend Runtime Mirror"
+    },
+    {
+      "id": "projection_exec_proj_005",
+      "repo": "orchestrator",
+      "description": "Implement approved projected structure for Memory and Vector.",
+      "allowed_paths": [
+        "SPAWN/STOP/state/",
+        "SPAWN/STOP/.orchestrator/",
+        "SPAWN/STOP/web/",
+        "README.md"
+      ],
+      "priority": 48,
+      "status": "pending",
+      "goal": "projection_first_orchestration",
+      "source_id": "struct_05",
+      "projected_task_id": "proj_005",
+      "task_id": "P05",
+      "label": "Memory and Vector"
+    },
+    {
+      "id": "projection_exec_proj_006",
+      "repo": "orchestrator",
+      "description": "Implement approved projected structure for Training State.",
+      "allowed_paths": [
+        "SPAWN/STOP/state/",
+        "SPAWN/STOP/.orchestrator/",
+        "SPAWN/STOP/web/",
+        "README.md"
+      ],
+      "priority": 49,
+      "status": "pending",
+      "goal": "projection_first_orchestration",
+      "source_id": "struct_06",
+      "projected_task_id": "proj_006",
+      "task_id": "P06",
+      "label": "Training State"
+    },
+    {
+      "id": "projection_exec_proj_007",
+      "repo": "orchestrator",
+      "description": "Implement approved projected structure for Miss Detection.",
+      "allowed_paths": [
+        "SPAWN/STOP/state/",
+        "SPAWN/STOP/.orchestrator/",
+        "SPAWN/STOP/web/",
+        "README.md"
+      ],
+      "priority": 50,
+      "status": "pending",
+      "goal": "projection_first_orchestration",
+      "source_id": "struct_07",
+      "projected_task_id": "proj_007",
+      "task_id": "P07",
+      "label": "Miss Detection"
+    }
+  ]
+}

@@ -1,0 +1,67 @@
+{
+  "canonical": true,
+  "mode": "projection-first",
+  "stage": "extractor",
+  "status": "draft",
+  "generated_at": "2026-03-28T11:02:29.127009",
+  "structures": [
+    {
+      "id": "struct_01",
+      "label": "Execution DAG",
+      "endpoint": "/api/repo-truth/execution",
+      "kind": "execution",
+      "confidence": 0.86,
+      "status": "draft"
+    },
+    {
+      "id": "struct_02",
+      "label": "Strategic Queue",
+      "endpoint": "/api/repo-truth/queue",
+      "kind": "queue",
+      "confidence": 0.86,
+      "status": "draft"
+    },
+    {
+      "id": "struct_03",
+      "label": "Projection Pipeline",
+      "endpoint": "/api/projection/state",
+      "kind": "projection",
+      "confidence": 0.86,
+      "status": "draft"
+    },
+    {
+      "id": "struct_04",
+      "label": "Backend Runtime",
+      "endpoint": "/api/runtime/mirror",
+      "kind": "runtime",
+      "confidence": 0.86,
+      "status": "draft"
+    },
+    {
+      "id": "struct_05",
+      "label": "Memory and Vector",
+      "endpoint": "/api/repo-truth/memory",
+      "kind": "memory",
+      "confidence": 0.86,
+      "status": "draft"
+    },
+    {
+      "id": "struct_06",
+      "label": "Training State",
+      "endpoint": "/api/repo-truth/training",
+      "kind": "training",
+      "confidence": 0.86,
+      "status": "draft"
+    },
+    {
+      "id": "struct_07",
+      "label": "Miss Detection",
+      "endpoint": "/api/runtime/misses",
+      "kind": "misses",
+      "confidence": 0.86,
+      "status": "draft"
+    }
+  ],
+  "warnings": [],
+  "source": "repo_truth_state_contract_views"
+}

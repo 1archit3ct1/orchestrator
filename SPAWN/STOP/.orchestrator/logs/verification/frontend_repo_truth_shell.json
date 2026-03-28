@@ -1,0 +1,19 @@
+{
+  "generated_at": "2026-03-28T10:52:50.206329",
+  "name": "frontend_repo_truth_shell",
+  "all_ok": true,
+  "results": [
+    {
+      "url": "http://localhost:5000/api/repo-truth/dashboard",
+      "status": 200,
+      "ok": true,
+      "preview": "{\n  \"canonical\": true,\n  \"execution\": {\n    \"active_task\": null,\n    \"canonical\": true,\n    \"generated_at\": \"2026-03-28T10:52:47.937076\",\n    \"graph\": {\n      \"edges\": [\n        {\n          \"from\": \"gui_nav_panels\",\n          \"to\": \"gui_dag_task_details\"\n        },\n        {\n          \"from\": \"gui_n"
+    },
+    {
+      "url": "http://localhost:5000/truth",
+      "status": 200,
+      "ok": true,
+      "preview": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"UTF-8\" />\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n<title>NEXTAURA // REPO-TRUTH FRONTEND</title>\n<link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">\n<link href=\"https://fonts.googleapis.com/css2?family=Sp"
+    }
+  ]
+}

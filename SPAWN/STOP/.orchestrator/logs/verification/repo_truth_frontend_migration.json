@@ -1,0 +1,25 @@
+{
+  "generated_at": "2026-03-28T10:52:30.325885",
+  "name": "repo_truth_frontend_migration",
+  "all_ok": true,
+  "results": [
+    {
+      "url": "http://localhost:5000/",
+      "status": 200,
+      "ok": true,
+      "preview": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"UTF-8\" />\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n<title>NEXTAURA // REPO-TRUTH FRONTEND</title>\n<link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">\n<link href=\"https://fonts.googleapis.com/css2?family=Sp"
+    },
+    {
+      "url": "http://localhost:5000/truth",
+      "status": 200,
+      "ok": true,
+      "preview": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"UTF-8\" />\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n<title>NEXTAURA // REPO-TRUTH FRONTEND</title>\n<link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">\n<link href=\"https://fonts.googleapis.com/css2?family=Sp"
+    },
+    {
+      "url": "http://localhost:5000/design",
+      "status": 200,
+      "ok": true,
+      "preview": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"UTF-8\"/>\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"/>\n<title>NEXTAURA // ORCHESTRATOR</title>\n<link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">\n<link href=\"https://fonts.googleapis.com/css2?family=Space+Mono:"
+    }
+  ]
+}

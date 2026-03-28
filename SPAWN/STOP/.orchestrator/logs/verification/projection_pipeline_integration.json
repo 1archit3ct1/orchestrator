@@ -1,0 +1,26 @@
+{
+  "generated_at": "2026-03-28T10:55:34.879999",
+  "name": "projection_pipeline_integration",
+  "all_ok": true,
+  "state_files": [
+    "SPAWN/STOP/state/extraction.json",
+    "SPAWN/STOP/state/operator_overrides.json",
+    "SPAWN/STOP/state/projected_tasks.json",
+    "SPAWN/STOP/state/projection_graph.json",
+    "SPAWN/STOP/state/projection_pipeline.json"
+  ],
+  "results": [
+    {
+      "url": "http://localhost:5000/api/projection/state",
+      "status": 200,
+      "ok": true,
+      "preview": "{\n  \"active_stage\": \"extractor\",\n  \"approval_state\": \"draft\",\n  \"approved\": false,\n  \"canonical\": true,\n  \"counts\": {\n    \"graph_nodes\": 0,\n    \"overrides\": 0,\n    \"projected_tasks\": 0,\n    \"structures\": 0,\n    \"warnings\": 0\n  },\n  \"mode\": \"projection-first\",\n  \"notes\": [\n    \"Projection state must "
+    },
+    {
+      "url": "http://localhost:5000/api/repo-truth/dashboard",
+      "status": 200,
+      "ok": true,
+      "preview": "{\n  \"canonical\": true,\n  \"execution\": {\n    \"active_task\": null,\n    \"canonical\": true,\n    \"generated_at\": \"2026-03-28T10:55:34.669359\",\n    \"graph\": {\n      \"edges\": [\n        {\n          \"from\": \"gui_nav_panels\",\n          \"to\": \"gui_dag_task_details\"\n        },\n        {\n          \"from\": \"gui_n"
+    }
+  ]
+}

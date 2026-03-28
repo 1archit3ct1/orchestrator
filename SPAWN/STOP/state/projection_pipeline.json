@@ -1,0 +1,38 @@
+{
+  "canonical": true,
+  "mode": "projection-first",
+  "active_stage": "prompt_handoff",
+  "approved": true,
+  "promotion_ready": true,
+  "prompt_handoff_ready": true,
+  "stages": [
+    {
+      "id": "extractor",
+      "label": "Extractor",
+      "status": "complete"
+    },
+    {
+      "id": "operator_review",
+      "label": "Operator Review",
+      "status": "complete"
+    },
+    {
+      "id": "task_generation",
+      "label": "Task Generator",
+      "status": "complete"
+    },
+    {
+      "id": "promotion_gate",
+      "label": "Promotion Gate",
+      "status": "complete"
+    },
+    {
+      "id": "prompt_handoff",
+      "label": "Prompt Handoff",
+      "status": "active"
+    }
+  ],
+  "notes": [
+    "Projection state must remain separate from canonical execution state until approval and promotion complete."
+  ]
+}

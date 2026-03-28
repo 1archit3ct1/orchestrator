@@ -1,0 +1,209 @@
+{
+  "generated_at": "2026-03-28T11:02:33.220269",
+  "notes": "Generated projected task and graph artifacts from reviewed extraction state with deterministic ordering and persisted output.",
+  "files": {
+    "projected_tasks": {
+      "canonical": true,
+      "mode": "projection-first",
+      "generated_at": "2026-03-28T11:02:33.217576",
+      "approval_state": "draft",
+      "tasks": [
+        {
+          "id": "proj_001",
+          "task_id": "P01",
+          "label": "Execution DAG",
+          "description": "Implement approved projected structure for Execution DAG.",
+          "source_id": "struct_01",
+          "status": "pending",
+          "priority": 1,
+          "goal": "projection_first_orchestration"
+        },
+        {
+          "id": "proj_002",
+          "task_id": "P02",
+          "label": "Strategic Queue",
+          "description": "Implement approved projected structure for Strategic Queue.",
+          "source_id": "struct_02",
+          "status": "pending",
+          "priority": 2,
+          "goal": "projection_first_orchestration"
+        },
+        {
+          "id": "proj_003",
+          "task_id": "P03",
+          "label": "Projection Pipeline",
+          "description": "Implement approved projected structure for Projection Pipeline.",
+          "source_id": "struct_03",
+          "status": "pending",
+          "priority": 3,
+          "goal": "projection_first_orchestration"
+        },
+        {
+          "id": "proj_004",
+          "task_id": "P04",
+          "label": "Backend Runtime Mirror",
+          "description": "Implement approved projected structure for Backend Runtime Mirror.",
+          "source_id": "struct_04",
+          "status": "pending",
+          "priority": 4,
+          "goal": "projection_first_orchestration"
+        },
+        {
+          "id": "proj_005",
+          "task_id": "P05",
+          "label": "Memory and Vector",
+          "description": "Implement approved projected structure for Memory and Vector.",
+          "source_id": "struct_05",
+          "status": "pending",
+          "priority": 5,
+          "goal": "projection_first_orchestration"
+        },
+        {
+          "id": "proj_006",
+          "task_id": "P06",
+          "label": "Training State",
+          "description": "Implement approved projected structure for Training State.",
+          "source_id": "struct_06",
+          "status": "pending",
+          "priority": 6,
+          "goal": "projection_first_orchestration"
+        },
+        {
+          "id": "proj_007",
+          "task_id": "P07",
+          "label": "Miss Detection",
+          "description": "Implement approved projected structure for Miss Detection.",
+          "source_id": "struct_07",
+          "status": "pending",
+          "priority": 7,
+          "goal": "projection_first_orchestration"
+        }
+      ]
+    },
+    "projection_graph": {
+      "canonical": true,
+      "mode": "projection-first",
+      "generated_at": "2026-03-28T11:02:33.217583",
+      "approval_state": "draft",
+      "nodes": [
+        {
+          "id": "projection_001",
+          "task_id": "P01",
+          "label": "Execution DAG",
+          "source_id": "struct_01",
+          "status": "red"
+        },
+        {
+          "id": "projection_002",
+          "task_id": "P02",
+          "label": "Strategic Queue",
+          "source_id": "struct_02",
+          "status": "red"
+        },
+        {
+          "id": "projection_003",
+          "task_id": "P03",
+          "label": "Projection Pipeline",
+          "source_id": "struct_03",
+          "status": "red"
+        },
+        {
+          "id": "projection_004",
+          "task_id": "P04",
+          "label": "Backend Runtime Mirror",
+          "source_id": "struct_04",
+          "status": "red"
+        },
+        {
+          "id": "projection_005",
+          "task_id": "P05",
+          "label": "Memory and Vector",
+          "source_id": "struct_05",
+          "status": "red"
+        },
+        {
+          "id": "projection_006",
+          "task_id": "P06",
+          "label": "Training State",
+          "source_id": "struct_06",
+          "status": "red"
+        },
+        {
+          "id": "projection_007",
+          "task_id": "P07",
+          "label": "Miss Detection",
+          "source_id": "struct_07",
+          "status": "red"
+        }
+      ],
+      "edges": [
+        {
+          "from": "projection_001",
+          "to": "projection_002"
+        },
+        {
+          "from": "projection_002",
+          "to": "projection_003"
+        },
+        {
+          "from": "projection_003",
+          "to": "projection_004"
+        },
+        {
+          "from": "projection_004",
+          "to": "projection_005"
+        },
+        {
+          "from": "projection_005",
+          "to": "projection_006"
+        },
+        {
+          "from": "projection_006",
+          "to": "projection_007"
+        }
+      ]
+    },
+    "projection_pipeline": {
+      "canonical": true,
+      "mode": "projection-first",
+      "active_stage": "task_generation",
+      "approved": false,
+      "promotion_ready": false,
+      "prompt_handoff_ready": false,
+      "stages": [
+        {
+          "id": "extractor",
+          "label": "Extractor",
+          "status": "complete"
+        },
+        {
+          "id": "operator_review",
+          "label": "Operator Review",
+          "status": "complete"
+        },
+        {
+          "id": "task_generation",
+          "label": "Task Generator",
+          "status": "active"
+        },
+        {
+          "id": "promotion_gate",
+          "label": "Promotion Gate",
+          "status": "pending"
+        },
+        {
+          "id": "prompt_handoff",
+          "label": "Prompt Handoff",
+          "status": "pending"
+        }
+      ],
+      "notes": [
+        "Projection state must remain separate from canonical execution state until approval and promotion complete."
+      ]
+    }
+  },
+  "urls": [
+    "http://localhost:5000/api/projection/generate",
+    "http://localhost:5000/api/projection/state"
+  ]
+}

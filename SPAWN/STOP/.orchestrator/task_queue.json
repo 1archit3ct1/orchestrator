@@ -1,5 +1,362 @@
 [
   {
+    "id": "goal_repo_truth_frontend_migration",
+    "repo": "orchestrator",
+    "description": "Design and stage a new repo-truth frontend that reads canonical backend state domains directly instead of depending on legacy dashboard shell assumptions or mixed task models.",
+    "allowed_paths": [
+      "SPAWN/STOP/web/",
+      "SPAWN/STOP/state/",
+      "SPAWN/STOP/.orchestrator/",
+      "README.md"
+    ],
+    "status": "completed",
+    "goal": "repo_truth_frontend",
+    "priority": 1
+  },
+  {
+    "id": "test_repo_truth_frontend_migration",
+    "repo": "orchestrator",
+    "description": "Validate that the staged repo-truth frontend can coexist with the current dashboard, consumes canonical state only, and does not mutate execution state during migration.",
+    "allowed_paths": [
+      "SPAWN/STOP/web/",
+      "SPAWN/STOP/state/",
+      "SPAWN/STOP/.orchestrator/logs/",
+      "README.md"
+    ],
+    "status": "completed",
+    "goal": "repo_truth_frontend",
+    "kind": "verification_gate",
+    "validates": "goal_repo_truth_frontend_migration",
+    "priority": 2
+  },
+  {
+    "id": "frontend_state_contract_views",
+    "repo": "orchestrator",
+    "description": "Define clean backend API views for canonical execution DAG, strategic task queue, projection pipeline, memory and vector retrieval, and training state so the next frontend reads explicit repo contracts.",
+    "allowed_paths": [
+      "SPAWN/STOP/web/",
+      "SPAWN/STOP/state/",
+      "SPAWN/STOP/.orchestrator/",
+      "README.md"
+    ],
+    "status": "completed",
+    "goal": "repo_truth_frontend",
+    "priority": 3
+  },
+  {
+    "id": "test_frontend_state_contract_views",
+    "repo": "orchestrator",
+    "description": "Test the new frontend state contracts for schema stability, source-of-truth consistency, and safe compatibility with the current dashboard payload.",
+    "allowed_paths": [
+      "SPAWN/STOP/web/",
+      "SPAWN/STOP/state/",
+      "SPAWN/STOP/.orchestrator/logs/",
+      "README.md"
+    ],
+    "status": "completed",
+    "goal": "repo_truth_frontend",
+    "kind": "verification_gate",
+    "validates": "frontend_state_contract_views",
+    "priority": 4
+  },
+  {
+    "id": "frontend_repo_truth_shell",
+    "repo": "orchestrator",
+    "description": "Build a parallel repo-truth frontend shell that renders canonical execution, queue, projection, memory, vector, and training surfaces from backend APIs instead of legacy DOM-driven assumptions.",
+    "allowed_paths": [
+      "SPAWN/STOP/web/",
+      "SPAWN/STOP/state/",
+      "SPAWN/STOP/.orchestrator/dashboard_state.py"
+    ],
+    "status": "completed",
+    "goal": "repo_truth_frontend",
+    "priority": 5
+  },
+  {
+    "id": "test_frontend_repo_truth_shell",
+    "repo": "orchestrator",
+    "description": "Verify the parallel repo-truth frontend with live rendering, canonical API hydration, layout stability, and safe fallback to the current dashboard during migration.",
+    "allowed_paths": [
+      "SPAWN/STOP/web/",
+      "SPAWN/STOP/state/",
+      "SPAWN/STOP/.orchestrator/logs/"
+    ],
+    "status": "completed",
+    "goal": "repo_truth_frontend",
+    "kind": "verification_gate",
+    "validates": "frontend_repo_truth_shell",
+    "priority": 6
+  },
+  {
+    "id": "backend_terminal_mirror_stream",
+    "repo": "orchestrator",
+    "description": "Expose a live backend runtime mirror in the GUI by streaming orchestrator and spawn-loop terminal output into a repo-backed surface so operators can see backend state directly.",
+    "allowed_paths": [
+      "SPAWN/STOP/web/",
+      "SPAWN/STOP/.orchestrator/",
+      "SPAWN/STOP/state/"
+    ],
+    "status": "completed",
+    "goal": "repo_truth_frontend",
+    "priority": 7
+  },
+  {
+    "id": "test_backend_terminal_mirror_stream",
+    "repo": "orchestrator",
+    "description": "Validate the backend terminal mirror for live stream delivery, reconnect handling, log retention, and faithful visibility into backend runtime activity.",
+    "allowed_paths": [
+      "SPAWN/STOP/web/",
+      "SPAWN/STOP/.orchestrator/logs/",
+      "SPAWN/STOP/state/"
+    ],
+    "status": "completed",
+    "goal": "repo_truth_frontend",
+    "kind": "verification_gate",
+    "validates": "backend_terminal_mirror_stream",
+    "priority": 8
+  },
+  {
+    "id": "training_miss_detection_surface",
+    "repo": "orchestrator",
+    "description": "Detect and surface missed training or data-capture opportunities by correlating backend runtime logs, trace writes, retrieval updates, and expected pipeline events in the GUI.",
+    "allowed_paths": [
+      "SPAWN/STOP/web/",
+      "SPAWN/STOP/.orchestrator/",
+      "SPAWN/STOP/state/",
+      "SPAWN/STOP/MEMORY.md",
+      "SPAWN/STOP/retrieval_log.jsonl"
+    ],
+    "status": "completed",
+    "goal": "repo_truth_frontend",
+    "priority": 9
+  },
+  {
+    "id": "test_training_miss_detection_surface",
+    "repo": "orchestrator",
+    "description": "Exercise missed-training detection against controlled fixtures so the GUI can distinguish healthy backend activity from dropped traces, missing writes, and stalled data capture.",
+    "allowed_paths": [
+      "SPAWN/STOP/web/",
+      "SPAWN/STOP/.orchestrator/logs/",
+      "SPAWN/STOP/state/",
+      "SPAWN/STOP/retrieval_log.jsonl"
+    ],
+    "status": "completed",
+    "goal": "repo_truth_frontend",
+    "kind": "verification_gate",
+    "validates": "training_miss_detection_surface",
+    "priority": 10
+  },
+  {
+    "id": "frontend_cutover_and_legacy_retirement",
+    "repo": "orchestrator",
+    "description": "Cut over to the repo-truth frontend only after parity is verified, then retire redundant legacy dashboard surfaces and stale state wiring without breaking live operations.",
+    "allowed_paths": [
+      "SPAWN/STOP/web/",
+      "SPAWN/STOP/state/",
+      "SPAWN/STOP/.orchestrator/",
+      "README.md"
+    ],
+    "status": "completed",
+    "goal": "repo_truth_frontend",
+    "priority": 11
+  },
+  {
+    "id": "test_frontend_cutover_and_legacy_retirement",
+    "repo": "orchestrator",
+    "description": "Run final migration checks for route correctness, canonical state parity, legacy surface retirement, and no-regression behavior before the old dashboard path is removed.",
+    "allowed_paths": [
+      "SPAWN/STOP/web/",
+      "SPAWN/STOP/state/",
+      "SPAWN/STOP/.orchestrator/logs/",
+      "README.md"
+    ],
+    "status": "completed",
+    "goal": "repo_truth_frontend",
+    "kind": "verification_gate",
+    "validates": "frontend_cutover_and_legacy_retirement",
+    "priority": 12
+  },
+  {
+    "id": "goal_projection_pipeline_integration",
+    "repo": "orchestrator",
+    "description": "Integrate a safe pre-execution projection pipeline so extractor output, operator GUI tweaks, projected task generation, and prompt-driven execution happen in a clean staged flow before stack-building begins.",
+    "allowed_paths": [
+      "SPAWN/STOP/.orchestrator/task_queue.json",
+      "SPAWN/STOP/state/",
+      "SPAWN/STOP/web/",
+      "SPAWN/STOP/.orchestrator/",
+      "SPAWN/STOP/MEMORY.md",
+      "README.md"
+    ],
+    "priority": 13,
+    "status": "completed",
+    "goal": "projection_first_orchestration"
+  },
+  {
+    "id": "test_projection_pipeline_integration",
+    "repo": "orchestrator",
+    "description": "Run end-to-end validation that the projection-first orchestration path can exist alongside the current runtime without mutating canonical execution state prematurely.",
+    "allowed_paths": [
+      "SPAWN/STOP/.orchestrator/",
+      "SPAWN/STOP/state/",
+      "SPAWN/STOP/.orchestrator/logs/",
+      "README.md"
+    ],
+    "priority": 14,
+    "status": "completed",
+    "goal": "projection_first_orchestration",
+    "kind": "verification_gate",
+    "validates": "goal_projection_pipeline_integration"
+  },
+  {
+    "id": "projection_state_schema",
+    "repo": "orchestrator",
+    "description": "Define the projection-first state contract with separate extraction, operator override, projected task, and promotion artifacts so planning can evolve without mutating the live execution DAG.",
+    "allowed_paths": [
+      "SPAWN/STOP/state/",
+      "SPAWN/STOP/.orchestrator/",
+      "README.md"
+    ],
+    "priority": 15,
+    "status": "completed",
+    "goal": "projection_first_orchestration"
+  },
+  {
+    "id": "test_projection_state_schema",
+    "repo": "orchestrator",
+    "description": "Validate projection-state schemas, file contracts, backward compatibility with current dashboard state, and canonical sync safety before any promotion logic is enabled.",
+    "allowed_paths": [
+      "SPAWN/STOP/state/",
+      "SPAWN/STOP/.orchestrator/logs/",
+      "README.md"
+    ],
+    "priority": 16,
+    "status": "completed",
+    "goal": "projection_first_orchestration",
+    "kind": "verification_gate",
+    "validates": "projection_state_schema"
+  },
+  {
+    "id": "projection_operator_review_gui",
+    "repo": "orchestrator",
+    "description": "Add an operator review surface that lets the user inspect extracted structures, merge duplicates, rename projections, split large items, and approve the corrected structure before task generation.",
+    "allowed_paths": [
+      "SPAWN/STOP/web/",
+      "SPAWN/STOP/state/",
+      "SPAWN/STOP/.orchestrator/dashboard_state.py"
+    ],
+    "priority": 17,
+    "status": "completed",
+    "goal": "projection_first_orchestration"
+  },
+  {
+    "id": "test_projection_operator_review_gui",
+    "repo": "orchestrator",
+    "description": "Verify the operator review GUI with live rendering, edit persistence, duplicate merge handling, rename flows, and non-destructive fallback to the current dashboard path.",
+    "allowed_paths": [
+      "SPAWN/STOP/web/",
+      "SPAWN/STOP/state/",
+      "SPAWN/STOP/.orchestrator/logs/"
+    ],
+    "priority": 18,
+    "status": "completed",
+    "goal": "projection_first_orchestration",
+    "kind": "verification_gate",
+    "validates": "projection_operator_review_gui"
+  },
+  {
+    "id": "projection_task_generator",
+    "repo": "orchestrator",
+    "description": "Generate projected DAG nodes and function tasks from approved extraction state rather than raw source scans, and keep projected task state distinct from the active execution task list until promotion.",
+    "allowed_paths": [
+      "SPAWN/STOP/state/",
+      "SPAWN/STOP/.orchestrator/",
+      "SPAWN/STOP/web/"
+    ],
+    "priority": 19,
+    "status": "completed",
+    "goal": "projection_first_orchestration"
+  },
+  {
+    "id": "test_projection_task_generator",
+    "repo": "orchestrator",
+    "description": "Test projected task generation against approved extraction samples, ensuring deterministic output, duplicate suppression, dependency integrity, and separation from active execution tasks.",
+    "allowed_paths": [
+      "SPAWN/STOP/state/",
+      "SPAWN/STOP/.orchestrator/",
+      "SPAWN/STOP/.orchestrator/logs/"
+    ],
+    "priority": 20,
+    "status": "completed",
+    "goal": "projection_first_orchestration",
+    "kind": "verification_gate",
+    "validates": "projection_task_generator"
+  },
+  {
+    "id": "projection_promotion_gate",
+    "repo": "orchestrator",
+    "description": "Create the promotion gate that copies approved projected tasks into canonical execution state only after operator approval and validation, then points the build agent at prompt.md to begin stack execution.",
+    "allowed_paths": [
+      "SPAWN/STOP/state/",
+      "SPAWN/STOP/.orchestrator/",
+      "SPAWN/START/prompt.md"
+    ],
+    "priority": 21,
+    "status": "completed",
+    "goal": "projection_first_orchestration"
+  },
+  {
+    "id": "test_projection_promotion_gate",
+    "repo": "orchestrator",
+    "description": "Exercise the promotion gate with approval-required fixtures so only validated projected tasks reach canonical execution state and prompt.md handoff remains correct.",
+    "allowed_paths": [
+      "SPAWN/STOP/state/",
+      "SPAWN/STOP/.orchestrator/",
+      "SPAWN/STOP/.orchestrator/logs/",
+      "SPAWN/START/prompt.md"
+    ],
+    "priority": 22,
+    "status": "completed",
+    "goal": "projection_first_orchestration",
+    "kind": "verification_gate",
+    "validates": "projection_promotion_gate"
+  },
+  {
+    "id": "projection_memory_vector_feedback",
+    "repo": "orchestrator",
+    "description": "Log extraction patterns, operator corrections, projected task outcomes, and promotion misses into MEMORY.md, retrieval_log.jsonl, vector_store, and iteration artifacts so the system improves at recognizing structures over time.",
+    "allowed_paths": [
+      "SPAWN/STOP/MEMORY.md",
+      "SPAWN/STOP/retrieval_log.jsonl",
+      "SPAWN/STOP/.orchestrator/vector_store/",
+      "SPAWN/STOP/.orchestrator/iterations/",
+      "SPAWN/STOP/.orchestrator/data/",
+      "SPAWN/STOP/.orchestrator/loop.py",
+      "SPAWN/STOP/.orchestrator/dashboard_state.py"
+    ],
+    "priority": 23,
+    "status": "completed",
+    "goal": "projection_first_orchestration"
+  },
+  {
+    "id": "test_projection_memory_vector_feedback",
+    "repo": "orchestrator",
+    "description": "Validate that extraction corrections, projection misses, and downstream outcomes are written into MEMORY.md, retrieval logs, vector entries, and iteration artifacts with retrievable ranked context.",
+    "allowed_paths": [
+      "SPAWN/STOP/MEMORY.md",
+      "SPAWN/STOP/retrieval_log.jsonl",
+      "SPAWN/STOP/.orchestrator/vector_store/",
+      "SPAWN/STOP/.orchestrator/iterations/",
+      "SPAWN/STOP/.orchestrator/data/",
+      "SPAWN/STOP/.orchestrator/logs/"
+    ],
+    "priority": 24,
+    "status": "completed",
+    "goal": "projection_first_orchestration",
+    "kind": "verification_gate",
+    "validates": "projection_memory_vector_feedback"
+  },
+  {
     "id": "goal_orchestrator_gui_complete",
     "repo": "orchestrator",
     "description": "Finish the orchestrator GUI so the core dashboard, controls, drilldowns, exports, and readiness tracking are fully repo-backed before orchestrating new downstream repos.",
@@ -8,7 +365,7 @@
       "SPAWN/STOP/web/",
       "SPAWN/STOP/.orchestrator/"
     ],
-    "priority": 1,
+    "priority": 25,
     "status": "pending",
     "goal": "independent_repos_security"
   },
@@ -21,7 +378,7 @@
       "SPAWN/STOP/.orchestrator/data/",
       "SPAWN/STOP/.orchestrator/iterations/"
     ],
-    "priority": 2,
+    "priority": 26,
     "status": "pending",
     "goal": "deliver_24b_model"
   },
@@ -34,7 +391,7 @@
       "SPAWN/STOP/.orchestrator/data/",
       "SPAWN/STOP/.orchestrator/vector_store/"
     ],
-    "priority": 3,
+    "priority": 27,
     "status": "pending",
     "goal": "deliver_24b_model"
   },
@@ -47,7 +404,7 @@
       "SPAWN/STOP/.orchestrator/models/",
       "SPAWN/STOP/.orchestrator/data/"
     ],
-    "priority": 4,
+    "priority": 28,
     "status": "pending",
     "goal": "deliver_24b_model"
   },
@@ -59,7 +416,7 @@
       "SPAWN/STOP/repos/",
       "SPAWN/STOP/.orchestrator/iterations/"
     ],
-    "priority": 5,
+    "priority": 29,
     "status": "pending",
     "goal": "independent_repos_security"
   },
@@ -72,7 +429,7 @@
       "SPAWN/STOP/repos/",
       "SPAWN/STOP/.orchestrator/logs/"
     ],
-    "priority": 6,
+    "priority": 30,
     "status": "pending",
     "goal": "independent_repos_security"
   },
@@ -85,7 +442,7 @@
       "SPAWN/STOP/web/",
       "SPAWN/STOP/state/"
     ],
-    "priority": 7,
+    "priority": 31,
     "status": "pending",
     "goal": "independent_repos_security"
   },
@@ -98,7 +455,7 @@
       "SPAWN/STOP/.orchestrator/data/",
       "SPAWN/STOP/.orchestrator/iterations/"
     ],
-    "priority": 8,
+    "priority": 32,
     "status": "pending",
     "goal": "deliver_24b_model",
     "question_ids": [
@@ -115,7 +472,7 @@
       "SPAWN/STOP/.orchestrator/iterations/",
       "SPAWN/STOP/.orchestrator/vector_store/"
     ],
-    "priority": 9,
+    "priority": 33,
     "status": "pending",
     "goal": "deliver_24b_model",
     "question_ids": [
@@ -131,7 +488,7 @@
       "SPAWN/STOP/.orchestrator/data/",
       "SPAWN/STOP/.orchestrator/config.json"
     ],
-    "priority": 10,
+    "priority": 34,
     "status": "pending",
     "goal": "deliver_24b_model",
     "question_ids": [
@@ -148,7 +505,7 @@
       "SPAWN/STOP/.orchestrator/dashboard_state.py",
       "SPAWN/STOP/web/app.py"
     ],
-    "priority": 11,
+    "priority": 35,
     "status": "pending",
     "goal": "deliver_24b_model",
     "question_ids": [
@@ -164,7 +521,7 @@
       "SPAWN/STOP/.orchestrator/config.json",
       "README.md"
     ],
-    "priority": 12,
+    "priority": 36,
     "status": "pending",
     "goal": "deliver_24b_model",
     "question_ids": [
@@ -180,7 +537,7 @@
       "README.md",
       "SPAWN/STOP/training/"
     ],
-    "priority": 13,
+    "priority": 37,
     "status": "pending",
     "goal": "deliver_24b_model",
     "question_ids": [
@@ -197,7 +554,7 @@
       "SPAWN/STOP/.orchestrator/models/",
       "SPAWN/STOP/.orchestrator/iterations/"
     ],
-    "priority": 14,
+    "priority": 38,
     "status": "pending",
     "goal": "deliver_24b_model",
     "question_ids": [
@@ -213,7 +570,7 @@
       "SPAWN/STOP/.orchestrator/logs/",
       "SPAWN/STOP/.orchestrator/config.json"
     ],
-    "priority": 15,
+    "priority": 39,
     "status": "pending",
     "goal": "deliver_24b_model",
     "question_ids": [
@@ -232,7 +589,7 @@
       "SPAWN/STOP/MEMORY.md",
       "README.md"
     ],
-    "priority": 16,
+    "priority": 40,
     "status": "pending",
     "goal": "deliver_24b_model",
     "question_ids": [
@@ -251,7 +608,7 @@
       "SPAWN/STOP/.orchestrator/dashboard_state.py",
       "README.md"
     ],
-    "priority": 17,
+    "priority": 41,
     "status": "pending",
     "goal": "deliver_24b_model",
     "question_ids": [
@@ -268,7 +625,7 @@
       "SPAWN/STOP/web/app.py",
       "README.md"
     ],
-    "priority": 18,
+    "priority": 42,
     "status": "pending",
     "goal": "deliver_24b_model",
     "question_ids": [
@@ -288,7 +645,7 @@
       "SPAWN/STOP/.orchestrator/iterations/",
       "SPAWN/STOP/.orchestrator/logs/maintenance/"
     ],
-    "priority": 999,
+    "priority": 43,
     "status": "pending",
     "trigger": {
       "type": "token_threshold",
@@ -297,5 +654,131 @@
       "cron_schedule": "*/15 * * * *"
     },
     "prompt_load_path": "SPAWN/STOP/.orchestrator/task_queue.json"
+  },
+  {
+    "id": "projection_exec_proj_001",
+    "repo": "orchestrator",
+    "description": "Implement approved projected structure for Execution DAG.",
+    "allowed_paths": [
+      "SPAWN/STOP/state/",
+      "SPAWN/STOP/.orchestrator/",
+      "SPAWN/STOP/web/",
+      "README.md"
+    ],
+    "priority": 44,
+    "status": "pending",
+    "goal": "projection_first_orchestration",
+    "source_id": "struct_01",
+    "projected_task_id": "proj_001",
+    "task_id": "P01",
+    "label": "Execution DAG"
+  },
+  {
+    "id": "projection_exec_proj_002",
+    "repo": "orchestrator",
+    "description": "Implement approved projected structure for Strategic Queue.",
+    "allowed_paths": [
+      "SPAWN/STOP/state/",
+      "SPAWN/STOP/.orchestrator/",
+      "SPAWN/STOP/web/",
+      "README.md"
+    ],
+    "priority": 45,
+    "status": "pending",
+    "goal": "projection_first_orchestration",
+    "source_id": "struct_02",
+    "projected_task_id": "proj_002",
+    "task_id": "P02",
+    "label": "Strategic Queue"
+  },
+  {
+    "id": "projection_exec_proj_003",
+    "repo": "orchestrator",
+    "description": "Implement approved projected structure for Projection Pipeline.",
+    "allowed_paths": [
+      "SPAWN/STOP/state/",
+      "SPAWN/STOP/.orchestrator/",
+      "SPAWN/STOP/web/",
+      "README.md"
+    ],
+    "priority": 46,
+    "status": "pending",
+    "goal": "projection_first_orchestration",
+    "source_id": "struct_03",
+    "projected_task_id": "proj_003",
+    "task_id": "P03",
+    "label": "Projection Pipeline"
+  },
+  {
+    "id": "projection_exec_proj_004",
+    "repo": "orchestrator",
+    "description": "Implement approved projected structure for Backend Runtime Mirror.",
+    "allowed_paths": [
+      "SPAWN/STOP/state/",
+      "SPAWN/STOP/.orchestrator/",
+      "SPAWN/STOP/web/",
+      "README.md"
+    ],
+    "priority": 47,
+    "status": "pending",
+    "goal": "projection_first_orchestration",
+    "source_id": "struct_04",
+    "projected_task_id": "proj_004",
+    "task_id": "P04",
+    "label": "Backend Runtime Mirror"
+  },
+  {
+    "id": "projection_exec_proj_005",
+    "repo": "orchestrator",
+    "description": "Implement approved projected structure for Memory and Vector.",
+    "allowed_paths": [
+      "SPAWN/STOP/state/",
+      "SPAWN/STOP/.orchestrator/",
+      "SPAWN/STOP/web/",
+      "README.md"
+    ],
+    "priority": 48,
+    "status": "pending",
+    "goal": "projection_first_orchestration",
+    "source_id": "struct_05",
+    "projected_task_id": "proj_005",
+    "task_id": "P05",
+    "label": "Memory and Vector"
+  },
+  {
+    "id": "projection_exec_proj_006",
+    "repo": "orchestrator",
+    "description": "Implement approved projected structure for Training State.",
+    "allowed_paths": [
+      "SPAWN/STOP/state/",
+      "SPAWN/STOP/.orchestrator/",
+      "SPAWN/STOP/web/",
+      "README.md"
+    ],
+    "priority": 49,
+    "status": "pending",
+    "goal": "projection_first_orchestration",
+    "source_id": "struct_06",
+    "projected_task_id": "proj_006",
+    "task_id": "P06",
+    "label": "Training State"
+  },
+  {
+    "id": "projection_exec_proj_007",
+    "repo": "orchestrator",
+    "description": "Implement approved projected structure for Miss Detection.",
+    "allowed_paths": [
+      "SPAWN/STOP/state/",
+      "SPAWN/STOP/.orchestrator/",
+      "SPAWN/STOP/web/",
+      "README.md"
+    ],
+    "priority": 50,
+    "status": "pending",
+    "goal": "projection_first_orchestration",
+    "source_id": "struct_07",
+    "projected_task_id": "proj_007",
+    "task_id": "P07",
+    "label": "Miss Detection"
   }
 ]

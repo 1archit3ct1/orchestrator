@@ -64,7 +64,7 @@ If a task does not leave behind verifiable repo data, do not advance the DAG.
 
 ## Current Expected DAG
 
-- `T01 gui-nav-panels`
+- `T01 gui-surface-routing`
 - `T02 gui-dag-task-details`
 - `T03 gui-spawn-loop-controls`
 - `T04 gui-training-run-details`
@@ -103,7 +103,7 @@ Initialize the repo so that:
 
 Do not complete a task unless it delivers the following:
 
-- `T01 gui-nav-panels`: sidebar nav changes live panel state through repo-backed hooks
+- `T01 gui-surface-routing`: dashboard surfaces stay truthfully routed through repo-backed panel hooks, with full-page fallback when no sidebar is present
 - `T02 gui-dag-task-details`: DAG rows open real task detail state
 - `T03 gui-spawn-loop-controls`: spawn loop controls hit a live Flask control plane
 - `T04 gui-training-run-details`: training run section opens detailed repo-backed training state
@@ -114,7 +114,7 @@ Do not complete a task unless it delivers the following:
 - `T09 gui-repo-freeze-toggle`: repo freeze toggle mutates live freeze state through Flask
 - `T10 gui-stray-monitor-details`: stray monitor panel opens detailed stray events
 - `T11 gui-trace-capture-details`: trace capture section opens detailed repo-backed trace history
-- `T12 gui-steering-log-details`: steering log section opens detailed repo-backed steering events
+- `T12 gui-steering-log-details`: steering log surface opens detailed repo-backed steering events
 - `T13 gui-bootstrap-step-details`: bootstrap rows open real step details
 - `T14 gui-repo-structure-details`: repo structure rows open real details
 - `T15 gui-vector-phase-details`: vector phases open real phase details

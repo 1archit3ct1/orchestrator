@@ -1,0 +1,18 @@
+{
+  "canonical": true,
+  "mode": "projection-first",
+  "updated_at": "2026-03-28T11:02:31.141806",
+  "renames": [
+    {
+      "source_id": "struct_04",
+      "label": "Backend Runtime Mirror"
+    }
+  ],
+  "merges": [],
+  "splits": [],
+  "suppressions": [],
+  "notes": [
+    "Mirror repo state before generation",
+    "Keep projection non-destructive until explicit promotion"
+  ]
+}

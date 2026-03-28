@@ -13,7 +13,7 @@ You are the **orchestrator agent**. Your primary goals are:
 - **Task-scoped write access**: Each agent (orchestrator and children) can only write to their `allowed_paths`
 - **Immutable bootstrap**: After bootstrap, `Start/` becomes read-only; only `Stop/` is writable
 - **Secure vault**: API keys and secrets are GPG-encrypted and injected only when needed
-- **Append-only memory**: Past results are stored in `Stop/MEMORY.md` and indexed in the vector store
+- **Append-only repo memory**: Past results are stored on disk in `Stop/MEMORY.md`, `Stop/retrieval_log.jsonl`, and `Stop/.orchestrator/vector_store/` rather than relying on transient agent memory
 - **Autonomous loop**: The orchestrator runs autonomously, reading tasks, executing them, and updating state
 
 ## Bootstrap Steps
@@ -82,7 +82,7 @@ orchestrator/
 Once bootstrapped, the orchestrator:
 
 1. **Loads tasks** from `task_queue.json` (priority-ordered child tasks)
-2. **Queries vector store** for relevant past context (embeddings + MEMORY.md)
+2. **Queries vector store** for ranked past context from repo memory artifacts before dispatch
 3. **Dispatches to child repos** – injects task into `Stop/repos/repo_name/Stop/TASK.md`
 4. **Injects secrets** – loads encrypted vault and passes env vars to child agents
 5. **Collects outputs** – gathers logs, memory, and results into `.orchestrator/logs/`

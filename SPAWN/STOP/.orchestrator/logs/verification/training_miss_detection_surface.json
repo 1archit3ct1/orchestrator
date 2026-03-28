@@ -1,0 +1,13 @@
+{
+  "generated_at": "2026-03-28T10:57:32.665044",
+  "name": "training_miss_detection_surface",
+  "all_ok": true,
+  "results": [
+    {
+      "url": "http://localhost:5000/api/runtime/misses",
+      "status": 200,
+      "ok": true,
+      "preview": "{\n  \"canonical\": true,\n  \"findings\": [\n    \"Backend runtime activity was observed without a recent trace, retrieval, or dataset write.\"\n  ],\n  \"generated_at\": \"2026-03-28T10:57:32.459271\",\n  \"latest_data\": {\n    \"mtime\": 1774710325.7607825,\n    \"path\": \".orchestrator/data/session_20260328_conversati"
+    }
+  ]
+}

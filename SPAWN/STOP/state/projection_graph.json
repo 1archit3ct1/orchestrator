@@ -1,0 +1,84 @@
+{
+  "canonical": true,
+  "mode": "projection-first",
+  "generated_at": "2026-03-28T11:02:33.217583",
+  "approval_state": "approved",
+  "nodes": [
+    {
+      "id": "projection_001",
+      "task_id": "P01",
+      "label": "Execution DAG",
+      "source_id": "struct_01",
+      "status": "red"
+    },
+    {
+      "id": "projection_002",
+      "task_id": "P02",
+      "label": "Strategic Queue",
+      "source_id": "struct_02",
+      "status": "red"
+    },
+    {
+      "id": "projection_003",
+      "task_id": "P03",
+      "label": "Projection Pipeline",
+      "source_id": "struct_03",
+      "status": "red"
+    },
+    {
+      "id": "projection_004",
+      "task_id": "P04",
+      "label": "Backend Runtime Mirror",
+      "source_id": "struct_04",
+      "status": "red"
+    },
+    {
+      "id": "projection_005",
+      "task_id": "P05",
+      "label": "Memory and Vector",
+      "source_id": "struct_05",
+      "status": "red"
+    },
+    {
+      "id": "projection_006",
+      "task_id": "P06",
+      "label": "Training State",
+      "source_id": "struct_06",
+      "status": "red"
+    },
+    {
+      "id": "projection_007",
+      "task_id": "P07",
+      "label": "Miss Detection",
+      "source_id": "struct_07",
+      "status": "red"
+    }
+  ],
+  "edges": [
+    {
+      "from": "projection_001",
+      "to": "projection_002"
+    },
+    {
+      "from": "projection_002",
+      "to": "projection_003"
+    },
+    {
+      "from": "projection_003",
+      "to": "projection_004"
+    },
+    {
+      "from": "projection_004",
+      "to": "projection_005"
+    },
+    {
+      "from": "projection_005",
+      "to": "projection_006"
+    },
+    {
+      "from": "projection_006",
+      "to": "projection_007"
+    }
+  ],
+  "promoted_at": "2026-03-28T11:04:38.330285"
+}

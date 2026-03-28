@@ -1,0 +1,96 @@
+{
+  "generated_at": "2026-03-28T11:02:33.219907",
+  "notes": "Seeded extraction draft, persisted review notes and rename overrides, and confirmed operator-facing projection review controls are live.",
+  "files": {
+    "extraction": {
+      "canonical": true,
+      "mode": "projection-first",
+      "stage": "extractor",
+      "status": "draft",
+      "generated_at": "2026-03-28T11:02:29.127009",
+      "structures": [
+        {
+          "id": "struct_01",
+          "label": "Execution DAG",
+          "endpoint": "/api/repo-truth/execution",
+          "kind": "execution",
+          "confidence": 0.86,
+          "status": "draft"
+        },
+        {
+          "id": "struct_02",
+          "label": "Strategic Queue",
+          "endpoint": "/api/repo-truth/queue",
+          "kind": "queue",
+          "confidence": 0.86,
+          "status": "draft"
+        },
+        {
+          "id": "struct_03",
+          "label": "Projection Pipeline",
+          "endpoint": "/api/projection/state",
+          "kind": "projection",
+          "confidence": 0.86,
+          "status": "draft"
+        },
+        {
+          "id": "struct_04",
+          "label": "Backend Runtime",
+          "endpoint": "/api/runtime/mirror",
+          "kind": "runtime",
+          "confidence": 0.86,
+          "status": "draft"
+        },
+        {
+          "id": "struct_05",
+          "label": "Memory and Vector",
+          "endpoint": "/api/repo-truth/memory",
+          "kind": "memory",
+          "confidence": 0.86,
+          "status": "draft"
+        },
+        {
+          "id": "struct_06",
+          "label": "Training State",
+          "endpoint": "/api/repo-truth/training",
+          "kind": "training",
+          "confidence": 0.86,
+          "status": "draft"
+        },
+        {
+          "id": "struct_07",
+          "label": "Miss Detection",
+          "endpoint": "/api/runtime/misses",
+          "kind": "misses",
+          "confidence": 0.86,
+          "status": "draft"
+        }
+      ],
+      "warnings": [],
+      "source": "repo_truth_state_contract_views"
+    },
+    "overrides": {
+      "canonical": true,
+      "mode": "projection-first",
+      "updated_at": "2026-03-28T11:02:31.141806",
+      "renames": [
+        {
+          "source_id": "struct_04",
+          "label": "Backend Runtime Mirror"
+        }
+      ],
+      "merges": [],
+      "splits": [],
+      "suppressions": [],
+      "notes": [
+        "Mirror repo state before generation",
+        "Keep projection non-destructive until explicit promotion"
+      ]
+    }
+  },
+  "urls": [
+    "http://localhost:5000/truth",
+    "http://localhost:5000/api/projection/extract-draft",
+    "http://localhost:5000/api/projection/overrides"
+  ]
+}

@@ -1,138 +1,141 @@
 {
   "nodes": [
     {
-      "id": "auth_api",
-      "label": "T01 Auth API",
-      "description": "Ship the authentication API surface that establishes the guarded entry point for spawned work.",
-      "allowed_paths": ["SPAWN/STOP/web/app.py"],
+      "id": "dashboard_state_service",
+      "label": "T01 Dashboard State Service",
+      "description": "Build a dedicated state service that computes the per-panel payloads, detail views, and button targets the live design page needs.",
+      "allowed_paths": ["SPAWN/STOP/.orchestrator/dashboard_state.py"],
       "dependencies": [],
-      "status": "green",
-      "task_name": "auth-api",
+      "status": "red",
+      "task_name": "dashboard-state",
       "task_id": "T01",
-      "display_status": "complete"
+      "display_status": "pending",
+      "gui_targets": [
+        "task DAG rows",
+        "bootstrap steps",
+        "vector phases",
+        "memory files",
+        "repo freeze panel",
+        "trace capture panel"
+      ]
     },
     {
-      "id": "dash_shell",
-      "label": "T02 Dashboard Shell",
-      "description": "Build the dashboard shell that hosts orchestration state, task views, and system panels.",
-      "allowed_paths": ["SPAWN/STOP/web/templates/index.html"],
-      "dependencies": ["auth_api"],
-      "status": "green",
-      "task_name": "dash-shell",
+      "id": "control_plane",
+      "label": "T02 Control Plane",
+      "description": "Add the runtime control layer that persists dashboard commands such as start, pause, stop, dispatch, freeze, and cycle speed.",
+      "allowed_paths": ["SPAWN/STOP/.orchestrator/control_plane.py"],
+      "dependencies": ["dashboard_state_service"],
+      "status": "red",
+      "task_name": "control-plane",
       "task_id": "T02",
-      "display_status": "complete"
+      "display_status": "pending",
+      "gui_targets": [
+        "start",
+        "pause",
+        "stop",
+        "dispatch",
+        "freeze toggle",
+        "cycle speed"
+      ]
     },
     {
-      "id": "dag_monitor",
-      "label": "T03 DAG Monitor",
-      "description": "Render and monitor live DAG execution so the active task, progress, and queue state stay visible.",
-      "allowed_paths": ["SPAWN/STOP/web/static/script.js"],
-      "dependencies": ["dash_shell"],
+      "id": "trace_exporter",
+      "label": "T03 Trace Exporter",
+      "description": "Implement export jobs that generate JSONL, Alpaca, ShareGPT, and steering-only datasets from the orchestrator traces.",
+      "allowed_paths": ["SPAWN/STOP/training/export_traces.py"],
+      "dependencies": ["dashboard_state_service"],
       "status": "red",
-      "task_name": "dag-monitor",
+      "task_name": "trace-exporter",
       "task_id": "T03",
-      "display_status": "active",
-      "progress": 61
+      "display_status": "pending",
+      "gui_targets": [
+        "export JSONL",
+        "export Alpaca",
+        "export ShareGPT",
+        "export Steering Only"
+      ]
     },
     {
-      "id": "llm_audit",
-      "label": "T04 LLM Audit",
-      "description": "Capture autonomous model actions, blocked writes, and policy violations for operator review.",
-      "allowed_paths": ["SPAWN/STOP/.orchestrator/logs/security/"],
-      "dependencies": ["dag_monitor"],
+      "id": "flask_dashboard_api",
+      "label": "T04 Flask Dashboard API",
+      "description": "Expose the POST and drilldown endpoints the live page needs for controls, exports, file inspection, and section detail actions.",
+      "allowed_paths": ["SPAWN/STOP/web/app.py"],
+      "dependencies": ["dashboard_state_service", "control_plane", "trace_exporter"],
       "status": "red",
-      "task_name": "llm-audit",
+      "task_name": "flask-dashboard-api",
       "task_id": "T04",
-      "display_status": "pending"
+      "display_status": "pending",
+      "gui_targets": [
+        "all live button actions",
+        "detail modals",
+        "download responses",
+        "refresh actions"
+      ]
     },
     {
-      "id": "sec_layer",
-      "label": "T05 Security Layer",
-      "description": "Enforce the orchestrator security layer that validates protected actions and hardened runtime behavior.",
-      "allowed_paths": ["SPAWN/STOP/.orchestrator/security_manager.py"],
-      "dependencies": ["llm_audit"],
+      "id": "design_action_hooks",
+      "label": "T05 Design Action Hooks",
+      "description": "Add stable action metadata and UI mount points to the design shell so each clickable element can map cleanly to Flask behavior.",
+      "allowed_paths": ["SPAWN/STOP/state/design.html"],
+      "dependencies": [],
       "status": "red",
-      "task_name": "sec-layer",
+      "task_name": "design-action-hooks",
       "task_id": "T05",
-      "display_status": "pending"
+      "display_status": "pending",
+      "gui_targets": [
+        "nav items",
+        "dag task rows",
+        "bootstrap steps",
+        "vector phases",
+        "memory files",
+        "export buttons",
+        "freeze toggle"
+      ]
     },
     {
-      "id": "spawn_gate",
-      "label": "T06 Spawn Gate",
-      "description": "Gate task dispatch so spawned agents only receive work through the approved queue and policy flow.",
-      "allowed_paths": ["SPAWN/STOP/.orchestrator/task_queue.json"],
-      "dependencies": ["sec_layer"],
+      "id": "live_dashboard_controller",
+      "label": "T06 Live Dashboard Controller",
+      "description": "Wire the designed root page to the Flask APIs with real click handling, active-state transitions, toasts, modals, and fallback refresh behavior.",
+      "allowed_paths": ["SPAWN/STOP/web/static/live_dashboard.js"],
+      "dependencies": ["flask_dashboard_api", "design_action_hooks"],
       "status": "red",
-      "task_name": "spawn-gate",
+      "task_name": "live-dashboard-controller",
       "task_id": "T06",
-      "display_status": "pending"
+      "display_status": "pending",
+      "gui_targets": [
+        "click routing",
+        "notification feedback",
+        "section focus",
+        "modal rendering",
+        "SSE refresh fallback"
+      ]
     },
     {
-      "id": "write_mutex",
-      "label": "T07 Write Mutex",
-      "description": "Add the repository write lock that serializes file mutation and blocks stray writes outside task scope.",
-      "allowed_paths": ["SPAWN/STOP/.orchestrator/locks/repo_locks"],
-      "dependencies": ["spawn_gate"],
+      "id": "vector_metrics_service",
+      "label": "T07 Vector Metrics Service",
+      "description": "Compute the live retrieval, memory, and store-size metrics needed to make the vector and memory surfaces truthful instead of placeholder values.",
+      "allowed_paths": ["SPAWN/STOP/.orchestrator/vector_metrics.py"],
+      "dependencies": ["dashboard_state_service"],
       "status": "red",
-      "task_name": "write-mutex",
+      "task_name": "vector-metrics",
       "task_id": "T07",
-      "display_status": "pending"
-    },
-    {
-      "id": "vec_memory",
-      "label": "T08 Vector Memory",
-      "description": "Persist retrieval-ready execution memory so prior outcomes can be embedded and reused in planning.",
-      "allowed_paths": ["SPAWN/STOP/.orchestrator/vector_store/"],
-      "dependencies": ["write_mutex"],
-      "status": "red",
-      "task_name": "vec-memory",
-      "task_id": "T08",
-      "display_status": "pending"
-    },
-    {
-      "id": "model_eta",
-      "label": "T09 Model ETA",
-      "description": "Project training milestones from current trace throughput and expose ETA signals to the dashboard.",
-      "allowed_paths": ["SPAWN/STOP/.orchestrator/models/"],
-      "dependencies": ["vec_memory"],
-      "status": "red",
-      "task_name": "model-eta",
-      "task_id": "T09",
-      "display_status": "pending"
-    },
-    {
-      "id": "trace_pipe",
-      "label": "T10 Trace Pipe",
-      "description": "Pipe loop, task, and memory events into append-only traces for exports, steering, and replay.",
-      "allowed_paths": ["SPAWN/STOP/.orchestrator/iteration_logger.py"],
-      "dependencies": ["model_eta"],
-      "status": "red",
-      "task_name": "trace-pipe",
-      "task_id": "T10",
-      "display_status": "pending"
-    },
-    {
-      "id": "train_pipeline",
-      "label": "T11 Training Pipeline",
-      "description": "Turn captured traces into the model-training pipeline that exports datasets and powers iterative learning.",
-      "allowed_paths": ["SPAWN/STOP/training/"],
-      "dependencies": ["trace_pipe"],
-      "status": "red",
-      "task_name": "train-pipeline",
-      "task_id": "T11",
-      "display_status": "pending"
+      "display_status": "pending",
+      "gui_targets": [
+        "vector memory counts",
+        "retrieval counts",
+        "store size",
+        "memory file stats"
+      ]
     }
   ],
   "edges": [
-    { "from": "auth_api", "to": "dash_shell" },
-    { "from": "dash_shell", "to": "dag_monitor" },
-    { "from": "dag_monitor", "to": "llm_audit" },
-    { "from": "llm_audit", "to": "sec_layer" },
-    { "from": "sec_layer", "to": "spawn_gate" },
-    { "from": "spawn_gate", "to": "write_mutex" },
-    { "from": "write_mutex", "to": "vec_memory" },
-    { "from": "vec_memory", "to": "model_eta" },
-    { "from": "model_eta", "to": "trace_pipe" },
-    { "from": "trace_pipe", "to": "train_pipeline" }
+    { "from": "dashboard_state_service", "to": "control_plane" },
+    { "from": "dashboard_state_service", "to": "trace_exporter" },
+    { "from": "dashboard_state_service", "to": "flask_dashboard_api" },
+    { "from": "control_plane", "to": "flask_dashboard_api" },
+    { "from": "trace_exporter", "to": "flask_dashboard_api" },
+    { "from": "design_action_hooks", "to": "live_dashboard_controller" },
+    { "from": "flask_dashboard_api", "to": "live_dashboard_controller" },
+    { "from": "dashboard_state_service", "to": "vector_metrics_service" }
   ]
 }

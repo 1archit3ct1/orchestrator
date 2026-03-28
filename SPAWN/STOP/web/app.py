@@ -9,6 +9,7 @@ live orchestrator state so the browser always reflects the repo as-built.
 import json
 import logging
 import os
+import sys
 import time
 from datetime import datetime
 from pathlib import Path
@@ -49,6 +50,12 @@ MEMORY_PATH = RUNTIME_DIR / "MEMORY.md"
 DESIGN_HTML_PATH = STATE_DIR / "design.html"
 SECURITY_AUDIT_LOG_PATH = LOGS_DIR / "security" / "security_audit.log"
 ORCHESTRATOR_LOG_PATH = LOGS_DIR / "orchestrator.log"
+DASHBOARD_STATE_PATH = STATE_DIR / "dashboard_state.json"
+
+if str(ORCHESTRATOR_DIR) not in sys.path:
+    sys.path.insert(0, str(ORCHESTRATOR_DIR))
+
+from dashboard_state import sync_dashboard_state
 
 
 def load_json(path: Path, default):
@@ -300,66 +307,7 @@ def get_metrics(tasks=None):
 
 
 def build_dashboard_payload():
-    tasks = get_task_records()
-    metrics = get_metrics(tasks)
-    repos = get_repo_status()
-    logs = get_recent_logs(30)
-    stray_events = get_security_events(6)
-    active_task = get_active_task(tasks)
-    graph = load_json(DESIGN_GRAPH_PATH, {"nodes": [], "edges": []})
-
-    memory_size = MEMORY_PATH.stat().st_size if MEMORY_PATH.exists() else 0
-    tasks_size = TASKS_PATH.stat().st_size if TASKS_PATH.exists() else 0
-    vector_files = count_files(VECTOR_STORE_DIR)
-    trace_entries = build_trace_entries(tasks)
-
-    pending = metrics["task_status"]["pending"]
-    active_count = metrics["task_status"]["in_progress"]
-    completed = metrics["task_status"]["completed"]
-    total = metrics["task_status"]["total"]
-    traces = metrics["training_data_files"] + len(logs)
-    collection_progress = round((completed / total) * 100, 1) if total else 0.0
-
-    eta_days = max(1, total - completed) if total else 1
-    if traces > 0 and completed < total:
-        eta_days = max(1, round((total - completed) * 2.5))
-
-    steering_count = len(stray_events)
-    success_traces = max(0, traces - steering_count)
-
-    return {
-        "generated_at": datetime.now().isoformat(),
-        "graph": graph,
-        "tasks": tasks,
-        "metrics": metrics,
-        "repos": repos,
-        "logs": logs,
-        "active_task": active_task,
-        "stray_events": stray_events,
-        "trace_entries": trace_entries,
-        "model": {
-            "name": metrics["model_name"],
-            "sub": "LIVE ORCHESTRATOR VIEW",
-            "eta_days": eta_days,
-            "collection_progress": collection_progress,
-            "success_traces": success_traces,
-            "steering_traces": steering_count,
-        },
-        "memory_files": [
-            {"name": "MEMORY.md", "size": f"append-only - {format_bytes(memory_size)}"},
-            {"name": "vector_store/", "size": f"{vector_files} entries"},
-            {"name": "TASKS", "size": f"tasks.json - {format_bytes(tasks_size)}"},
-            {"name": "repos/", "size": f"{len(repos)} child repos"},
-        ],
-        "summary": {
-            "loops_executed": metrics["cycles"],
-            "training_traces": traces,
-            "dag_total": total,
-            "dag_pending": pending,
-            "dag_active": active_count,
-            "stray_count": len(stray_events),
-        },
-    }
+    return sync_dashboard_state(RUNTIME_DIR)
 
 
 LIVE_DASHBOARD_SCRIPT = r"""
@@ -370,6 +318,9 @@ LIVE_DASHBOARD_SCRIPT = r"""
   function qs(selector) { return document.querySelector(selector); }
   function qsa(selector) { return Array.from(document.querySelectorAll(selector)); }
   function setText(el, value) { if (el) el.textContent = value; }
+  function textOr(value, fallback) {
+    return value === null || value === undefined || value === '' ? fallback : value;
+  }
   function escapeHtml(value) {
     return String(value ?? '').replace(/[&<>"']/g, function (char) {
       return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;', "'":'&#39;'})[char];
@@ -432,8 +383,8 @@ LIVE_DASHBOARD_SCRIPT = r"""
     setText(cards[0].querySelector('.stat-val'), String(data.summary.loops_executed || 0));
     setText(cards[0].querySelector('.stat-meta'), 'autonomous cycles');
 
-    setText(cards[1].querySelector('.stat-val'), (data.summary.training_traces || 0).toLocaleString());
-    setText(cards[1].querySelector('.stat-delta'), '+' + String(data.logs.length) + ' recent log lines');
+    setText(cards[1].querySelector('.stat-val'), Number(data.summary.training_traces || 0).toLocaleString());
+    setText(cards[1].querySelector('.stat-delta'), String((data.model && data.model.success_traces) || 0) + ' success · ' + String((data.model && data.model.steering_traces) || 0) + ' steering');
 
     setText(cards[2].querySelector('.stat-val'), String(data.summary.dag_total || 0));
     setText(cards[2].querySelector('.stat-meta'), String((data.summary.dag_pending || 0) + ' pending · ' + (data.summary.dag_active || 0) + ' active'));
@@ -460,10 +411,12 @@ LIVE_DASHBOARD_SCRIPT = r"""
   }
 
   function renderModelPanel(data) {
-    setText(qs('.model-name'), data.model.name || 'Configured model');
-    setText(qs('.model-sub'), data.model.sub || 'LIVE ORCHESTRATOR VIEW');
-    setText(qs('.eta-num'), String(data.model.eta_days || 1));
-    setText(qs('.coll-pct'), String((data.model.collection_progress || 0).toFixed(1) + '%'));
+    setText(qs('.model-name'), textOr(data.model.name, 'NO MODEL INTEGRATED'));
+    setText(qs('.model-sub'), textOr(data.model.sub, 'CANONICAL REPO STATE'));
+    setText(qs('.eta-num'), data.model.eta_days === null || data.model.eta_days === undefined ? '--' : String(data.model.eta_days));
+    setText(qs('.eta-unit'), data.model.eta_days === null || data.model.eta_days === undefined ? 'UNKNOWN' : 'DAYS');
+    setText(qs('.eta-label'), data.model.integrated ? 'MODEL ETA - BACKED BY REPO STATE' : 'MODEL ETA - ONLY SHOWN AFTER INTEGRATION');
+    setText(qs('.coll-pct'), String(Number(data.model.collection_progress || 0).toFixed(1) + '%'));
 
     const progressFill = qs('.prog-fill');
     if (progressFill) progressFill.style.width = (data.model.collection_progress || 0) + '%';
@@ -543,15 +496,14 @@ LIVE_DASHBOARD_SCRIPT = r"""
     traceBody.innerHTML = data.trace_entries.map(function (entry) {
       return ''
         + '<div class="trace-entry">'
-        + '<span class="trace-time">' + escapeHtml(formatClock(data.generated_at)) + '</span>'
+        + '<span class="trace-time">' + escapeHtml(textOr(entry.timestamp, formatClock(data.generated_at))) + '</span>'
         + '<span class="trace-event">' + escapeHtml(entry.text) + '</span>'
         + '<span class="trace-tag ' + traceTagClass(entry.type) + '">' + escapeHtml((entry.type || 'loop').toUpperCase()) + '</span>'
         + '</div>';
     }).join('');
 
-    const badges = qsa('.trace-body').length ? qsa('.panel-badge') : [];
     const tracePanelBadge = qsa('.bento3 .panel-badge');
-    if (tracePanelBadge[0]) setText(tracePanelBadge[0], '+' + String(data.logs.length) + ' recent');
+    if (tracePanelBadge[0]) setText(tracePanelBadge[0], '+' + String(data.trace_entries.length) + ' canonical');
   }
 
   function renderMemoryFiles(data) {
@@ -572,6 +524,18 @@ LIVE_DASHBOARD_SCRIPT = r"""
     if (segments[0]) segments[0].querySelector('.sb-live').textContent = data.summary.dag_active ? 'SPAWN ACTIVE' : 'SPAWN IDLE';
     if (segments[1]) segments[1].querySelector('span').textContent = 'MUTEX HELD';
     if (segments[2]) segments[2].querySelector('span').textContent = (data.active_task ? (data.active_task.task_id + ' -> ' + data.active_task.label + ' · ' + (data.active_task.progress || 0) + '%') : 'WAITING FOR TASK');
+    if (segments[3]) segments[3].textContent = 'WARN ' + (data.summary.stray_count || 0) + ' STRAY EVENT';
+  }
+
+  renderStatusbar = function (data) {
+    const segments = qsa('#statusbar .sb-seg');
+    if (segments[0]) segments[0].querySelector('.sb-live').textContent = data.summary.dag_active ? 'SPAWN ACTIVE' : 'SPAWN IDLE';
+    if (segments[1]) segments[1].querySelector('span').textContent = data.repo_freeze && data.repo_freeze.mutex_held ? 'MUTEX HELD' : 'MUTEX OPEN';
+    if (segments[2]) {
+      segments[2].querySelector('span').textContent = data.active_task
+        ? (data.active_task.task_id + ' -> ' + data.active_task.label + (data.active_task.progress ? ' | ' + data.active_task.progress + '%' : ''))
+        : 'WAITING FOR TASK';
+    }
     if (segments[3]) segments[3].textContent = 'WARN ' + (data.summary.stray_count || 0) + ' STRAY EVENT';
   }
 

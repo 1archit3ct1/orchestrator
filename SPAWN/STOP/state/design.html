@@ -1338,7 +1338,7 @@ body::after {
         <div class="stat-meta">autonomous cycles</div>
       </div>
       <div class="card stat-card">
-        <div class="stat-label">TRAINING TRACES</div>
+        <div class="stat-label">TRACE ARTIFACTS</div>
         <div class="stat-val">1,847</div>
         <div class="stat-delta">+34 this session</div>
       </div>
@@ -1427,11 +1427,11 @@ body::after {
         </div>
       </div>
 
-      <!-- MODEL TRAINING -->
+      <!-- MODEL STATUS -->
       <div class="card model-panel">
         <div class="panel-hdr">
           <span class="panel-icon">◎</span>
-          <span class="panel-title">MODEL TRAINING</span>
+          <span class="panel-title">MODEL STATUS</span>
         </div>
         <div class="model-body">
           <div class="model-name-block">
@@ -1446,7 +1446,7 @@ body::after {
           <div class="eta-label">TO V1 CHECKPOINT — PROJECTED AT CURRENT TRACE RATE</div>
 
           <div class="coll-row">
-            <span>COLLECTION PROGRESS</span>
+            <span>DAG PROGRESS</span>
             <span class="coll-pct">36.9%</span>
           </div>
           <div class="prog-track">
@@ -1455,7 +1455,7 @@ body::after {
 
           <div class="trace-split">
             <div class="trace-box">
-              <div class="trace-box-label">SUCCESS TRACES</div>
+              <div class="trace-box-label">ITERATION TRACES</div>
               <div class="trace-box-val">1,612</div>
             </div>
             <div class="trace-box">
@@ -1843,30 +1843,30 @@ body::after {
         </div>
       </div>
 
-      <!-- ETA TRACKER -->
+      <!-- READINESS TRACKER -->
       <div class="card">
         <div class="panel-hdr">
           <span class="panel-icon">◷</span>
-          <span class="panel-title">ETA TRACKER</span>
+          <span class="panel-title">READINESS TRACKER</span>
         </div>
         <div style="padding:14px 16px;">
-          <div style="font-size:8px;letter-spacing:2px;color:var(--text-ghost);margin-bottom:8px;">PROJECTED MILESTONES</div>
+          <div style="font-size:8px;letter-spacing:2px;color:var(--text-ghost);margin-bottom:8px;">CURRENT READINESS</div>
           <div style="display:flex;flex-direction:column;gap:6px;">
             <div style="display:flex;justify-content:space-between;font-size:9px;padding:7px 9px;border:1px solid var(--border-dim);border-radius:5px;background:rgba(255,32,32,0.03);">
-              <span style="color:var(--text-dim);">v1 Checkpoint</span>
-              <span style="color:var(--red);">14 days</span>
+              <span style="color:var(--text-dim);">Canonical State</span>
+              <span style="color:var(--red);">LIVE</span>
             </div>
             <div style="display:flex;justify-content:space-between;font-size:9px;padding:7px 9px;border:1px solid var(--border-dim);border-radius:5px;background:rgba(255,32,32,0.03);">
-              <span style="color:var(--text-dim);">50% Collection</span>
-              <span style="color:var(--text-dim);">~5 days</span>
+              <span style="color:var(--text-dim);">Model Integrated</span>
+              <span style="color:var(--text-dim);">Pending</span>
             </div>
             <div style="display:flex;justify-content:space-between;font-size:9px;padding:7px 9px;border:1px solid var(--border-dim);border-radius:5px;background:rgba(255,32,32,0.03);">
-              <span style="color:var(--text-dim);">DAG Complete</span>
-              <span style="color:var(--text-dim);">~3 days</span>
+              <span style="color:var(--text-dim);">Flask Controls Live</span>
+              <span style="color:var(--text-dim);">Pending</span>
             </div>
             <div style="display:flex;justify-content:space-between;font-size:9px;padding:7px 9px;border:1px solid var(--border-dim);border-radius:5px;background:rgba(255,32,32,0.03);">
-              <span style="color:var(--text-dim);">Stray Resolution</span>
-              <span style="color:var(--amber);">NOW</span>
+              <span style="color:var(--text-dim);">TASK.md Alignment</span>
+              <span style="color:var(--amber);">ATTENTION</span>
             </div>
           </div>
           <div style="margin-top:12px;font-size:8px;color:var(--text-ghost);letter-spacing:1px;line-height:1.6;">

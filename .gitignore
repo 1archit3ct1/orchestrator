@@ -16,3 +16,4 @@ SPAWN/STOP/.orchestrator/logs/*.log
 SPAWN/STOP/.orchestrator/dashboard.pid
 SPAWN/STOP/Stop/
 SPAWN/STOP/web/orchestrator.log
+SPAWN/STOP/state/dashboard_state.json

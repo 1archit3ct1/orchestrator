@@ -42,6 +42,9 @@ Repository Architecture (with Vector Memory & Agent‑Agnostic)
 └─────────────────────────────────────────────────────────────────────────────────┘
 ```
 
+Loop reinforcement rule:
+When integrations go live in Flask, their corresponding DAG tasks turn green, and the autonomous loop should keep reinforcing that green state from canonical repo truth on later cycles.
+
 ---
 
 Key Additions & Explanations

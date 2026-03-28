@@ -1,0 +1,13 @@
+{
+  "id": "miss_9aaf3a9e249e",
+  "timestamp": "2026-03-27T23:55:00.180612",
+  "type": "miss_capture",
+  "miss_type": "lock_denied",
+  "summary": "Active task gui_training_run_details was blocked by a global write lock denial.",
+  "details": {
+    "task_id": "task_004",
+    "dag_node_id": "gui_training_run_details",
+    "repo": null,
+    "reason": "Lock held by another task"
+  }
+}

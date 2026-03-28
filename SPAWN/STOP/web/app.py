@@ -9,6 +9,7 @@ live orchestrator state so the browser always reflects the repo as-built.
 import json
 import logging
 import os
+import subprocess
 import sys
 import time
 from datetime import datetime
@@ -1359,13 +1360,35 @@ def api_task_details(task_id):
     return jsonify(result)
 
 
+# Track spawn runner process
+spawn_runner_process = None
+
 @app.route("/api/spawn/start", methods=["POST"])
 def api_spawn_start():
     """Start the autonomous spawn loop."""
+    global spawn_runner_process
+    
     config = load_json(CONFIG_PATH, {})
     config["spawn_loop"] = {"state": "running", "started_at": datetime.utcnow().isoformat() + "Z"}
     CONFIG_PATH.parent.mkdir(parents=True, exist_ok=True)
     CONFIG_PATH.write_text(json.dumps(config, indent=2) + "\n", encoding="utf-8")
+    
+    # Start spawn_runner.py which monitors state and runs loop.py
+    spawn_runner_script = ORCHESTRATOR_DIR / "spawn_runner.py"
+    if spawn_runner_script.exists():
+        if spawn_runner_process is None or spawn_runner_process.poll() is not None:
+            logger.info("Starting spawn_runner.py background process...")
+            spawn_runner_process = subprocess.Popen(
+                [sys.executable, str(spawn_runner_script)],
+                cwd=str(ORCHESTRATOR_DIR),
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True
+            )
+            logger.info(f"spawn_runner started with PID {spawn_runner_process.pid}")
+        else:
+            logger.info("spawn_runner already running")
+    
     logger.info("Spawn loop started via API")
     return jsonify({"status": "started", "state": "running", "timestamp": config["spawn_loop"]["started_at"]})
 
@@ -1373,10 +1396,25 @@ def api_spawn_start():
 @app.route("/api/spawn/pause", methods=["POST"])
 def api_spawn_pause():
     """Pause the autonomous spawn loop."""
+    global spawn_runner_process
+    
     config = load_json(CONFIG_PATH, {})
     config["spawn_loop"] = {"state": "paused", "paused_at": datetime.utcnow().isoformat() + "Z"}
     CONFIG_PATH.parent.mkdir(parents=True, exist_ok=True)
     CONFIG_PATH.write_text(json.dumps(config, indent=2) + "\n", encoding="utf-8")
+    
+    # Stop spawn_runner.py
+    if spawn_runner_process is not None and spawn_runner_process.poll() is None:
+        logger.info("Stopping spawn_runner.py...")
+        spawn_runner_process.terminate()
+        try:
+            spawn_runner_process.wait(timeout=10)
+        except subprocess.TimeoutExpired:
+            spawn_runner_process.kill()
+            spawn_runner_process.wait()
+        logger.info("spawn_runner stopped")
+        spawn_runner_process = None
+    
     logger.info("Spawn loop paused via API")
     return jsonify({"status": "paused", "state": "paused", "timestamp": config["spawn_loop"]["paused_at"]})
 
@@ -1384,8 +1422,11 @@ def api_spawn_pause():
 @app.route("/api/spawn/status")
 def api_spawn_status():
     """Return current spawn loop state."""
+    global spawn_runner_process
     config = load_json(CONFIG_PATH, {})
     spawn_loop = config.get("spawn_loop", {"state": "stopped"})
+    spawn_loop["runner_pid"] = spawn_runner_process.pid if spawn_runner_process and spawn_runner_process.poll() is None else None
+    spawn_loop["runner_running"] = spawn_runner_process is not None and spawn_runner_process.poll() is None
     return jsonify(spawn_loop)
 
 

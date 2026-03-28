@@ -963,6 +963,7 @@ def sync_dashboard_state(runtime_dir: Path):
             "started_at": config.get("spawn_loop", {}).get("started_at"),
             "paused_at": config.get("spawn_loop", {}).get("paused_at"),
             "active_spawns": 1 if config.get("spawn_loop", {}).get("state") == "running" else 0,
+            "runner_running": False,  # Updated by Flask app.py at runtime
         },
         "readiness": build_readiness_state(model_integrated, graph, task_md, state_warnings, verification),
         "task_queue": load_json(task_queue_path, []),

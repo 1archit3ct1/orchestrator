@@ -1,0 +1,12 @@
+{
+  "id": "miss_1764f2f841db",
+  "timestamp": "2026-03-27T23:54:55.637376",
+  "type": "miss_capture",
+  "miss_type": "verification_miss",
+  "summary": "Active task gui_training_run_details did not satisfy repo verification yet.",
+  "details": {
+    "task_id": "task_004",
+    "dag_node_id": "gui_training_run_details",
+    "reason": "training run panel is not wired to detailed repo-backed training state"
+  }
+}

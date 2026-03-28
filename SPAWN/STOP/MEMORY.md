@@ -316,3 +316,18 @@
 ### Training Value
 - These exchanges preserve that Flask debug/reloader behavior can temporarily serve stale code paths even after a local file is fixed, so runtime verification must distinguish current repo truth from a stale in-memory process.
 - They also preserve a useful recovery pattern: verify the live traceback against current file contents before assuming the repo still contains the bug.
+
+## Loop Miss Capture - 2026-03-27 23:54:55
+- Type: verification_miss
+- Summary: Active task gui_training_run_details did not satisfy repo verification yet.
+- Details: {"task_id": "task_004", "dag_node_id": "gui_training_run_details", "reason": "training run panel is not wired to detailed repo-backed training state"}
+
+## Loop Miss Capture - 2026-03-27 23:54:58
+- Type: lock_denied
+- Summary: Active task gui_training_run_details was blocked by a global write lock denial.
+- Details: {"task_id": "task_004", "dag_node_id": "gui_training_run_details", "repo": null, "reason": "Lock held by another task"}
+
+## Loop Miss Capture - 2026-03-27 23:55:00
+- Type: lock_denied
+- Summary: Active task gui_training_run_details was blocked by a global write lock denial.
+- Details: {"task_id": "task_004", "dag_node_id": "gui_training_run_details", "repo": null, "reason": "Lock held by another task"}

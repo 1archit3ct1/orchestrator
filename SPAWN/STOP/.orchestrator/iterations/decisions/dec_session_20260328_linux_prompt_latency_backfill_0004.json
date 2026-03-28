@@ -1,0 +1,16 @@
+{
+  "id": "dec_session_20260328_linux_prompt_latency_backfill_0004",
+  "timestamp": "2026-03-28T15:07:05.269094",
+  "type": "decision",
+  "session_id": "session_20260328_linux_prompt_latency_backfill",
+  "decision": {
+    "question": "What is actually causing the slow loop feel?"
+  },
+  "outcome": {
+    "lesson": "Backend repo-truth endpoint generation is the slow part, not prompt parsing."
+  },
+  "details": {
+    "topic": "latency",
+    "source": "chat_backfill"
+  }
+}

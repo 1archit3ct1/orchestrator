@@ -40,6 +40,20 @@ Non-breaking rule:
 - the new frontend must consume canonical state domains without mutating queue or execution state during rendering
 - canonical sync remains responsible for keeping queue state, canonical state files, and the frontend aligned from repo truth
 
+## Runtime Baseline
+
+Linux/WSL is the default orchestrator runtime, not a task-specific optimization.
+
+Rules:
+
+- bring up Linux/WSL first before running the orchestrator flow
+- keep Linux/WSL active throughout orchestration even for non-training tasks
+- use the host shell as the control surface, but keep GPU, memory, and heavy token-processing behavior anchored in Linux/WSL
+
+Reason:
+
+- the stable Linux runtime keeps GPU behavior, memory pressure, and overall responsiveness more consistent than starting it only for selected tasks
+
 ## Git Serialization
 
 The repo root is intentionally one level above `SPAWN/`, so every git write still targets the single top-level index under `.git/`.

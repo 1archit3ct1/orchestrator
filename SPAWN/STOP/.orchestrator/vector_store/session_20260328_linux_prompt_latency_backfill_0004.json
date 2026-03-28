@@ -1,0 +1,14 @@
+{
+  "id": "session_20260328_linux_prompt_latency_backfill_0004",
+  "timestamp": "2026-03-28T15:07:05.269094",
+  "session_id": "session_20260328_linux_prompt_latency_backfill",
+  "topic": "latency",
+  "key": "latency_is_backend_not_prompt",
+  "summary": "Repo-truth endpoint generation is the main latency source right now.",
+  "source": "chat_backfill",
+  "tags": [
+    "chat_backfill",
+    "march_28",
+    "latency"
+  ]
+}

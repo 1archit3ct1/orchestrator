@@ -1,0 +1,14 @@
+{
+  "id": "session_20260328_linux_prompt_latency_backfill_0002",
+  "timestamp": "2026-03-28T15:07:05.269094",
+  "session_id": "session_20260328_linux_prompt_latency_backfill",
+  "topic": "prompt_scope",
+  "key": "task_scoped_prompt_root",
+  "summary": "Prompt-driven work should begin in SPAWN/START and stay within task paths.",
+  "source": "chat_backfill",
+  "tags": [
+    "chat_backfill",
+    "march_28",
+    "prompt_scope"
+  ]
+}

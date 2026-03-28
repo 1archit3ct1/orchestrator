@@ -1,0 +1,16 @@
+{
+  "id": "dec_session_20260328_linux_prompt_latency_backfill_0001",
+  "timestamp": "2026-03-28T15:07:05.269094",
+  "type": "decision",
+  "session_id": "session_20260328_linux_prompt_latency_backfill",
+  "decision": {
+    "question": "Should Linux or WSL stay active only for GPU-heavy tasks?"
+  },
+  "outcome": {
+    "lesson": "No. Keep Linux-first runtime active for all orchestrator work because the system runs smoother that way."
+  },
+  "details": {
+    "topic": "runtime_baseline",
+    "source": "chat_backfill"
+  }
+}

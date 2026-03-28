@@ -50,17 +50,18 @@ If a task does not leave behind verifiable repo data, do not advance queue state
 ## Active Orchestration Loop
 
 ```text
-1. Read `task_queue.json` and select the next actionable local task by priority
-2. Start from the task's `start_path` when present; otherwise stay rooted in `SPAWN/START/`
-3. Open only the task's `allowed_paths` plus required sync targets
-4. Query vector and memory artifacts only for context relevant to that task
-5. Execute the task or pause for operator help if blocked; do not invent side quests
-6. Write concrete repo-visible deliverables inside the allowed paths
-7. Capture misses, corrections, and useful lessons into memory, vector, data, iteration, and retrieval artifacts
-8. Run canonical sync so `design_graph.json`, `tasks.json`, `task_queue.json`, and the repo-truth frontend stay aligned
-9. Verify the live rendered state or endpoint if the task affects the GUI or APIs
-10. Mark the task complete only when the repo condition is visibly true
-11. Repeat until the queue has no actionable tasks left
+1. Bring up Linux/WSL first and keep it active as the default runtime regardless of task so GPU, memory, and token-processing behavior stay stable
+2. Read `task_queue.json` and select the next actionable local task by priority
+3. Start from the task's `start_path` when present; otherwise stay rooted in `SPAWN/START/`
+4. Open only the task's `allowed_paths` plus required sync targets
+5. Query vector and memory artifacts only for context relevant to that task
+6. Execute the task or pause for operator help if blocked; do not invent side quests
+7. Write concrete repo-visible deliverables inside the allowed paths
+8. Capture misses, corrections, and useful lessons into memory, vector, data, iteration, and retrieval artifacts
+9. Run canonical sync so `design_graph.json`, `tasks.json`, `task_queue.json`, and the repo-truth frontend stay aligned
+10. Verify the live rendered state or endpoint if the task affects the GUI or APIs
+11. Mark the task complete only when the repo condition is visibly true
+12. Repeat until the queue has no actionable tasks left
 ```
 
 ## Current Execution Priorities

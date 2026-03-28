@@ -1,0 +1,16 @@
+{
+  "id": "dec_session_20260328_linux_prompt_latency_backfill_0002",
+  "timestamp": "2026-03-28T15:07:05.269094",
+  "type": "decision",
+  "session_id": "session_20260328_linux_prompt_latency_backfill",
+  "decision": {
+    "question": "Should prompt-driven work start in STOP or START?"
+  },
+  "outcome": {
+    "lesson": "Stay rooted in SPAWN/START and only open task-declared paths plus sync targets."
+  },
+  "details": {
+    "topic": "prompt_scope",
+    "source": "chat_backfill"
+  }
+}

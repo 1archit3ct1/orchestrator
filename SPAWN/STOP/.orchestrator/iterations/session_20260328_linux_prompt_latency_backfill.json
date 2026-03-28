@@ -1,0 +1,20 @@
+{
+  "id": "session_20260328_linux_prompt_latency_backfill",
+  "timestamp": "2026-03-28T15:07:05.269094",
+  "type": "conversation_backfill",
+  "summary": "Linux-first runtime baseline, task-scoped prompt root, execution-card replacement, and latency measurement were captured after the last memory dump.",
+  "session_id": "session_20260328_linux_prompt_latency_backfill",
+  "context": {
+    "records": 4,
+    "topics": [
+      "runtime_baseline",
+      "prompt_scope",
+      "frontend_signal",
+      "latency"
+    ]
+  },
+  "outcome": {
+    "result": "repo-visible backfill written into memory, data, iteration, vector, and retrieval stores",
+    "lesson": "Keep Linux active globally, keep prompt scope narrow, and optimize backend latency rather than overblaming prompt size."
+  }
+}

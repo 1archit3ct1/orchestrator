@@ -1,0 +1,14 @@
+{
+  "id": "session_20260328_linux_prompt_latency_backfill_0003",
+  "timestamp": "2026-03-28T15:07:05.269094",
+  "session_id": "session_20260328_linux_prompt_latency_backfill",
+  "topic": "frontend_signal",
+  "key": "replace_low_signal_execution_card",
+  "summary": "Memory and training state is more useful than a stale execution summary.",
+  "source": "chat_backfill",
+  "tags": [
+    "chat_backfill",
+    "march_28",
+    "frontend_signal"
+  ]
+}

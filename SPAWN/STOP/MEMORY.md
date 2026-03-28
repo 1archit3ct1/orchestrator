@@ -1448,3 +1448,14 @@
 - [1033] runtime_test_from_prompt_only: Prompt-only replay is a strong regression test for orchestration contracts.
 - [1034] remove_redundancy_not_truth: Redundancy in the interface is not the same as redundancy in the state engine.
 - [1035] conversation_as_tuning_corpus: Long debugging threads can be turned into high-value supervised and steering data when provenance is explicit.
+
+## Linux-First Prompt And Latency Backfill - 2026-03-28 15:10:00
+- Captured the latest March 28 collaboration segment after the repo-truth training-stack completion so the runtime baseline and prompt-tightening lessons are present in canonical memory.
+- Coverage: Linux/WSL should stay active for every orchestrator cycle, prompt execution should stay rooted in `SPAWN/START/`, tasks should declare path scope in queue state, and the stale execution summary card should be replaced by useful memory/training truth.
+- Measured repo-truth endpoint latency from the live frontend path: roughly 2.8s to 3.0s for `/api/repo-truth/dashboard`, `/api/repo-truth/queue`, and `/api/runtime/mirror`.
+- [1036] linux_first_runtime_baseline: Keeping Linux/WSL active for all tasks stabilizes GPU and memory behavior better than treating it as an optional optimization.
+- [1037] task_scoped_prompt_root: Prompt-driven work should start in `SPAWN/START/` and open only task paths plus sync targets.
+- [1038] ask_if_blocked_do_not_invent: If a task is blocked or ambiguous, ask instead of widening scope or inventing a side path.
+- [1039] queue_declares_start_path: The queue should carry `start_path` and sync-target expectations so agents do not have to infer workspace boundaries from prose alone.
+- [1040] replace_low_signal_execution_card: Repo-truth UI should surface memory and training state instead of a legacy execution counter card that adds little operational value.
+- [1041] latency_is_backend_not_prompt: The main slowness came from repo-truth endpoint generation rather than prompt parsing.

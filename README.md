@@ -3,7 +3,7 @@
 
 ## Projection-First Integration Plan
 
-The repo now carries a non-destructive projection scaffold so planning can happen before stack execution.
+The repo carries a non-destructive projection scaffold so planning can happen before stack execution.
 
 High-level flow:
 
@@ -16,16 +16,16 @@ High-level flow:
 
 Non-breaking rule:
 
-- projection artifacts must remain separate from `design_graph.json`, `tasks.json`, and `TASK.md` until approval and promotion complete
+- projection artifacts must remain separate from canonical execution state until approval and promotion complete
 
 Repo memory rule:
 
 - planning and correction knowledge must live on disk in `SPAWN/STOP/MEMORY.md`, `SPAWN/STOP/retrieval_log.jsonl`, `.orchestrator/vector_store/`, `.orchestrator/iterations/`, and `.orchestrator/data/`
 - the loop should retrieve ranked relevant context from those stores instead of assuming hidden agent memory
 
-## Repo-Truth Frontend Migration
+## Repo-Truth Frontend
 
-The default frontend route now moves toward a repo-truth shell that reads explicit backend state domains instead of relying on the legacy dashboard's mixed assumptions.
+The default frontend route is the repo-truth shell that reads explicit backend state domains.
 
 High-level flow:
 
@@ -33,12 +33,12 @@ High-level flow:
 2. expose explicit frontend state contracts for execution, queue, projection, runtime, memory, training, and misses
 3. stream backend runtime activity into the GUI through repo-backed APIs and SSE
 4. correlate runtime activity with trace, retrieval, and dataset writes so missed data capture can be detected visibly
-5. retire legacy shell assumptions after parity is verified so `/` remains the single live frontend
+5. keep `/` as the single live frontend
 
 Non-breaking rule:
 
 - the new frontend must consume canonical state domains without mutating queue or execution state during rendering
-- canonical sync remains responsible for retiring stale `TASK.md` files and promoting the next runnable task only when repo truth says it should
+- canonical sync remains responsible for keeping queue state, canonical state files, and the frontend aligned from repo truth
 
 ## Git Serialization
 

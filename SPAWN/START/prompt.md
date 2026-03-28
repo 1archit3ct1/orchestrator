@@ -7,7 +7,7 @@ Only operate the orchestrator repo itself from canonical repo state.
 
 Goal
 
-Run `SPAWN/STOP/` as a truthful local orchestrator runtime driven by queue state, canonical sync, repo-visible memory, and the repo-truth frontend.
+Run the local orchestrator from `SPAWN/START/` by selecting the next truthful queue task, working only inside that task's declared paths, then syncing state, memory, and the repo-truth frontend.
 
 ## Required Runtime State
 
@@ -25,6 +25,8 @@ Run `SPAWN/STOP/` as a truthful local orchestrator runtime driven by queue state
 - Only mark work complete when the corresponding repo condition is actually satisfied on disk or through the live repo-truth frontend.
 - `design_graph.json`, `tasks.json`, `task_queue.json`, and the repo-truth frontend must stay aligned through canonical sync.
 - Only write inside the current task's `allowed_paths`.
+- When a queue item declares `start_path`, stay rooted there and open only the current task paths plus required sync targets.
+- If the current task is blocked, risky, or ambiguous, stop and ask instead of inventing a new path.
 - Never fabricate model integration, training data, vector entries, or queue progress.
 - Unknown state should remain null, pending, empty, or absent.
 - Every task must leave repo-visible data artifacts, not just plans or status changes.
@@ -48,26 +50,24 @@ If a task does not leave behind verifiable repo data, do not advance queue state
 ## Active Orchestration Loop
 
 ```text
-1. Bring up the Linux/WSL runtime first whenever GPU-backed work, training, or heavy token processing is involved so CUDA access and memory behavior stay optimized
-2. Read task_queue.json and select the current actionable local tasks
-3. Query vector and memory artifacts for relevant ranked context
-4. Call loop.py with local runtime state and task requirements
-5. Execute or defer local orchestrator tasks within allowed_paths and runtime guards
-6. Collect local logs, outputs, and runtime signals into SPAWN/STOP/.orchestrator/logs/
-7. Train or update models if training data and configs are available
-8. Check for misses: verifier failures, lock denials, stray writes, wrong assumptions, missing data writes, and user-corrected mistakes
-9. Dump useful misses into MEMORY.md, vector store, data pipeline, iteration artifacts, and retrieval log
-10. Run canonical sync so design_graph.json, tasks.json, task_queue.json, and repo-truth frontend state stay aligned
-11. Update task_queue.json with the next truthful batch of priorities and statuses
-12. If orchestration is complete, finalize state
-13. Repeat until all coordinated tasks complete
+1. Read `task_queue.json` and select the next actionable local task by priority
+2. Start from the task's `start_path` when present; otherwise stay rooted in `SPAWN/START/`
+3. Open only the task's `allowed_paths` plus required sync targets
+4. Query vector and memory artifacts only for context relevant to that task
+5. Execute the task or pause for operator help if blocked; do not invent side quests
+6. Write concrete repo-visible deliverables inside the allowed paths
+7. Capture misses, corrections, and useful lessons into memory, vector, data, iteration, and retrieval artifacts
+8. Run canonical sync so `design_graph.json`, `tasks.json`, `task_queue.json`, and the repo-truth frontend stay aligned
+9. Verify the live rendered state or endpoint if the task affects the GUI or APIs
+10. Mark the task complete only when the repo condition is visibly true
+11. Repeat until the queue has no actionable tasks left
 ```
 
 ## Current Execution Priorities
 
-- Read the remaining actionable work from `SPAWN/STOP/.orchestrator/task_queue.json`
+- Read the next actionable work from `SPAWN/STOP/.orchestrator/task_queue.json`
 - Keep queue progress, sync state, memory capture, and repo-truth frontend state aligned
-- Prefer finishing the next highest-priority actionable task before widening scope
+- Prefer finishing one truthful task at a time before widening scope
 
 Output
 
@@ -81,4 +81,4 @@ Operate the repo so that:
 
 ## Operator Use
 
-After reading this prompt, work inside `SPAWN/STOP/`.
+After reading this prompt, stay rooted in `SPAWN/START/` and open only the current task paths plus sync targets.

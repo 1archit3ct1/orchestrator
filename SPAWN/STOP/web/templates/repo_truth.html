@@ -229,10 +229,10 @@
 
     <div class="grid">
       <section class="card span-3">
-        <header><span>Execution</span><span class="pill" id="exec-pill">loading</span></header>
+        <header><span>Memory and Training</span><span class="pill" id="training-pill-top">loading</span></header>
         <div class="body">
-          <div class="metric" id="exec-green">0</div>
-          <div class="metric-meta" id="exec-meta">green nodes / total</div>
+          <div class="metric" id="memory-tokens-top">0</div>
+          <div class="metric-meta" id="training-top-meta">memory tokens / training readiness</div>
         </div>
       </section>
 
@@ -323,12 +323,6 @@
         </div>
       </section>
 
-      <section class="card span-6">
-        <header><span>Memory and Training</span><span class="pill" id="training-pill">model</span></header>
-        <div class="body">
-          <div class="kv" id="memory-training-kv"></div>
-        </div>
-      </section>
     </div>
   </div>
 
@@ -352,16 +346,6 @@
     qs('#state-views').innerHTML = (views || []).map(function (item) {
       return '<div class="view-chip"><div>' + esc(item.label) + '</div><div>' + esc(item.endpoint) + '</div></div>';
     }).join('');
-  }
-
-  function renderExecution(data) {
-    const graph = (data.execution && data.execution.graph) || {};
-    const nodes = graph.nodes || [];
-    const green = nodes.filter((node) => node.status === 'green').length;
-    qs('#exec-green').textContent = green;
-    qs('#exec-meta').textContent = green + ' green / ' + nodes.length + ' total';
-    qs('#exec-pill').className = pillClass(graph.status === 'complete' ? 'live' : 'pending');
-    qs('#exec-pill').textContent = graph.status || 'pending';
   }
 
   function renderQueue(data) {
@@ -448,33 +432,30 @@
     const training = data.training || {};
     const model = training.model || {};
     const dataset = training.dataset || {};
-    const quality = (training.training_run && training.training_run.quality) || {};
     const framework = training.framework || {};
     const smoke = (training.training_run && training.training_run.smoke_test) || {};
     const vram = (training.training_run && training.training_run.vram_profile) || {};
-    qs('#training-pill').textContent = (training.training_run && training.training_run.training_config && training.training_run.training_config.integrated) ? 'integrated' : 'pending';
-    qs('#memory-training-kv').innerHTML = [
-      ['Memory tokens', model.memory_collected_tokens || 0],
-      ['Retrieval lines', memory.retrieval_lines || 0],
-      ['Vector entries', memory.vector_entries || 0],
-      ['Training traces', (training.summary && training.summary.training_traces) || 0],
-      ['Clean rows', (dataset.counts && dataset.counts.clean_records) || 0],
-      ['Duplicates removed', (dataset.counts && dataset.counts.duplicate_count) || 0],
-      ['Framework', framework.name || 'pending'],
-      ['Base model', framework.parameter_class ? ((framework.parameter_class || '') + ' · ' + (framework.base_model || 'pending')) : (framework.base_model || 'pending')],
-      ['Smoke test', smoke.status || (smoke.validated ? 'validated' : 'pending')],
-      ['VRAM free MB', vram.memory_free_mb || 0],
-      ['Training blockers', ((training.training_run && training.training_run.blockers) || []).length],
-    ].map(function (row) {
-      return '<div class="kv-item"><strong>' + esc(row[0]) + '</strong><span>' + esc(row[1]) + '</span></div>';
-    }).join('');
+    const integrated = !!(training.training_run && training.training_run.training_config && training.training_run.training_config.integrated);
+    const topPill = qs('#training-pill-top');
+    if (topPill) {
+      topPill.className = pillClass(integrated ? 'live' : 'pending');
+      topPill.textContent = integrated ? 'integrated' : 'pending';
+    }
+    qs('#memory-tokens-top').textContent = String(model.memory_collected_tokens || 0);
+    qs('#training-top-meta').textContent =
+      String(memory.retrieval_lines || 0) + ' retrieval lines / '
+      + String(memory.vector_entries || 0) + ' vector entries / '
+      + String((training.summary && training.summary.training_traces) || 0) + ' traces / '
+      + String((dataset.counts && dataset.counts.clean_records) || 0) + ' clean rows / '
+      + String(((training.training_run && training.training_run.blockers) || []).length) + ' blockers / '
+      + String(smoke.status || (smoke.validated ? 'validated' : 'pending')) + ' smoke / '
+      + String(vram.memory_free_mb || 0) + ' MB free';
   }
 
   function applyState(data) {
     qs('#generated-at').textContent = 'generated ' + esc(data.generated_at || '');
     qs('#route-pill').textContent = (data.repo_truth && data.repo_truth.default_route) || '/truth';
     renderViews((data.repo_truth && data.repo_truth.views) || []);
-    renderExecution(data);
     renderQueue(data);
     renderRuntime(data);
     renderMisses(data);

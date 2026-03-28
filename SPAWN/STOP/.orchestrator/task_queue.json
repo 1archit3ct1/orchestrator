@@ -420,5 +420,27 @@
     "task_id": "P07",
     "label": "Miss Detection",
     "verified_at": "2026-03-28T14:38:03.274030"
+  },
+  {
+    "id": "goal_task_scoped_prompt_contract",
+    "repo": "orchestrator",
+    "description": "Constrain prompt-driven execution to the next queue task from SPAWN/START/, use task-declared paths plus sync targets, remove the stale execution summary card, and record latency checks.",
+    "allowed_paths": [
+      "SPAWN/START/prompt.md",
+      "SPAWN/STOP/.orchestrator/task_queue.json",
+      "SPAWN/STOP/web/templates/repo_truth.html",
+      "SPAWN/STOP/.orchestrator/logs/verification/"
+    ],
+    "start_path": "SPAWN/START/",
+    "sync_targets": [
+      "SPAWN/STOP/.orchestrator/task_queue.json",
+      "SPAWN/STOP/MEMORY.md",
+      "SPAWN/STOP/retrieval_log.jsonl",
+      "SPAWN/STOP/web/templates/repo_truth.html"
+    ],
+    "priority": 51,
+    "status": "completed",
+    "goal": "prompt_runtime_focus",
+    "verified_at": "2026-03-28T14:52:19.853107"
   }
 ]

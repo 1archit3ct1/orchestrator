@@ -1,0 +1,21 @@
+{
+  "verified_at": "2026-03-28T14:54:09.936971",
+  "status": "completed",
+  "prompt_only_test": {
+    "mentions_stop_root": false,
+    "mentions_start_root": true,
+    "mentions_start_path": true,
+    "mentions_ask_if_blocked": true,
+    "actionable_count": 0
+  },
+  "request_timings_ms": {
+    "repo_truth_dashboard": 2974.41,
+    "repo_truth_queue": 2821.78,
+    "runtime_mirror": 2814.13
+  },
+  "notes": [
+    "Prompt now stays rooted in SPAWN/START/.",
+    "Execution summary card was replaced by memory and training summary.",
+    "Live repo-truth endpoints are taking about 2.8 to 3.0 seconds per request and should be optimized next."
+  ]
+}

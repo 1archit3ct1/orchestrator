@@ -1,20 +1,20 @@
 ---
-task_id: task_001
-dag_node_id: collect_data
+task_id: task_002
+dag_node_id: control_plane
 allowed_paths:
-  - Stop/.orchestrator/logs/
-priority: 1
+  - SPAWN/STOP/.orchestrator/control_plane.py
+priority: 2
 ---
 
-# Task: Collect Data from Child Repos
+# Task: Control Plane
 
 ## Description
-Run tasks on all managed repos to gather training trajectories.
+Add the runtime control layer that persists dashboard commands such as start, pause, stop, dispatch, freeze, and cycle speed.
 
 ## Allowed Paths
-You may ONLY write to: `Stop/.orchestrator/logs/`
+You may ONLY write to: `SPAWN/STOP/.orchestrator/control_plane.py`
 
 ## Context
-This is the first task in the orchestrator's training pipeline. Once child repos are configured in Stop/repos/, this task will coordinate with them to collect logs and outputs for training data.
+The canonical dashboard now verifies integrations directly from repo state. This task should only turn green once the control plane is implemented in the repository and the Flask dashboard can read that truth.
 
 ## Status: PENDING

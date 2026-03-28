@@ -460,7 +460,7 @@ LIVE_DASHBOARD_SCRIPT = r"""
     if (values[0]) setText(values[0], String(data.summary.dag_active || 0));
     if (values[1]) setText(values[1], data.summary.dag_active ? 'RUNNING' : 'IDLE');
     if (values[2]) setText(values[2], (activeTask.task_id || '--') + ' -> ' + (activeTask.label || 'waiting'));
-    if (values[3]) setText(values[3], String((activeTask.progress || 0)) + '%');
+    if (values[3]) setText(values[3], activeTask.progress === null || activeTask.progress === undefined ? '--' : String(activeTask.progress) + '%');
     setText(qs('.spawn-label-text'), data.summary.dag_active ? 'SPAWN ACTIVE' : 'SPAWN IDLE');
   }
 

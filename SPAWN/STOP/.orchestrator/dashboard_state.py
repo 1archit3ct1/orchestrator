@@ -785,10 +785,10 @@ def ensure_repo_truth_runtime_files(state_dir: Path):
             "mode": "repo-truth-frontend",
             "status": "live",
             "default_route": "/",
-            "legacy_route": "/design",
+            "legacy_route": None,
             "notes": [
                 "The repo-truth frontend must read canonical backend state domains directly.",
-                "Legacy dashboard surfaces remain available until parity and cutover verification are complete.",
+                "Legacy dashboard serving has been retired and old routes should resolve to the repo-truth frontend.",
             ],
         },
         "frontend_state_views.json": {

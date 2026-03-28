@@ -2,8 +2,8 @@
 """
 Orchestrator Dashboard - Flask Backend
 
-Serves the live dashboard shell from `web/templates/dashboard.html` and hydrates it with
-live orchestrator state so the browser always reflects the repo as-built.
+Serves the repo-truth frontend shell and hydrates it with live orchestrator state
+so the browser always reflects the repo as-built.
 """
 
 import json
@@ -16,7 +16,7 @@ import time
 from datetime import datetime
 from pathlib import Path
 
-from flask import Flask, Response, jsonify, render_template, request, send_from_directory
+from flask import Flask, Response, jsonify, redirect, render_template, request, send_from_directory
 
 
 logging.basicConfig(
@@ -49,7 +49,7 @@ TASK_QUEUE_PATH = ORCHESTRATOR_DIR / "task_queue.json"
 DESIGN_GRAPH_PATH = STATE_DIR / "design_graph.json"
 TASKS_PATH = STATE_DIR / "tasks.json"
 MEMORY_PATH = RUNTIME_DIR / "MEMORY.md"
-DASHBOARD_TEMPLATE_PATH = SCRIPT_DIR / "templates" / "dashboard.html"
+LEGACY_DASHBOARD_TEMPLATE_PATH = SCRIPT_DIR / "templates" / "dashboard.html"
 SECURITY_AUDIT_LOG_PATH = LOGS_DIR / "security" / "security_audit.log"
 ORCHESTRATOR_LOG_PATH = LOGS_DIR / "orchestrator.log"
 if str(ORCHESTRATOR_DIR) not in sys.path:
@@ -3012,10 +3012,10 @@ def api_runtime_misses():
 
 
 def render_live_design_html():
-    if not DASHBOARD_TEMPLATE_PATH.exists():
+    if not LEGACY_DASHBOARD_TEMPLATE_PATH.exists():
         return "<h1>dashboard.html not found</h1>"
 
-    html = DASHBOARD_TEMPLATE_PATH.read_text(encoding="utf-8", errors="replace")
+    html = LEGACY_DASHBOARD_TEMPLATE_PATH.read_text(encoding="utf-8", errors="replace")
     payload = json.dumps(build_dashboard_payload())
     injection = f"<script>window.__ORCH_DASHBOARD_STATE__ = {payload};</script>{LIVE_DASHBOARD_SCRIPT}"
     return html.replace("</body>", injection + "\n</body>")
@@ -3030,15 +3030,10 @@ def repo_truth_dashboard():
 
 @app.route("/design")
 @app.route("/legacy-design")
-def design_dashboard():
-    """Serve the legacy dashboard shell for fallback and comparison."""
-    return Response(render_live_design_html(), mimetype="text/html")
-
-
 @app.route("/classic")
-def classic_dashboard():
-    """Preserve access to the older template dashboard."""
-    return render_template("index.html")
+def retired_legacy_routes():
+    """Retire the older dashboard surfaces and resolve them to the repo-truth UI."""
+    return redirect("/", code=302)
 
 
 @app.route("/static/<path:filename>")
@@ -3151,7 +3146,7 @@ if __name__ == "__main__":
     logger.info("=" * 60)
     logger.info("ORCHESTRATOR DASHBOARD SERVER STARTING")
     logger.info("Runtime dir: %s", RUNTIME_DIR)
-    logger.info("Dashboard source: %s", DASHBOARD_TEMPLATE_PATH)
+    logger.info("Repo-truth source: %s", SCRIPT_DIR / "templates" / "repo_truth.html")
     logger.info("=" * 60)
 
     for dir_path in [LOGS_DIR, DATA_DIR, MODELS_DIR, VECTOR_STORE_DIR, STATE_DIR]:

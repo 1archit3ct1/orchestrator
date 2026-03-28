@@ -1,0 +1,8 @@
+{
+  "timestamp": "2026-03-27T20:45:00",
+  "decision": {
+    "question": "How should the orchestrator prioritize work after the GUI DAG remap?",
+    "chosen": "Promote the two core goals into the repo brief and queue the capability gaps needed to deliver them.",
+    "rationale": "This aligns the engine with the product mission while keeping dashboard truth canonical and measurable from repo state."
+  }
+}

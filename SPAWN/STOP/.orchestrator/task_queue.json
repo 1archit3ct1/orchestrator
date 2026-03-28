@@ -1,1 +1,92 @@
-[]
+[
+  {
+    "id": "goal_orchestrator_gui_complete",
+    "repo": "orchestrator",
+    "description": "Finish the orchestrator GUI so the core dashboard, controls, drilldowns, exports, and readiness tracking are fully repo-backed before orchestrating new downstream repos.",
+    "allowed_paths": [
+      "SPAWN/STOP/state/",
+      "SPAWN/STOP/web/",
+      "SPAWN/STOP/.orchestrator/"
+    ],
+    "priority": 1,
+    "status": "pending",
+    "goal": "independent_repos_security"
+  },
+  {
+    "id": "goal_24b_model_eval_harness",
+    "repo": "orchestrator",
+    "description": "Build a coding eval harness that compares candidate 24B checkpoints against frontier GPT baselines on repo-defined coding tasks with reproducible scoring artifacts.",
+    "allowed_paths": [
+      "SPAWN/STOP/training/",
+      "SPAWN/STOP/.orchestrator/data/",
+      "SPAWN/STOP/.orchestrator/iterations/"
+    ],
+    "priority": 2,
+    "status": "pending",
+    "goal": "deliver_24b_model"
+  },
+  {
+    "id": "goal_24b_model_data_pipeline",
+    "repo": "orchestrator",
+    "description": "Create the data ingestion and formatting pipeline needed to turn traces, repos, and lessons into training-ready coding datasets for the 24B model effort.",
+    "allowed_paths": [
+      "SPAWN/STOP/training/",
+      "SPAWN/STOP/.orchestrator/data/",
+      "SPAWN/STOP/.orchestrator/vector_store/"
+    ],
+    "priority": 3,
+    "status": "pending",
+    "goal": "deliver_24b_model"
+  },
+  {
+    "id": "goal_24b_model_train_stack",
+    "repo": "orchestrator",
+    "description": "Stand up the real training stack for the 24B coding model including config, launch, checkpoint, and evaluation integration.",
+    "allowed_paths": [
+      "SPAWN/STOP/training/",
+      "SPAWN/STOP/.orchestrator/models/",
+      "SPAWN/STOP/.orchestrator/data/"
+    ],
+    "priority": 4,
+    "status": "pending",
+    "goal": "deliver_24b_model"
+  },
+  {
+    "id": "goal_repo_runtime_scaffold",
+    "repo": "orchestrator",
+    "description": "Build the managed child-repo scaffold so the orchestrator can create and operate independent repos with their own SPAWN runtime contract, but only after the orchestrator GUI is fully repo-backed.",
+    "allowed_paths": [
+      "SPAWN/STOP/repos/",
+      "SPAWN/STOP/.orchestrator/iterations/"
+    ],
+    "priority": 5,
+    "status": "pending",
+    "goal": "independent_repos_security"
+  },
+  {
+    "id": "goal_repo_dispatch_and_handoff",
+    "repo": "orchestrator",
+    "description": "Implement dispatch, log collection, and handoff flows for independent repos so the orchestrator can coordinate real downstream work, but only after the orchestrator GUI is fully repo-backed.",
+    "allowed_paths": [
+      "SPAWN/STOP/.orchestrator/loop.py",
+      "SPAWN/STOP/repos/",
+      "SPAWN/STOP/.orchestrator/logs/"
+    ],
+    "priority": 6,
+    "status": "pending",
+    "goal": "independent_repos_security"
+  },
+  {
+    "id": "goal_repo_security_enforcement",
+    "repo": "orchestrator",
+    "description": "Harden task-scoped locks, allowed_paths enforcement, audit trails, and stray-write handling across independent repos and GUI controls.",
+    "allowed_paths": [
+      "SPAWN/STOP/.orchestrator/",
+      "SPAWN/STOP/web/",
+      "SPAWN/STOP/state/"
+    ],
+    "priority": 7,
+    "status": "pending",
+    "goal": "independent_repos_security"
+  }
+]

@@ -1,0 +1,27 @@
+{
+  "id": "session_20260327_gui_truth_core_goals",
+  "timestamp": "2026-03-27T20:45:00",
+  "type": "session_memory",
+  "topic": "gui_truth_and_core_goals",
+  "summary": [
+    "The dashboard DAG must track inactive GUI functions from the repo rather than a small orchestration scaffold.",
+    "GUI sections only turn green when their repo-backed function is truly live.",
+    "The two repo goals are delivering a 24B coding model that outperforms frontier GPT on coding and building/managing independent repos with comprehensive security.",
+    "Core gaps include eval harness, dataset pipeline, training stack, child repo scaffold, dispatch/handoff, and security hardening."
+  ],
+  "source_files": [
+    "README.md",
+    "SPAWN/START/prompt.md",
+    "SPAWN/STOP/MEMORY.md",
+    "SPAWN/STOP/.orchestrator/task_queue.json",
+    "SPAWN/STOP/state/design_graph.json"
+  ],
+  "tags": [
+    "gui",
+    "canonical-state",
+    "core-goals",
+    "training",
+    "security",
+    "repos"
+  ]
+}

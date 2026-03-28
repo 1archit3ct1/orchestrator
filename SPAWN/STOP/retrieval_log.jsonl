@@ -1,0 +1,1 @@
+{"timestamp":"2026-03-27T20:45:00","query":"What changed in the orchestrator after the GUI-truth remap?","top_hits":["SPAWN/STOP/MEMORY.md","SPAWN/STOP/.orchestrator/vector_store/session_20260327_gui_truth_core_goals.json","SPAWN/STOP/.orchestrator/task_queue.json"],"notes":"Persisted live session memory and core goal gaps into the engine pipeline."}

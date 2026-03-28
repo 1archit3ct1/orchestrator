@@ -646,9 +646,16 @@ class OrchestratorLoop:
         self._schedule_duplicate_parse_job_if_needed()
         tasks = self._load_json(self.task_queue_path)
         if isinstance(tasks, list):
-            logger.info(f"  Found {len(tasks)} tasks in queue")
-            return tasks
-        return tasks.get('pending', [])
+            actionable = [
+                task for task in tasks
+                if task.get('status', 'pending') in {'pending', 'in_progress', 'active'}
+            ]
+            completed = len(tasks) - len(actionable)
+            logger.info(f"  Found {len(tasks)} tasks in queue ({len(actionable)} actionable, {completed} completed)")
+            return actionable
+        pending = tasks.get('pending', [])
+        logger.info(f"  Found {len(pending)} pending tasks in queue payload")
+        return pending
 
     def _append_retrieval_log(self, payload: dict) -> None:
         retrieval_log = self.root / 'SPAWN' / 'STOP' / 'retrieval_log.jsonl'
@@ -911,10 +918,18 @@ class OrchestratorLoop:
         if pending_nodes:
             logger.info(f"Step 10: {len(pending_nodes)} DAG tasks remain. Waiting for real work.")
             return True
-        if not tasks:
+        queue_state = self._load_json(self.task_queue_path)
+        if isinstance(queue_state, list):
+            actionable = [
+                task for task in queue_state
+                if task.get('status', 'pending') in {'pending', 'in_progress', 'active'}
+            ]
+        else:
+            actionable = queue_state.get('pending', [])
+        if not actionable:
             logger.info("Step 10: All tasks complete. Orchestration finished.")
             return False
-        logger.info(f"Step 10: {len(tasks)} tasks remaining. Continuing loop.")
+        logger.info(f"Step 10: {len(actionable)} actionable tasks remaining. Continuing loop.")
         return True
 
     # === MAIN LOOP ===

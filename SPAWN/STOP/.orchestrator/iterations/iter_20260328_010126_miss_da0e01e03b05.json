@@ -1,0 +1,12 @@
+{
+  "id": "iter_miss_da0e01e03b05",
+  "timestamp": "2026-03-28T01:01:26.274721",
+  "type": "miss_capture",
+  "status": "success",
+  "summary": "Active task gui_dataset_details did not satisfy repo verification yet.",
+  "details": {
+    "task_id": "task_005",
+    "dag_node_id": "gui_dataset_details",
+    "reason": "dataset panel is not wired to detailed repo-backed dataset state"
+  }
+}

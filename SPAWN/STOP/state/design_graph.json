@@ -28,12 +28,12 @@
       "dependencies": [
         "gui_nav_panels"
       ],
-      "status": "red",
+      "status": "green",
       "task_name": "gui-dag-view",
       "task_id": "T02",
-      "display_status": "pending",
-      "verified_live": false,
-      "verification_reason": "task DAG rows are still visual-only and do not open task details",
+      "display_status": "complete",
+      "verified_live": true,
+      "verification_reason": "task DAG rows open repo-backed task detail state",
       "progress": null
     },
     {
@@ -47,12 +47,12 @@
       "dependencies": [
         "gui_nav_panels"
       ],
-      "status": "red",
+      "status": "green",
       "task_name": "gui-spawn-loop",
       "task_id": "T03",
-      "display_status": "pending",
-      "verified_live": false,
-      "verification_reason": "spawn loop controls are not wired to a control endpoint",
+      "display_status": "complete",
+      "verified_live": true,
+      "verification_reason": "spawn loop controls are wired to a live Flask control plane",
       "progress": null
     },
     {
@@ -66,12 +66,12 @@
       "dependencies": [
         "gui_nav_panels"
       ],
-      "status": "yellow",
+      "status": "green",
       "task_name": "gui-training-run",
       "task_id": "T04",
-      "display_status": "active",
-      "verified_live": false,
-      "verification_reason": "training run panel is not wired to detailed repo-backed training state",
+      "display_status": "complete",
+      "verified_live": true,
+      "verification_reason": "training run section opens detailed repo-backed training state",
       "progress": null
     },
     {
@@ -85,12 +85,12 @@
       "dependencies": [
         "gui_nav_panels"
       ],
-      "status": "red",
+      "status": "green",
       "task_name": "gui-dataset",
       "task_id": "T05",
-      "display_status": "pending",
-      "verified_live": false,
-      "verification_reason": "dataset panel is not wired to detailed repo-backed dataset state",
+      "display_status": "complete",
+      "verified_live": true,
+      "verification_reason": "dataset section opens detailed repo-backed dataset state",
       "progress": null
     },
     {
@@ -104,12 +104,12 @@
       "dependencies": [
         "gui_nav_panels"
       ],
-      "status": "red",
+      "status": "green",
       "task_name": "gui-eta-tracker",
       "task_id": "T06",
-      "display_status": "pending",
-      "verified_live": false,
-      "verification_reason": "ETA tracker is not wired to canonical repo-backed ETA detail rendering",
+      "display_status": "complete",
+      "verified_live": true,
+      "verification_reason": "ETA tracker renders detailed canonical ETA state",
       "progress": null
     },
     {
@@ -124,10 +124,10 @@
       "dependencies": [
         "gui_nav_panels"
       ],
-      "status": "red",
+      "status": "yellow",
       "task_name": "gui-scale-analysis",
       "task_id": "T07",
-      "display_status": "pending",
+      "display_status": "active",
       "verified_live": false,
       "verification_reason": "no verification rule",
       "progress": null
@@ -529,6 +529,6 @@
     }
   ],
   "status": "awaiting_task_completion",
-  "last_cycle": 1,
-  "last_updated": "2026-03-27T21:14:33.342076"
+  "last_cycle": 6,
+  "last_updated": "2026-03-28T01:01:28.791154"
 }

@@ -393,3 +393,43 @@
 - Type: lock_denied
 - Summary: Active task gui_training_run_details was blocked by a global write lock denial.
 - Details: {"task_id": "task_004", "dag_node_id": "gui_training_run_details", "repo": null, "reason": "Lock held by another task"}
+
+## Loop Miss Capture - 2026-03-28 00:56:38
+- Type: verification_miss
+- Summary: Active task gui_dataset_details did not satisfy repo verification yet.
+- Details: {"task_id": "task_005", "dag_node_id": "gui_dataset_details", "reason": "dataset panel is not wired to detailed repo-backed dataset state"}
+
+## Loop Miss Capture - 2026-03-28 00:56:41
+- Type: verification_miss
+- Summary: Active task gui_dataset_details did not satisfy repo verification yet.
+- Details: {"task_id": "task_005", "dag_node_id": "gui_dataset_details", "reason": "dataset panel is not wired to detailed repo-backed dataset state"}
+
+## Loop Miss Capture - 2026-03-28 01:01:19
+- Type: verification_miss
+- Summary: Active task gui_dataset_details did not satisfy repo verification yet.
+- Details: {"task_id": "task_005", "dag_node_id": "gui_dataset_details", "reason": "dataset panel is not wired to detailed repo-backed dataset state"}
+
+## Loop Miss Capture - 2026-03-28 01:01:21
+- Type: verification_miss
+- Summary: Active task gui_dataset_details did not satisfy repo verification yet.
+- Details: {"task_id": "task_005", "dag_node_id": "gui_dataset_details", "reason": "dataset panel is not wired to detailed repo-backed dataset state"}
+
+## Loop Miss Capture - 2026-03-28 01:01:22
+- Type: verification_miss
+- Summary: Active task gui_dataset_details did not satisfy repo verification yet.
+- Details: {"task_id": "task_005", "dag_node_id": "gui_dataset_details", "reason": "dataset panel is not wired to detailed repo-backed dataset state"}
+
+## Loop Miss Capture - 2026-03-28 01:01:23
+- Type: verification_miss
+- Summary: Active task gui_dataset_details did not satisfy repo verification yet.
+- Details: {"task_id": "task_005", "dag_node_id": "gui_dataset_details", "reason": "dataset panel is not wired to detailed repo-backed dataset state"}
+
+## Loop Miss Capture - 2026-03-28 01:01:23
+- Type: verification_miss
+- Summary: Active task gui_dataset_details did not satisfy repo verification yet.
+- Details: {"task_id": "task_005", "dag_node_id": "gui_dataset_details", "reason": "dataset panel is not wired to detailed repo-backed dataset state"}
+
+## Loop Miss Capture - 2026-03-28 01:01:26
+- Type: verification_miss
+- Summary: Active task gui_dataset_details did not satisfy repo verification yet.
+- Details: {"task_id": "task_005", "dag_node_id": "gui_dataset_details", "reason": "dataset panel is not wired to detailed repo-backed dataset state"}

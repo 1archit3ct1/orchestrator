@@ -106,6 +106,11 @@ def count_files(path: Path):
     return sum(1 for item in path.rglob("*") if item.is_file())
 
 
+def save_json(path: Path, data):
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+
+
 def rel_runtime_path(path: Path):
     try:
         return str(path.relative_to(RUNTIME_DIR)).replace("\\", "/")
@@ -230,6 +235,49 @@ def build_training_run_payload():
             "retrieval_lines": memory_model.get("retrieval_lines", 0),
         },
         "blockers": blockers,
+    }
+
+
+def build_dataset_payload():
+    dashboard = build_dashboard_payload()
+    queue = load_json(TASK_QUEUE_PATH, [])
+    dataset_files = collect_recent_files(DATA_DIR, ["*.jsonl", "*.json", "*.csv"], limit=12)
+    export_targets = {
+        "jsonl_ready": any(item["path"].endswith(".jsonl") for item in dataset_files),
+        "alpaca_ready": any(item["path"].endswith(".jsonl") for item in dataset_files),
+        "sharegpt_ready": any(item["path"].endswith(".jsonl") for item in dataset_files),
+        "steering_ready": any("steering" in item["name"].lower() or "decision" in item["name"].lower() for item in dataset_files),
+    }
+    dataset_queue = []
+    if isinstance(queue, list):
+        for item in queue:
+            haystack = " ".join(str(item.get(key, "")) for key in ["id", "description", "goal"]).lower()
+            if any(token in haystack for token in ["dataset", "trace", "export", "schema", "training data"]):
+                dataset_queue.append(
+                    {
+                        "id": item.get("id"),
+                        "priority": item.get("priority"),
+                        "status": item.get("status", "pending"),
+                        "description": item.get("description", ""),
+                    }
+                )
+    model = dashboard.get("model", {})
+    return {
+        "canonical": True,
+        "generated_at": datetime.now().isoformat(),
+        "task_id": "T05",
+        "counts": {
+            "dataset_files": len(dataset_files),
+            "retrieval_lines": int(model.get("retrieval_lines", 0) or 0),
+            "training_traces": int(dashboard.get("summary", {}).get("training_traces", 0) or 0),
+        },
+        "files": dataset_files,
+        "export_targets": export_targets,
+        "queue": dataset_queue[:8],
+        "paths": {
+            "data_dir": rel_runtime_path(DATA_DIR),
+            "retrieval_log": rel_runtime_path(RUNTIME_DIR / "retrieval_log.jsonl"),
+        },
     }
 
 
@@ -1016,7 +1064,7 @@ LIVE_DASHBOARD_SCRIPT = r"""
         ? '<div class="task-progress-wrap"><div class="task-progress-bar" style="width:' + escapeHtml(task.progress) + '%"></div></div>'
         : '';
       return ''
-        + '<div class="' + taskRowClass(task) + '">'
+        + '<div class="' + taskRowClass(task) + '" data-dag-node="' + escapeHtml(task.task_id || task.id) + '">'
         + '<span class="task-id">' + escapeHtml(task.task_id || task.id) + '</span>'
         + '<span class="task-name">' + escapeHtml(task.label) + '</span>'
         + '<span class="task-status ' + taskStatusClass(task) + '">' + escapeHtml(taskStatusLabel(task)) + '</span>'
@@ -1024,6 +1072,94 @@ LIVE_DASHBOARD_SCRIPT = r"""
         + '</div>';
     }).join('');
     setOperational(dagList.closest('.card'), Array.isArray(data.tasks) && data.tasks.length > 0);
+  }
+
+  function openDagTaskDetails(taskId) {
+    fetch('/api/task/' + encodeURIComponent(taskId), {cache: 'no-store'})
+      .then(function(response) {
+        if (!response.ok) throw new Error('dag task request failed');
+        return response.json();
+      })
+      .then(function(data) {
+        renderDagTaskDetails(data);
+        const modal = document.getElementById('task-drilldown-modal');
+        if (modal) modal.style.display = 'flex';
+      })
+      .catch(function(error) {
+        console.error('[dag] drilldown failed', error);
+      });
+  }
+
+  function closeDagTaskDetails() {
+    const modal = document.getElementById('task-drilldown-modal');
+    if (modal) modal.style.display = 'none';
+  }
+
+  function renderDagTaskDetails(data) {
+    const node = data.node || {};
+    const taskRecord = data.task_record || {};
+    const status = node.status || taskRecord.status || 'pending';
+    const statusEl = document.querySelector('.task-detail-status');
+    const verifiedEl = document.querySelector('.task-detail-verified');
+    const descriptionEl = document.querySelector('.task-detail-description');
+    const dependenciesEl = document.querySelector('.task-detail-dependencies');
+    const dependentsEl = document.querySelector('.task-detail-dependents');
+    const allowedPathsEl = document.querySelector('.task-detail-allowed-paths');
+    const verificationEl = document.querySelector('.task-detail-verification');
+
+    setText(document.querySelector('.task-drilldown-id'), data.task_id || 'UNKNOWN');
+    setText(document.querySelector('.task-drilldown-label'), node.label || taskRecord.label || 'Unknown Task');
+    if (descriptionEl) descriptionEl.textContent = node.description || taskRecord.description || 'No description available.';
+
+    if (statusEl) {
+      statusEl.className = 'task-detail-status status-badge ' + status;
+      statusEl.textContent = status;
+    }
+    if (verifiedEl) {
+      const verified = !!(node.verified_live || (data.verification && data.verification.verified_live));
+      verifiedEl.textContent = verified ? 'VERIFIED LIVE' : 'NOT VERIFIED';
+      verifiedEl.className = 'task-detail-verified' + (verified ? ' verified' : '');
+    }
+    if (dependenciesEl) {
+      dependenciesEl.innerHTML = (data.dependencies || []).length
+        ? data.dependencies.map(function(dep) { return '<code>' + escapeHtml(dep) + '</code>'; }).join('')
+        : '<span style="color:var(--text-ghost);">None</span>';
+    }
+    if (dependentsEl) {
+      dependentsEl.innerHTML = (data.dependents || []).length
+        ? data.dependents.map(function(dep) { return '<code>' + escapeHtml(dep) + '</code>'; }).join('')
+        : '<span style="color:var(--text-ghost);">None</span>';
+    }
+    if (allowedPathsEl) {
+      allowedPathsEl.innerHTML = (data.allowed_paths || []).length
+        ? data.allowed_paths.map(function(path) { return '<code>' + escapeHtml(path) + '</code>'; }).join('')
+        : '<span style="color:var(--text-ghost);">No restrictions</span>';
+    }
+    if (verificationEl) {
+      verificationEl.textContent = (data.verification && data.verification.verification_reason) || node.verification_reason || 'No verification data available.';
+    }
+  }
+
+  function bindDagTaskDetails() {
+    qsa('.dag-task[data-dag-node]').forEach(function (item) {
+      if (item.dataset.dagBound === 'true') return;
+      item.dataset.dagBound = 'true';
+      item.addEventListener('click', function () {
+        openDagTaskDetails(item.getAttribute('data-dag-node'));
+      });
+    });
+
+    const modal = document.getElementById('task-drilldown-modal');
+    if (!modal || modal.dataset.dagModalBound === 'true') return;
+    modal.dataset.dagModalBound = 'true';
+    const closeBtn = modal.querySelector('.task-drilldown-close');
+    if (closeBtn) closeBtn.addEventListener('click', closeDagTaskDetails);
+    modal.addEventListener('click', function (event) {
+      if (event.target === modal) closeDagTaskDetails();
+    });
+    document.addEventListener('keydown', function (event) {
+      if (event.key === 'Escape' && modal.style.display !== 'none') closeDagTaskDetails();
+    });
   }
 
   function renderModelPanel(data) {
@@ -1321,6 +1457,98 @@ LIVE_DASHBOARD_SCRIPT = r"""
     }
   }
 
+  async function renderDatasetDetails() {
+    const root = qs('[data-dataset-root]');
+    if (!root) return;
+    try {
+      const response = await fetch('/api/dataset/details', {cache: 'no-store'});
+      if (!response.ok) throw new Error('dataset details request failed');
+      const detail = await response.json();
+      const summary = root.querySelector('[data-dataset-summary]');
+      const files = root.querySelector('[data-dataset-files]');
+      const queue = root.querySelector('[data-dataset-queue]');
+      const exports = root.querySelector('[data-dataset-exports]');
+
+      if (summary) {
+        summary.innerHTML = ''
+          + '<div class="trace-box"><div class="trace-box-label">DATASET FILES</div><div class="trace-box-val" style="font-size:18px;">' + escapeHtml(String(detail.counts && detail.counts.dataset_files || 0)) + '</div></div>'
+          + '<div class="trace-box"><div class="trace-box-label">RETRIEVAL LINES</div><div class="trace-box-val" style="font-size:18px;">' + escapeHtml(String(detail.counts && detail.counts.retrieval_lines || 0)) + '</div></div>'
+          + '<div class="trace-box"><div class="trace-box-label">TRAINING TRACES</div><div class="trace-box-val" style="font-size:18px;">' + escapeHtml(String(detail.counts && detail.counts.training_traces || 0)) + '</div></div>';
+      }
+      if (files) {
+        const items = Array.isArray(detail.files) ? detail.files : [];
+        files.innerHTML = items.length ? items.map(function(item) {
+          return '<div class="training-run-item"><span>' + escapeHtml(item.path) + '</span><strong>' + escapeHtml(item.size) + '</strong></div>';
+        }).join('') : '<div class="training-run-empty">No dataset artifacts found.</div>';
+      }
+      if (queue) {
+        const items = Array.isArray(detail.queue) ? detail.queue : [];
+        queue.innerHTML = items.length ? items.map(function(item) {
+          return '<div class="training-run-item"><span>' + escapeHtml((item.id || 'queue-item') + ' · ' + (item.status || 'pending')) + '</span><strong>' + escapeHtml('P' + String(item.priority || '--')) + '</strong></div><div class="training-run-subitem">' + escapeHtml(textOr(item.description, '')) + '</div>';
+        }).join('') : '<div class="training-run-empty">No dataset backlog items found.</div>';
+      }
+      if (exports) {
+        const targets = detail.export_targets || {};
+        exports.innerHTML = Object.keys(targets).map(function(key) {
+          return '<div class="training-run-item"><span>' + escapeHtml(key.replace('_', ' ').toUpperCase()) + '</span><strong>' + escapeHtml(targets[key] ? 'READY' : 'PENDING') + '</strong></div>';
+        }).join('');
+      }
+      setOperational(root.closest('.card'), !!detail.canonical);
+    } catch (error) {
+      console.error('[dataset] render failed', error);
+    }
+  }
+
+  function renderEtaTracker(data) {
+    const root = qs('[data-eta-root]');
+    if (!root) return;
+    const summary = root.querySelector('[data-eta-summary]');
+    const tiers = root.querySelector('[data-eta-tiers]');
+    const model = data.model || {};
+    const analysis = data.scale_analysis || {};
+    const collected = Number(model.memory_collected_tokens || 0);
+    const minimum = Number(model.minimum_tuning_tokens || 0);
+    const target = Number(model.memory_target_tokens || 0);
+    const pctToMinimum = minimum ? Math.min(100, (collected / minimum) * 100) : 0;
+    const pctToTarget = target ? Math.min(100, (collected / target) * 100) : 0;
+    const phases = [
+      {
+        label: 'SMOKE TEST',
+        detail: minimum ? ('Reach ' + compactNumber(Math.min(minimum, 5000000)) + ' tokens for tiny pipeline validation') : 'Waiting for minimum token threshold',
+        value: collected >= Math.min(minimum || 0, 5000000) && minimum ? 'READY' : 'PENDING'
+      },
+      {
+        label: 'MINIMUM TUNING',
+        detail: compactNumber(collected) + ' / ' + compactNumber(minimum) + ' tokens toward minimum tuning threshold',
+        value: collected >= minimum && minimum ? 'READY' : (pctToMinimum.toFixed(1) + '%')
+      },
+      {
+        label: '24B TARGET',
+        detail: compactNumber(collected) + ' / ' + compactNumber(target) + ' tokens toward full corpus estimate',
+        value: pctToTarget.toFixed(pctToTarget >= 1 ? 1 : 2) + '%'
+      }
+    ];
+
+    if (summary) {
+      summary.innerHTML = ''
+        + '<div class="trace-box"><div class="trace-box-label">COLLECTED</div><div class="trace-box-val" style="font-size:18px;">' + escapeHtml(compactNumber(collected)) + '</div></div>'
+        + '<div class="trace-box"><div class="trace-box-label">MINIMUM</div><div class="trace-box-val" style="font-size:18px;">' + escapeHtml(compactNumber(minimum)) + '</div></div>'
+        + '<div class="trace-box"><div class="trace-box-label">PATH</div><div class="trace-box-val" style="font-size:18px;">' + escapeHtml(analysis.fine_tune_path_ready ? 'FINE-TUNE' : 'BLOCKED') + '</div></div>';
+    }
+
+    if (tiers) {
+      tiers.innerHTML = phases.map(function(item) {
+        return ''
+          + '<div class="training-run-item">'
+          + '<span>' + escapeHtml(item.label + ' · ' + item.detail) + '</span>'
+          + '<strong>' + escapeHtml(item.value) + '</strong>'
+          + '</div>';
+      }).join('');
+    }
+
+    setOperational(root.closest('.card'), !!data.canonical);
+  }
+
   function renderBootstrapPanel(data) {
     const bootBody = qs('.boot-body');
     if (bootBody && Array.isArray(data.bootstrap_steps)) {
@@ -1436,32 +1664,31 @@ LIVE_DASHBOARD_SCRIPT = r"""
   function bindSpawnControls() {
     const startBtn = qs('#spawn-start-btn');
     const pauseBtn = qs('#spawn-pause-btn');
+    function postSpawnAction(action) {
+      return fetch('/api/control/spawn-loop', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({action: action})
+      })
+        .then(function(response) { return response.json(); })
+        .then(function(data) {
+          console.log('[spawn] action:', data);
+          refreshFromServer();
+        })
+        .catch(function(error) {
+          console.error('[spawn] control failed', error);
+        });
+    }
     
     if (startBtn) {
       startBtn.addEventListener('click', function() {
-        fetch('/api/spawn/start', { method: 'POST' })
-          .then(function(response) { return response.json(); })
-          .then(function(data) {
-            console.log('[spawn] start:', data);
-            refreshFromServer();
-          })
-          .catch(function(error) {
-            console.error('[spawn] start failed', error);
-          });
+        postSpawnAction('start');
       });
     }
     
     if (pauseBtn) {
       pauseBtn.addEventListener('click', function() {
-        fetch('/api/spawn/pause', { method: 'POST' })
-          .then(function(response) { return response.json(); })
-          .then(function(data) {
-            console.log('[spawn] pause:', data);
-            refreshFromServer();
-          })
-          .catch(function(error) {
-            console.error('[spawn] pause failed', error);
-          });
+        postSpawnAction('pause');
       });
     }
   }
@@ -1473,6 +1700,7 @@ LIVE_DASHBOARD_SCRIPT = r"""
     renderTopBar(data);
     renderStatRow(data);
     renderDagList(data);
+    bindDagTaskDetails();
     renderModelPanel(data);
     renderAuditPanels(data);
     renderSpawnPanel(data);
@@ -1485,6 +1713,8 @@ LIVE_DASHBOARD_SCRIPT = r"""
     renderVectorMemoryPanel(data);
     renderMemoryFiles(data);
     renderTrainingRunDetails();
+    renderDatasetDetails();
+    renderEtaTracker(data);
     renderExportPanel(data);
     renderReadinessTracker(data);
     renderScaleAnalysis(data);
@@ -1579,47 +1809,40 @@ def api_task_details(task_id):
 # Track spawn runner process
 spawn_runner_process = None
 
-@app.route("/api/spawn/start", methods=["POST"])
-def api_spawn_start():
-    """Start the autonomous spawn loop."""
-    global spawn_runner_process
-    
-    config = load_json(CONFIG_PATH, {})
-    config["spawn_loop"] = {"state": "running", "started_at": datetime.utcnow().isoformat() + "Z"}
-    CONFIG_PATH.parent.mkdir(parents=True, exist_ok=True)
-    CONFIG_PATH.write_text(json.dumps(config, indent=2) + "\n", encoding="utf-8")
-    
-    # Start spawn_runner.py which monitors state and runs loop.py
-    spawn_runner_script = ORCHESTRATOR_DIR / "spawn_runner.py"
-    if spawn_runner_script.exists():
-        if spawn_runner_process is None or spawn_runner_process.poll() is not None:
-            logger.info("Starting spawn_runner.py background process...")
-            spawn_runner_process = subprocess.Popen(
-                [sys.executable, str(spawn_runner_script)],
-                cwd=str(ORCHESTRATOR_DIR),
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                text=True
-            )
-            logger.info(f"spawn_runner started with PID {spawn_runner_process.pid}")
-        else:
-            logger.info("spawn_runner already running")
-    
-    logger.info("Spawn loop started via API")
-    return jsonify({"status": "started", "state": "running", "timestamp": config["spawn_loop"]["started_at"]})
 
-
-@app.route("/api/spawn/pause", methods=["POST"])
-def api_spawn_pause():
-    """Pause the autonomous spawn loop."""
+def update_spawn_loop_state(action: str):
     global spawn_runner_process
-    
+    action = (action or "").strip().lower()
+    if action not in {"start", "pause"}:
+        return {"error": "Unsupported spawn-loop action", "action": action}, 400
+
     config = load_json(CONFIG_PATH, {})
+
+    if action == "start":
+        config["spawn_loop"] = {"state": "running", "started_at": datetime.utcnow().isoformat() + "Z"}
+        save_json(CONFIG_PATH, config)
+
+        spawn_runner_script = ORCHESTRATOR_DIR / "spawn_runner.py"
+        if spawn_runner_script.exists():
+            if spawn_runner_process is None or spawn_runner_process.poll() is not None:
+                logger.info("Starting spawn_runner.py background process...")
+                spawn_runner_process = subprocess.Popen(
+                    [sys.executable, str(spawn_runner_script)],
+                    cwd=str(ORCHESTRATOR_DIR),
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    text=True
+                )
+                logger.info(f"spawn_runner started with PID {spawn_runner_process.pid}")
+            else:
+                logger.info("spawn_runner already running")
+
+        logger.info("Spawn loop started via API")
+        return {"status": "started", "state": "running", "action": "start", "timestamp": config["spawn_loop"]["started_at"]}, 200
+
     config["spawn_loop"] = {"state": "paused", "paused_at": datetime.utcnow().isoformat() + "Z"}
-    CONFIG_PATH.parent.mkdir(parents=True, exist_ok=True)
-    CONFIG_PATH.write_text(json.dumps(config, indent=2) + "\n", encoding="utf-8")
-    
-    # Stop spawn_runner.py
+    save_json(CONFIG_PATH, config)
+
     if spawn_runner_process is not None and spawn_runner_process.poll() is None:
         logger.info("Stopping spawn_runner.py...")
         spawn_runner_process.terminate()
@@ -1630,9 +1853,30 @@ def api_spawn_pause():
             spawn_runner_process.wait()
         logger.info("spawn_runner stopped")
         spawn_runner_process = None
-    
+
     logger.info("Spawn loop paused via API")
-    return jsonify({"status": "paused", "state": "paused", "timestamp": config["spawn_loop"]["paused_at"]})
+    return {"status": "paused", "state": "paused", "action": "pause", "timestamp": config["spawn_loop"]["paused_at"]}, 200
+
+
+@app.route("/api/control/spawn-loop", methods=["POST"])
+def api_control_spawn_loop():
+    payload = request.get_json(silent=True) or {}
+    action = payload.get("action") or request.args.get("action")
+    result, status = update_spawn_loop_state(action)
+    return jsonify(result), status
+
+@app.route("/api/spawn/start", methods=["POST"])
+def api_spawn_start():
+    """Start the autonomous spawn loop."""
+    result, status = update_spawn_loop_state("start")
+    return jsonify(result), status
+
+
+@app.route("/api/spawn/pause", methods=["POST"])
+def api_spawn_pause():
+    """Pause the autonomous spawn loop."""
+    result, status = update_spawn_loop_state("pause")
+    return jsonify(result), status
 
 
 @app.route("/api/spawn/status")
@@ -1650,6 +1894,12 @@ def api_spawn_status():
 def api_training_run():
     """Return canonical repo-backed training run details for the training dashboard panel."""
     return jsonify(build_training_run_payload())
+
+
+@app.route("/api/dataset/details")
+def api_dataset_details():
+    """Return canonical repo-backed dataset details for the dataset dashboard panel."""
+    return jsonify(build_dataset_payload())
 
 
 def render_live_design_html():

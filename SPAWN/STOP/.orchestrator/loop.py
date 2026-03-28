@@ -23,6 +23,8 @@ import sys
 import time
 from datetime import datetime
 from pathlib import Path
+from urllib.error import URLError
+from urllib.request import urlopen
 
 # Import security system
 import security_manager
@@ -79,7 +81,12 @@ class OrchestratorLoop:
         self.training_dir = self.root / 'SPAWN' / 'STOP' / 'training'
 
         self.config = self._load_json(self.config_path)
-        self.cycle_count = 0
+        graph = self._load_json(self.state_dir / 'design_graph.json')
+        persisted_cycles = max(
+            int(self.config.get('cycle_count', 0) or 0),
+            int(graph.get('last_cycle', 0) or 0),
+        )
+        self.cycle_count = persisted_cycles
 
         # === SECURITY INTEGRATION ===
         # Initialize security manager for credential injection and write locks
@@ -279,10 +286,94 @@ class OrchestratorLoop:
     def _save_config(self) -> bool:
         return self._save_json(self.config_path, self.config)
 
+    def _persist_cycle_metrics(self):
+        self.config['cycle_count'] = max(int(self.config.get('cycle_count', 0) or 0), self.cycle_count)
+        self._save_config()
+
+        design_graph = self.state_dir / 'design_graph.json'
+        graph = self._load_json(design_graph)
+        graph['last_cycle'] = max(int(graph.get('last_cycle', 0) or 0), self.cycle_count)
+        graph['last_updated'] = datetime.now().isoformat()
+        self._save_json(design_graph, graph)
+
     def _current_memory_tokens(self) -> int:
         dashboard_state = sync_dashboard_state(self.root / 'SPAWN' / 'STOP')
         model = dashboard_state.get('model', {})
         return int(model.get('memory_collected_tokens', 0) or 0)
+
+    def _fetch_live_dashboard_state(self) -> dict | None:
+        try:
+            with urlopen('http://localhost:5000/api/dashboard', timeout=2) as response:
+                return json.load(response)
+        except (URLError, TimeoutError, json.JSONDecodeError, OSError) as exc:
+            logger.warning(f"  Live dashboard verification unavailable: {exc}")
+            return None
+
+    def _live_dashboard_node_state(self, dag_node_id: str) -> dict:
+        payload = self._fetch_live_dashboard_state()
+        if not isinstance(payload, dict):
+            return {
+                'live': False,
+                'reason': 'live dashboard API was unavailable',
+            }
+
+        graph = payload.get('graph', {})
+        for node in graph.get('nodes', []):
+            if node.get('id') == dag_node_id:
+                node_live = bool(node.get('verified_live')) and node.get('status') == 'green'
+                return {
+                    'live': node_live,
+                    'reason': node.get('verification_reason') or ('node is live in Flask dashboard' if node_live else 'live dashboard node is not green yet'),
+                }
+
+        verification = payload.get('verification', {})
+        if dag_node_id in verification:
+            verified = verification.get(dag_node_id, {})
+            return {
+                'live': bool(verified.get('live')),
+                'reason': verified.get('reason', 'live dashboard verification returned no reason'),
+            }
+
+        return {
+            'live': False,
+            'reason': 'dag node is missing from live dashboard payload',
+        }
+
+    def _task_condition_state(self, dag_node_id: str) -> dict:
+        if dag_node_id == 'loop_runtime':
+            return {
+                'live': True,
+                'reason': 'loop runtime foundation is present',
+                'source_live': True,
+                'runtime_live': True,
+            }
+
+        verification = verify_dashboard_integrations(self.root / 'SPAWN' / 'STOP')
+        source_state = verification.get(dag_node_id)
+        if not source_state:
+            return {
+                'live': False,
+                'reason': 'no verification rule',
+                'source_live': False,
+                'runtime_live': False,
+            }
+
+        runtime_state = self._live_dashboard_node_state(dag_node_id)
+        source_live = bool(source_state.get('live'))
+        runtime_live = bool(runtime_state.get('live'))
+        if source_live and runtime_live:
+            reason = runtime_state.get('reason') or source_state.get('reason', 'source and runtime verification passed')
+        elif not source_live:
+            reason = source_state.get('reason', 'source verification failed')
+        else:
+            reason = runtime_state.get('reason', 'live dashboard verification failed')
+
+        return {
+            'live': source_live and runtime_live,
+            'reason': reason,
+            'source_live': source_live,
+            'runtime_live': runtime_live,
+        }
 
     def _queue_has_task(self, task_id: str) -> bool:
         queue = self._load_json(self.task_queue_path)
@@ -508,19 +599,13 @@ class OrchestratorLoop:
         logger.info(f"  Task execution: {cred_count} credentials available in environment")
         logger.info(f"  Allowed paths: {allowed_paths}")
 
+        condition = self._task_condition_state(dag_node_id)
         result = {
-            'completed': False,
-            'reason': 'no task handler matched',
+            'completed': bool(condition.get('live')),
+            'reason': condition.get('reason', 'verification check returned no reason'),
+            'source_live': bool(condition.get('source_live')),
+            'runtime_live': bool(condition.get('runtime_live')),
         }
-        verification = verify_dashboard_integrations(self.root / 'SPAWN' / 'STOP')
-        verified_state = verification.get(dag_node_id)
-        if verified_state:
-            result = {
-                'completed': bool(verified_state.get('live')),
-                'reason': verified_state.get('reason', 'verification check returned no reason'),
-            }
-        elif dag_node_id == 'loop_runtime':
-            result = {'completed': True, 'reason': 'loop runtime foundation is present'}
 
         self._audit_task_event(task_id, 'executed', {
             'dag_node_id': dag_node_id,
@@ -531,12 +616,7 @@ class OrchestratorLoop:
         return result
 
     def _task_condition_met(self, dag_node_id: str) -> bool:
-        verification = verify_dashboard_integrations(self.root / 'SPAWN' / 'STOP')
-        if dag_node_id in verification:
-            return bool(verification[dag_node_id].get('live'))
-        if dag_node_id == 'loop_runtime':
-            return True
-        return False
+        return bool(self._task_condition_state(dag_node_id).get('live'))
 
     def _update_task_status(self, task_id: str, status: str):
         """Update task status in tasks.json."""
@@ -752,6 +832,7 @@ class OrchestratorLoop:
         should_continue = True
         while should_continue:
             self.cycle_count += 1
+            self._persist_cycle_metrics()
             logger.info(f"\n{'─' * 40}")
             logger.info(f"CYCLE {self.cycle_count}")
             logger.info(f"{'─' * 40}")

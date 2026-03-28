@@ -1,18 +1,19 @@
 ---
-task_id: task_004
-dag_node_id: gui_training_run_details
+task_id: task_007
+dag_node_id: gui_scale_analysis_page
 allowed_paths:
   - SPAWN/STOP/state/design.html
   - SPAWN/STOP/web/app.py
-priority: 4
+  - SPAWN/STOP/.orchestrator/dashboard_state.py
+priority: 7
 ---
 
-# Task: gui-training-run
+# Task: gui-scale-analysis
 
 ## Description
-Make the Training Run section open live training-run details, status, and artifacts from canonical repo state.
+Make the Scale Analysis nav/page a fully tracked GUI function with repo-backed scale recommendations, storage thresholds, and fine-tune viability guidance.
 
 ## Allowed Paths
-You may ONLY write to: `SPAWN/STOP/state/design.html`, `SPAWN/STOP/web/app.py`
+You may ONLY write to: `SPAWN/STOP/state/design.html`, `SPAWN/STOP/web/app.py`, `SPAWN/STOP/.orchestrator/dashboard_state.py`
 
 ## Status: PENDING

@@ -61,7 +61,7 @@
     "dependencies": [
       "gui_nav_panels"
     ],
-    "status": "in_progress",
+    "status": "completed",
     "priority": 4,
     "progress": null
   },
@@ -78,7 +78,7 @@
     "dependencies": [
       "gui_nav_panels"
     ],
-    "status": "pending",
+    "status": "completed",
     "priority": 5,
     "progress": null
   },
@@ -95,7 +95,7 @@
     "dependencies": [
       "gui_nav_panels"
     ],
-    "status": "pending",
+    "status": "completed",
     "priority": 6,
     "progress": null
   },
@@ -113,7 +113,7 @@
     "dependencies": [
       "gui_nav_panels"
     ],
-    "status": "pending",
+    "status": "in_progress",
     "priority": 7,
     "progress": null
   },

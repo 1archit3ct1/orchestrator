@@ -371,6 +371,98 @@ def parse_task_md(task_md_path: Path):
     return record
 
 
+def render_task_md(task: dict):
+    allowed_paths = task.get("allowed_paths", [])
+    allowed_lines = "\n".join(f"  - {path}" for path in allowed_paths) if allowed_paths else "  - SPAWN/STOP/state/"
+    label = task.get("label") or task.get("dag_node_id") or task.get("task_id") or "task"
+    description = task.get("description", "")
+    return (
+        f"---\n"
+        f"task_id: {task.get('id')}\n"
+        f"dag_node_id: {task.get('dag_node_id')}\n"
+        f"allowed_paths:\n{allowed_lines}\n"
+        f"priority: {task.get('priority', 1)}\n"
+        f"---\n\n"
+        f"# Task: {label}\n\n"
+        f"## Description\n"
+        f"{description}\n\n"
+        f"## Allowed Paths\n"
+        f"You may ONLY write to: {', '.join(f'`{path}`' for path in allowed_paths) if allowed_paths else '`SPAWN/STOP/state/`'}\n\n"
+        f"## Status: PENDING\n"
+    )
+
+
+def canonicalize_tasks(graph: dict, tasks: list, task_md: dict | None):
+    graph_nodes = {node.get("id"): node for node in graph.get("nodes", [])}
+    active_node_id = task_md.get("dag_node_id") if task_md else None
+    normalized = []
+    for task in tasks:
+        task_copy = dict(task)
+        node = graph_nodes.get(task.get("dag_node_id"), {})
+        if node.get("status") == "green":
+            task_copy["status"] = "completed"
+        elif active_node_id and task.get("dag_node_id") == active_node_id:
+            task_copy["status"] = "in_progress"
+        else:
+            task_copy["status"] = "pending"
+        task_copy["progress"] = None
+        normalized.append(task_copy)
+    return normalized
+
+
+def find_next_runnable_task(tasks: list):
+    completed_nodes = {
+        task.get("dag_node_id")
+        for task in tasks
+        if task.get("status") == "completed"
+    }
+    for task in tasks:
+        if task.get("status") in {"active", "in_progress"}:
+            return task
+    for task in tasks:
+        if task.get("status") != "pending":
+            continue
+        dependencies = task.get("dependencies", [])
+        if all(dep in completed_nodes for dep in dependencies):
+            return task
+    return None
+
+
+def sync_task_md(runtime_dir: Path, graph: dict, tasks: list, task_md: dict | None):
+    task_md_path = runtime_dir / "TASK.md"
+    graph_nodes = {node.get("id"): node for node in graph.get("nodes", [])}
+    current_node = graph_nodes.get(task_md.get("dag_node_id")) if task_md else None
+
+    # When canonical verification says the active task is live, retire the stale TASK.md.
+    if task_md and current_node and current_node.get("status") == "green":
+        if task_md_path.exists():
+            task_md_path.unlink()
+        task_md = None
+
+    current_node_id = task_md.get("dag_node_id") if task_md else None
+    next_task = find_next_runnable_task(tasks)
+
+    if not next_task:
+        return None
+
+    if current_node_id == next_task.get("dag_node_id") and task_md_path.exists():
+        return task_md
+
+    rendered = render_task_md(next_task)
+    current = read_text(task_md_path, default=None)
+    if current != rendered:
+        task_md_path.write_text(rendered, encoding="utf-8")
+
+    return {
+        "task_id": next_task.get("id"),
+        "dag_node_id": next_task.get("dag_node_id"),
+        "priority": next_task.get("priority"),
+        "allowed_paths": next_task.get("allowed_paths", []),
+        "description": next_task.get("description", ""),
+        "status": "pending",
+    }
+
+
 def task_status_counts(tasks):
     total = len(tasks)
     pending = sum(1 for task in tasks if task.get("status") == "pending")
@@ -786,6 +878,10 @@ def sync_dashboard_state(runtime_dir: Path):
     graph["last_updated"] = base_graph.get("last_updated")
     write_json_if_changed(design_graph_path, graph)
     tasks = normalize_tasks(graph, load_json(tasks_path, []))
+    tasks = canonicalize_tasks(graph, tasks, task_md)
+    task_md = sync_task_md(runtime_dir, graph, tasks, task_md)
+    tasks = canonicalize_tasks(graph, tasks, task_md)
+    write_json_if_changed(tasks_path, tasks)
     task_counts = task_status_counts(tasks)
 
     graph_node_ids = {node.get("id") for node in graph.get("nodes", [])}

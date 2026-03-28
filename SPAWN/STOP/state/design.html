@@ -1588,58 +1588,58 @@ body::after {
           <span>ID</span><span>TASK</span><span>STATUS</span>
         </div>
         <div class="dag-list">
-          <div class="dag-task complete">
+          <div class="dag-task complete" data-dag-node="T01">
             <span class="task-id">T01</span>
             <span class="task-name">auth-api</span>
             <span class="task-status status-complete">COMPLETE</span>
           </div>
-          <div class="dag-task complete">
+          <div class="dag-task complete" data-dag-node="T02">
             <span class="task-id">T02</span>
             <span class="task-name">dash-shell</span>
             <span class="task-status status-complete">COMPLETE</span>
           </div>
-          <div class="dag-task active">
+          <div class="dag-task active" data-dag-node="T03">
             <span class="task-id">T03</span>
             <span class="task-name">dag-monitor</span>
             <span class="task-status status-active">⟳ ACTIVE</span>
             <div class="task-progress-wrap"><div class="task-progress-bar"></div></div>
           </div>
-          <div class="dag-task">
+          <div class="dag-task" data-dag-node="T04">
             <span class="task-id">T04</span>
             <span class="task-name">llm-audit</span>
             <span class="task-status status-pending">PENDING</span>
           </div>
-          <div class="dag-task">
+          <div class="dag-task" data-dag-node="T05">
             <span class="task-id">T05</span>
             <span class="task-name">sec-layer</span>
             <span class="task-status status-pending">PENDING</span>
           </div>
-          <div class="dag-task">
+          <div class="dag-task" data-dag-node="T06">
             <span class="task-id">T06</span>
             <span class="task-name">spawn-gate</span>
             <span class="task-status status-pending">PENDING</span>
           </div>
-          <div class="dag-task">
+          <div class="dag-task" data-dag-node="T07">
             <span class="task-id">T07</span>
             <span class="task-name">write-mutex</span>
             <span class="task-status status-pending">PENDING</span>
           </div>
-          <div class="dag-task">
+          <div class="dag-task" data-dag-node="T08">
             <span class="task-id">T08</span>
             <span class="task-name">vec-memory</span>
             <span class="task-status status-pending">PENDING</span>
           </div>
-          <div class="dag-task">
+          <div class="dag-task" data-dag-node="T09">
             <span class="task-id">T09</span>
             <span class="task-name">model-eta</span>
             <span class="task-status status-pending">PENDING</span>
           </div>
-          <div class="dag-task">
+          <div class="dag-task" data-dag-node="T10">
             <span class="task-id">T10</span>
             <span class="task-name">trace-pipe</span>
             <span class="task-status status-pending">PENDING</span>
           </div>
-          <div class="dag-task">
+          <div class="dag-task" data-dag-node="T11">
             <span class="task-id">T11</span>
             <span class="task-name">train-pipeline</span>
             <span class="task-status status-pending">PENDING</span>
@@ -1738,7 +1738,7 @@ body::after {
         </div>
 
         <!-- SPAWN LOOP -->
-        <div class="card" data-panel="all orchestrator spawn-loop">
+        <div class="card" data-panel="all orchestrator spawn-loop" data-control="spawn-loop">
           <div class="panel-hdr">
             <span class="panel-icon">⟳</span>
             <span class="panel-title">SPAWN LOOP</span>
@@ -1766,10 +1766,10 @@ body::after {
               <span class="spawn-val" id="spawn-progress">--</span>
             </div>
             <div class="spawn-controls" style="display:flex;gap:8px;margin-top:10px;">
-              <button class="spawn-control-btn spawn-start-btn" id="spawn-start-btn" title="Start spawn loop">
+              <button class="spawn-control-btn spawn-start-btn" id="spawn-start-btn" data-control="spawn-loop" data-spawn-action="start" title="Start spawn loop">
                 <span>▶</span> START
               </button>
-              <button class="spawn-control-btn spawn-pause-btn" id="spawn-pause-btn" title="Pause spawn loop">
+              <button class="spawn-control-btn spawn-pause-btn" id="spawn-pause-btn" data-control="spawn-loop" data-spawn-action="pause" title="Pause spawn loop">
                 <span>⏸</span> PAUSE
               </button>
             </div>
@@ -1791,7 +1791,7 @@ body::after {
       </div>
     </div>
 
-    <div class="card" data-panel="all orchestrator training-run">
+    <div class="card" data-panel="training-run">
       <div class="panel-hdr">
         <span class="panel-icon">◎</span>
         <span class="panel-title">TRAINING RUN DETAILS</span>
@@ -1820,6 +1820,45 @@ body::after {
             <div data-training-blockers style="display:flex;flex-direction:column;gap:8px;"></div>
           </div>
         </div>
+      </div>
+    </div>
+
+    <div class="card" data-panel="dataset">
+      <div class="panel-hdr">
+        <span class="panel-icon">▦</span>
+        <span class="panel-title">DATASET DETAILS</span>
+        <span class="panel-badge">/api/dataset/details</span>
+      </div>
+      <div data-dataset-root style="padding:14px 16px 18px;display:flex;flex-direction:column;gap:12px;">
+        <div style="font-size:8px;letter-spacing:2px;color:var(--text-ghost);">CANONICAL DATASET STATE</div>
+        <div data-dataset-summary style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;"></div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;">
+          <div>
+            <div style="font-size:8px;letter-spacing:2px;color:var(--text-ghost);margin-bottom:8px;">FILES</div>
+            <div data-dataset-files style="display:flex;flex-direction:column;gap:8px;"></div>
+          </div>
+          <div>
+            <div style="font-size:8px;letter-spacing:2px;color:var(--text-ghost);margin-bottom:8px;">EXPORT READINESS</div>
+            <div data-dataset-exports style="display:flex;flex-direction:column;gap:8px;"></div>
+          </div>
+        </div>
+        <div>
+          <div style="font-size:8px;letter-spacing:2px;color:var(--text-ghost);margin-bottom:8px;">QUEUE</div>
+          <div data-dataset-queue style="display:flex;flex-direction:column;gap:8px;"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-panel="eta-tracker">
+      <div class="panel-hdr">
+        <span class="panel-icon">◷</span>
+        <span class="panel-title">ETA TRACKER</span>
+        <span class="panel-badge">repo-backed</span>
+      </div>
+      <div data-eta-root style="padding:14px 16px 18px;display:flex;flex-direction:column;gap:12px;">
+        <div style="font-size:8px;letter-spacing:2px;color:var(--text-ghost);">CANONICAL ETA STATE</div>
+        <div data-eta-summary style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;"></div>
+        <div data-eta-tiers style="display:flex;flex-direction:column;gap:8px;"></div>
       </div>
     </div>
 

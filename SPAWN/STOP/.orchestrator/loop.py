@@ -795,6 +795,15 @@ class OrchestratorLoop:
                 logger.info("  Ran duplicate-parse maintenance task")
                 continue
 
+            if task.get('repo') == 'orchestrator':
+                task_id = task.get('id', 'local_orchestrator_task')
+                results[task_id] = {
+                    'status': 'local_backlog',
+                    'task': task,
+                }
+                logger.info(f"  Deferred local orchestrator task: {task_id}")
+                continue
+
             repo_name = task.get('repo', 'unknown')
             repo_path = self.repos_dir / repo_name
             if repo_path.exists():

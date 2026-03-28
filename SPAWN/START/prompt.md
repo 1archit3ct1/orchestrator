@@ -77,7 +77,7 @@ If a task does not leave behind verifiable repo data, do not advance the DAG.
 ## Current Expected DAG
 
 - `T01 gui-surface-routing`
-- `T02 gui-dag-task-details`
+- `T02 gui-legacy-dag-retired`
 - `T03 gui-spawn-loop-controls`
 - `T04 gui-training-run-details`
 - `T05 gui-dataset-details`
@@ -117,7 +117,7 @@ Initialize the repo so that:
 Do not complete a task unless it delivers the following:
 
 - `T01 gui-surface-routing`: dashboard surfaces stay truthfully routed through repo-backed panel hooks, with full-page fallback when no sidebar is present
-- `T02 gui-dag-task-details`: DAG rows open real task detail state
+- `T02 gui-legacy-dag-retired`: legacy GUI DAG list and drilldown surface remain removed from the repo-truth frontend and no stale backend DAG routes are required for normal use
 - `T03 gui-spawn-loop-controls`: spawn loop controls hit a live Flask control plane
 - `T04 gui-training-run-details`: training run section opens detailed repo-backed training state
 - `T05 gui-dataset-details`: dataset section opens detailed repo-backed dataset state

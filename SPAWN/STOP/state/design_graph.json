@@ -19,8 +19,8 @@
     },
     {
       "id": "gui_dag_task_details",
-      "label": "T02 GUI DAG View",
-      "description": "Make DAG rows open live task details, dependencies, allowed paths, and verification reasons from repo state.",
+      "label": "T02 Legacy DAG Retired",
+      "description": "Retire the legacy GUI DAG list and drilldown surface so repo-truth routing depends on canonical summaries and queue views instead.",
       "allowed_paths": [
         "SPAWN/STOP/web/templates/repo_truth.html",
         "SPAWN/STOP/web/app.py"
@@ -29,11 +29,11 @@
         "gui_nav_panels"
       ],
       "status": "green",
-      "task_name": "gui-dag-view",
+      "task_name": "gui-legacy-dag-retired",
       "task_id": "T02",
       "display_status": "complete",
       "verified_live": true,
-      "verification_reason": "task DAG rows open repo-backed task detail state",
+      "verification_reason": "legacy GUI DAG surface has been retired so repo-truth routing no longer depends on the old task list panel",
       "progress": null
     },
     {
@@ -529,6 +529,6 @@
     }
   ],
   "status": "complete",
-  "last_cycle": 6,
-  "last_updated": "2026-03-28T01:01:28.791154"
+  "last_cycle": 9,
+  "last_updated": "2026-03-28T12:09:05.657544"
 }

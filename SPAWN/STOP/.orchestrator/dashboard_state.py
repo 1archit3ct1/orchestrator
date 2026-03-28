@@ -172,10 +172,10 @@ def verify_dashboard_integrations(runtime_dir: Path):
             else "dashboard surface routing is not wired to the repo-truth shell",
         },
         "gui_dag_task_details": {
-            "live": 'data-dag-node="' in design_text and "function openDagTaskDetails" in app_text,
-            "reason": "task DAG rows open repo-backed task detail state"
-            if 'data-dag-node="' in design_text and "function openDagTaskDetails" in app_text
-            else "task DAG rows are still visual-only and do not open task details",
+            "live": "Execution DAG" not in design_text and "/api/task/<task_id>" not in app_text and "@app.route(\"/api/dag\")" not in app_text,
+            "reason": "legacy GUI DAG surface has been retired so repo-truth routing no longer depends on the old task list panel"
+            if "Execution DAG" not in design_text and "/api/task/<task_id>" not in app_text and "@app.route(\"/api/dag\")" not in app_text
+            else "legacy GUI DAG surface is still present in the repo-truth frontend or backend routes",
         },
         "gui_bootstrap_step_details": {
             "live": 'data-boot-step="' in design_text and "function openBootstrapStep" in app_text,

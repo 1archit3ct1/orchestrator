@@ -1697,45 +1697,6 @@ LIVE_DASHBOARD_SCRIPT = r"""
     });
   }
 
-  function renderDagList(data) {
-    const dagList = qs('.dag-list');
-    if (!dagList) return;
-    dagList.innerHTML = data.tasks.map(function (task) {
-      const progress = (task.status === 'active' || task.status === 'in_progress') && task.progress
-        ? '<div class="task-progress-wrap"><div class="task-progress-bar" style="width:' + escapeHtml(task.progress) + '%"></div></div>'
-        : '';
-      return ''
-        + '<div class="' + taskRowClass(task) + '" data-dag-node="' + escapeHtml(task.task_id || task.id) + '">'
-        + '<span class="task-id">' + escapeHtml(task.task_id || task.id) + '</span>'
-        + '<span class="task-name">' + escapeHtml(task.label) + '</span>'
-        + '<span class="task-status ' + taskStatusClass(task) + '">' + escapeHtml(taskStatusLabel(task)) + '</span>'
-        + progress
-        + '</div>';
-    }).join('');
-    setOperational(dagList.closest('.card'), Array.isArray(data.tasks) && data.tasks.length > 0);
-  }
-
-  function openDagTaskDetails(taskId) {
-    fetch('/api/task/' + encodeURIComponent(taskId), {cache: 'no-store'})
-      .then(function(response) {
-        if (!response.ok) throw new Error('dag task request failed');
-        return response.json();
-      })
-      .then(function(data) {
-        renderDagTaskDetails(data);
-        const modal = document.getElementById('task-drilldown-modal');
-        if (modal) modal.style.display = 'flex';
-      })
-      .catch(function(error) {
-        console.error('[dag] drilldown failed', error);
-      });
-  }
-
-  function closeDagTaskDetails() {
-    const modal = document.getElementById('task-drilldown-modal');
-    if (modal) modal.style.display = 'none';
-  }
-
   function openRepoDetailModal(title, summary, payload) {
     const modal = document.getElementById('repo-detail-modal');
     if (!modal) return;
@@ -1837,73 +1798,6 @@ LIVE_DASHBOARD_SCRIPT = r"""
       return 'Repo-backed preview with ' + String(data.record_count || 0) + ' records.';
     }, function(data) {
       return {preview: data.preview || []};
-    });
-  }
-
-  function renderDagTaskDetails(data) {
-    const node = data.node || {};
-    const taskRecord = data.task_record || {};
-    const status = node.status || taskRecord.status || 'pending';
-    const statusEl = document.querySelector('.task-detail-status');
-    const verifiedEl = document.querySelector('.task-detail-verified');
-    const descriptionEl = document.querySelector('.task-detail-description');
-    const dependenciesEl = document.querySelector('.task-detail-dependencies');
-    const dependentsEl = document.querySelector('.task-detail-dependents');
-    const allowedPathsEl = document.querySelector('.task-detail-allowed-paths');
-    const verificationEl = document.querySelector('.task-detail-verification');
-
-    setText(document.querySelector('.task-drilldown-id'), data.task_id || 'UNKNOWN');
-    setText(document.querySelector('.task-drilldown-label'), node.label || taskRecord.label || 'Unknown Task');
-    if (descriptionEl) descriptionEl.textContent = node.description || taskRecord.description || 'No description available.';
-
-    if (statusEl) {
-      statusEl.className = 'task-detail-status status-badge ' + status;
-      statusEl.textContent = status;
-    }
-    if (verifiedEl) {
-      const verified = !!(node.verified_live || (data.verification && data.verification.verified_live));
-      verifiedEl.textContent = verified ? 'VERIFIED LIVE' : 'NOT VERIFIED';
-      verifiedEl.className = 'task-detail-verified' + (verified ? ' verified' : '');
-    }
-    if (dependenciesEl) {
-      dependenciesEl.innerHTML = (data.dependencies || []).length
-        ? data.dependencies.map(function(dep) { return '<code>' + escapeHtml(dep) + '</code>'; }).join('')
-        : '<span style="color:var(--text-ghost);">None</span>';
-    }
-    if (dependentsEl) {
-      dependentsEl.innerHTML = (data.dependents || []).length
-        ? data.dependents.map(function(dep) { return '<code>' + escapeHtml(dep) + '</code>'; }).join('')
-        : '<span style="color:var(--text-ghost);">None</span>';
-    }
-    if (allowedPathsEl) {
-      allowedPathsEl.innerHTML = (data.allowed_paths || []).length
-        ? data.allowed_paths.map(function(path) { return '<code>' + escapeHtml(path) + '</code>'; }).join('')
-        : '<span style="color:var(--text-ghost);">No restrictions</span>';
-    }
-    if (verificationEl) {
-      verificationEl.textContent = (data.verification && data.verification.verification_reason) || node.verification_reason || 'No verification data available.';
-    }
-  }
-
-  function bindDagTaskDetails() {
-    qsa('.dag-task[data-dag-node]').forEach(function (item) {
-      if (item.dataset.dagBound === 'true') return;
-      item.dataset.dagBound = 'true';
-      item.addEventListener('click', function () {
-        openDagTaskDetails(item.getAttribute('data-dag-node'));
-      });
-    });
-
-    const modal = document.getElementById('task-drilldown-modal');
-    if (!modal || modal.dataset.dagModalBound === 'true') return;
-    modal.dataset.dagModalBound = 'true';
-    const closeBtn = modal.querySelector('.task-drilldown-close');
-    if (closeBtn) closeBtn.addEventListener('click', closeDagTaskDetails);
-    modal.addEventListener('click', function (event) {
-      if (event.target === modal) closeDagTaskDetails();
-    });
-    document.addEventListener('keydown', function (event) {
-      if (event.key === 'Escape' && modal.style.display !== 'none') closeDagTaskDetails();
     });
   }
 
@@ -2638,8 +2532,6 @@ LIVE_DASHBOARD_SCRIPT = r"""
     renderTopBar(data);
     renderStatRow(data);
     bindAutonomyRuntimeButton();
-    renderDagList(data);
-    bindDagTaskDetails();
     bindBootstrapStepDetails();
     bindRepoStructureDetails();
     bindVectorPhaseDetails();
@@ -2709,51 +2601,6 @@ LIVE_DASHBOARD_SCRIPT = r"""
 })();
 </script>
 """
-
-
-@app.route("/api/task/<task_id>")
-def api_task_details(task_id):
-    """Return detailed information for a specific task by ID (e.g., T02, task_002)."""
-    graph = load_json(DESIGN_GRAPH_PATH, {"nodes": [], "edges": []})
-    tasks = load_json(TASKS_PATH, [])
-
-    node = None
-    task_record = None
-
-    for n in graph.get("nodes", []):
-        if n.get("id") == task_id or n.get("task_id") == task_id:
-            node = n
-            break
-
-    for t in tasks:
-        if t.get("id") == task_id or t.get("task_id") == task_id:
-            task_record = t
-            break
-
-    if not node and not task_record:
-        return jsonify({"error": f"Task {task_id} not found"}), 404
-
-    result = {
-        "task_id": task_id,
-        "node": node,
-        "task_record": task_record,
-        "dependencies": [],
-        "dependents": [],
-        "allowed_paths": node.get("allowed_paths", []) if node else task_record.get("allowed_paths", []),
-        "verification": {
-            "verified_live": node.get("verified_live", False) if node else False,
-            "verification_reason": node.get("verification_reason", "") if node else "",
-        },
-    }
-
-    edges = graph.get("edges", [])
-    for edge in edges:
-        if edge.get("from") == (node.get("id") if node else ""):
-            result["dependents"].append(edge.get("to"))
-        if edge.get("to") == (node.get("id") if node else ""):
-            result["dependencies"].append(edge.get("from"))
-
-    return jsonify(result)
 
 
 # Track spawn runner process
@@ -3039,11 +2886,6 @@ def api_status():
 @app.route("/api/dashboard")
 def api_dashboard():
     return jsonify(build_dashboard_payload())
-
-
-@app.route("/api/dag")
-def api_dag():
-    return jsonify(load_json(DESIGN_GRAPH_PATH, {"nodes": [], "edges": []}))
 
 
 @app.route("/api/tasks")

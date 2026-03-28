@@ -267,12 +267,7 @@
         </div>
       </section>
 
-      <section class="card span-5">
-        <header><span>Execution DAG</span><span class="pill" id="active-task-pill">queue</span></header>
-        <div class="body list" id="execution-list"></div>
-      </section>
-
-      <section class="card span-7">
+      <section class="card span-12">
         <header><span>Strategic Queue</span><span class="pill" id="goal-pill">goals</span></header>
         <div class="body list" id="queue-list"></div>
       </section>
@@ -367,14 +362,6 @@
     qs('#exec-meta').textContent = green + ' green / ' + nodes.length + ' total';
     qs('#exec-pill').className = pillClass(graph.status === 'complete' ? 'live' : 'pending');
     qs('#exec-pill').textContent = graph.status || 'pending';
-    qs('#active-task-pill').textContent = data.execution.active_task ? data.execution.active_task.task_id : 'no active task';
-    qs('#execution-list').innerHTML = nodes.map(function (node) {
-      return '<div class="list-item queue-item ' + esc(node.display_status || 'pending') + '">'
-        + '<strong>' + esc(node.task_id || node.id) + '</strong>'
-        + '<div><span class="qid">' + esc(node.task_name || node.label || node.id) + '</span></div>'
-        + '<div class="muted">' + esc(node.verification_reason || '') + '</div>'
-        + '</div>';
-    }).join('');
   }
 
   function renderQueue(data) {

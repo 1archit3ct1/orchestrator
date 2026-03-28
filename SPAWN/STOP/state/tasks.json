@@ -18,8 +18,8 @@
     "id": "task_002",
     "task_id": "T02",
     "dag_node_id": "gui_dag_task_details",
-    "label": "gui-dag-view",
-    "description": "Make DAG rows open live task details, dependencies, allowed paths, and verification reasons from repo state.",
+    "label": "gui-legacy-dag-retired",
+    "description": "Retire the legacy GUI DAG list and drilldown surface so repo-truth routing depends on canonical summaries and queue views instead.",
     "allowed_paths": [
       "SPAWN/STOP/web/templates/repo_truth.html",
       "SPAWN/STOP/web/app.py"

@@ -1,20 +1,25 @@
 ---
-task_id: task_002
-dag_node_id: task_queue_seeded
+task_id: task_001
+dag_node_id: gui_nav_panels
 allowed_paths:
-  - SPAWN/STOP/.orchestrator/task_queue.json
-priority: 2
+  - SPAWN/STOP/state/design.html
+  - SPAWN/STOP/web/app.py
+priority: 1
 ---
 
-# Task: Seed Task Queue
+# Task: gui-nav-panels
 
 ## Description
-Populate `SPAWN/STOP/.orchestrator/task_queue.json` with priority-ordered child tasks so the orchestrator can start coordinating real repo work.
+Wire the sidebar navigation so each GUI section changes live panel state from repo-backed Flask data instead of acting like a visual-only shell.
 
 ## Allowed Paths
-You may ONLY write to: `SPAWN/STOP/.orchestrator/task_queue.json`
+You may ONLY write to: `SPAWN/STOP/state/design.html`, `SPAWN/STOP/web/app.py`
 
-## Context
-The loop runtime is structural. The next real gap in the original plan is giving the orchestrator actual child tasks to read, prioritize, and dispatch.
+## Data Delivery Requirement
+This task is not complete until the repo contains all of the following:
+
+- sidebar nav items with explicit `data-nav` and `data-panel` hooks in `SPAWN/STOP/state/design.html`
+- live navigation handling in `SPAWN/STOP/web/app.py`
+- repo-backed panel switching rather than click-only visual feedback
 
 ## Status: PENDING

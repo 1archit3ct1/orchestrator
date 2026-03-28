@@ -1,140 +1,348 @@
 {
   "nodes": [
     {
-      "id": "loop_runtime",
-      "label": "T01 Loop Runtime",
-      "description": "Keep the orchestrator loop aligned to the SPAWN/STOP child-repo contract so coordination can run from the repo as designed.",
+      "id": "gui_nav_panels",
+      "label": "T01 GUI Nav Panels",
+      "description": "Wire the sidebar nav so the design dashboard switches live panel state from repo-backed data instead of visual-only clicks.",
       "allowed_paths": [
-        "SPAWN/STOP/.orchestrator/loop.py"
+        "SPAWN/STOP/state/design.html",
+        "SPAWN/STOP/web/app.py"
       ],
       "dependencies": [],
-      "status": "green",
-      "task_name": "loop-runtime",
-      "task_id": "T01",
-      "display_status": "complete",
-      "verified_live": true,
-      "verification_reason": "orchestration loop matches SPAWN/STOP path contract",
-      "progress": null
-    },
-    {
-      "id": "task_queue_seeded",
-      "label": "T02 Task Queue Seeded",
-      "description": "Populate task_queue.json with priority-ordered child tasks so the orchestrator has real work to coordinate.",
-      "allowed_paths": [
-        "SPAWN/STOP/.orchestrator/task_queue.json"
-      ],
-      "dependencies": [
-        "loop_runtime"
-      ],
       "status": "yellow",
-      "task_name": "task-queue",
-      "task_id": "T02",
+      "task_name": "gui-nav-panels",
+      "task_id": "T01",
       "display_status": "active",
       "verified_live": false,
-      "verification_reason": "task_queue.json is still empty",
+      "verification_reason": "sidebar nav items are still visual-only and lack panel routing hooks",
       "progress": null
     },
     {
-      "id": "child_repos_ready",
-      "label": "T03 Child Repos Ready",
-      "description": "Create or clone child repos with their own SPAWN/STOP runtimes so orchestrated dispatch has real targets.",
+      "id": "gui_dag_task_details",
+      "label": "T02 GUI DAG Task Details",
+      "description": "Make DAG rows open live task details, dependencies, allowed paths, and verification reasons from repo state.",
       "allowed_paths": [
-        "SPAWN/STOP/repos/"
+        "SPAWN/STOP/state/design.html",
+        "SPAWN/STOP/web/app.py"
       ],
       "dependencies": [
-        "loop_runtime"
+        "gui_nav_panels"
       ],
       "status": "red",
-      "task_name": "child-repos",
+      "task_name": "gui-dag-task-details",
+      "task_id": "T02",
+      "display_status": "pending",
+      "verified_live": false,
+      "verification_reason": "task DAG rows are still visual-only and do not open task details",
+      "progress": null
+    },
+    {
+      "id": "gui_bootstrap_step_details",
+      "label": "T03 GUI Bootstrap Step Details",
+      "description": "Make bootstrap rows open live step details and status sourced from repo state.",
+      "allowed_paths": [
+        "SPAWN/STOP/state/design.html",
+        "SPAWN/STOP/web/app.py"
+      ],
+      "dependencies": [
+        "gui_nav_panels"
+      ],
+      "status": "red",
+      "task_name": "gui-bootstrap-step-details",
       "task_id": "T03",
       "display_status": "pending",
       "verified_live": false,
-      "verification_reason": "no child repos are scaffolded under repos/",
+      "verification_reason": "bootstrap steps are clickable shells without drilldown behavior",
       "progress": null
     },
     {
-      "id": "training_pipeline_scaffold",
-      "label": "T04 Training Pipeline Scaffold",
-      "description": "Create the training scripts that collect logs, prepare datasets, train models, and evaluate outputs.",
+      "id": "gui_repo_structure_details",
+      "label": "T04 GUI Repo Structure Details",
+      "description": "Make repo structure rows clickable with live detail panels backed by actual repo paths and state.",
       "allowed_paths": [
-        "SPAWN/STOP/training/"
+        "SPAWN/STOP/state/design.html",
+        "SPAWN/STOP/web/app.py"
       ],
       "dependencies": [
-        "child_repos_ready"
+        "gui_nav_panels"
       ],
       "status": "red",
-      "task_name": "training-pipeline",
+      "task_name": "gui-repo-structure-details",
       "task_id": "T04",
       "display_status": "pending",
       "verified_live": false,
-      "verification_reason": "training pipeline scaffold is incomplete",
+      "verification_reason": "repo structure panel has no clickable node drilldowns",
       "progress": null
     },
     {
-      "id": "runtime_tasks_derived",
-      "label": "T05 Runtime Tasks Derived",
-      "description": "Derive executable tasks.json entries from the orchestrator design graph so the loop can advance task ownership cleanly.",
+      "id": "gui_vector_phase_details",
+      "label": "T05 GUI Vector Phase Details",
+      "description": "Make vector phase rows open repo-backed phase details instead of acting like decorative cards.",
       "allowed_paths": [
-        "SPAWN/STOP/state/tasks.json"
+        "SPAWN/STOP/state/design.html",
+        "SPAWN/STOP/web/app.py"
       ],
       "dependencies": [
-        "task_queue_seeded"
+        "gui_nav_panels"
       ],
       "status": "red",
-      "task_name": "runtime-tasks",
+      "task_name": "gui-vector-phase-details",
       "task_id": "T05",
       "display_status": "pending",
       "verified_live": false,
-      "verification_reason": "tasks.json has not been derived from the design graph yet",
+      "verification_reason": "vector memory phases are not wired to drilldowns",
       "progress": null
     },
     {
-      "id": "vector_store_seeded",
-      "label": "T06 Vector Store Seeded",
-      "description": "Seed the vector store with memory and prior orchestration context so retrieval can inform future cycles.",
+      "id": "gui_memory_file_open",
+      "label": "T06 GUI Memory File Open",
+      "description": "Make memory file rows open real repo file details and context instead of static labels.",
       "allowed_paths": [
-        "SPAWN/STOP/.orchestrator/vector_store/"
+        "SPAWN/STOP/state/design.html",
+        "SPAWN/STOP/web/app.py"
       ],
       "dependencies": [
-        "runtime_tasks_derived",
-        "training_pipeline_scaffold"
+        "gui_nav_panels"
       ],
       "status": "red",
-      "task_name": "vector-store",
+      "task_name": "gui-memory-file-open",
       "task_id": "T06",
       "display_status": "pending",
       "verified_live": false,
-      "verification_reason": "vector store is still empty",
+      "verification_reason": "memory file rows are not wired to repo-backed file details",
+      "progress": null
+    },
+    {
+      "id": "gui_export_jsonl",
+      "label": "T07 GUI Export JSONL",
+      "description": "Wire the JSONL export button to a real Flask endpoint that emits repo-backed export output.",
+      "allowed_paths": [
+        "SPAWN/STOP/state/design.html",
+        "SPAWN/STOP/web/app.py"
+      ],
+      "dependencies": [
+        "gui_nav_panels"
+      ],
+      "status": "red",
+      "task_name": "gui-export-jsonl",
+      "task_id": "T07",
+      "display_status": "pending",
+      "verified_live": false,
+      "verification_reason": "JSONL export is not wired to repo-backed export logic",
+      "progress": null
+    },
+    {
+      "id": "gui_export_alpaca",
+      "label": "T08 GUI Export Alpaca",
+      "description": "Wire the Alpaca export button to a real Flask endpoint that emits canonical dataset output.",
+      "allowed_paths": [
+        "SPAWN/STOP/state/design.html",
+        "SPAWN/STOP/web/app.py"
+      ],
+      "dependencies": [
+        "gui_nav_panels"
+      ],
+      "status": "red",
+      "task_name": "gui-export-alpaca",
+      "task_id": "T08",
+      "display_status": "pending",
+      "verified_live": false,
+      "verification_reason": "Alpaca export is not wired to repo-backed export logic",
+      "progress": null
+    },
+    {
+      "id": "gui_export_sharegpt",
+      "label": "T09 GUI Export ShareGPT",
+      "description": "Wire the ShareGPT export button to a real Flask endpoint that emits conversation-format data.",
+      "allowed_paths": [
+        "SPAWN/STOP/state/design.html",
+        "SPAWN/STOP/web/app.py"
+      ],
+      "dependencies": [
+        "gui_nav_panels"
+      ],
+      "status": "red",
+      "task_name": "gui-export-sharegpt",
+      "task_id": "T09",
+      "display_status": "pending",
+      "verified_live": false,
+      "verification_reason": "ShareGPT export is not wired to repo-backed export logic",
+      "progress": null
+    },
+    {
+      "id": "gui_export_steering",
+      "label": "T10 GUI Export Steering",
+      "description": "Wire the steering-only export button to a real Flask endpoint that emits steering traces only.",
+      "allowed_paths": [
+        "SPAWN/STOP/state/design.html",
+        "SPAWN/STOP/web/app.py"
+      ],
+      "dependencies": [
+        "gui_nav_panels"
+      ],
+      "status": "red",
+      "task_name": "gui-export-steering",
+      "task_id": "T10",
+      "display_status": "pending",
+      "verified_live": false,
+      "verification_reason": "Steering-only export is not wired to repo-backed export logic",
+      "progress": null
+    },
+    {
+      "id": "gui_repo_freeze_toggle",
+      "label": "T11 GUI Repo Freeze Toggle",
+      "description": "Wire the repo freeze toggle to a real Flask control endpoint so the dashboard can mutate live freeze state.",
+      "allowed_paths": [
+        "SPAWN/STOP/state/design.html",
+        "SPAWN/STOP/web/app.py"
+      ],
+      "dependencies": [
+        "gui_nav_panels"
+      ],
+      "status": "red",
+      "task_name": "gui-repo-freeze-toggle",
+      "task_id": "T11",
+      "display_status": "pending",
+      "verified_live": false,
+      "verification_reason": "repo freeze toggle is display-only and has no control endpoint",
+      "progress": null
+    },
+    {
+      "id": "gui_spawn_loop_controls",
+      "label": "T12 GUI Spawn Loop Controls",
+      "description": "Wire the spawn loop controls to a real Flask control plane so start, pause, and related actions work from the GUI.",
+      "allowed_paths": [
+        "SPAWN/STOP/state/design.html",
+        "SPAWN/STOP/web/app.py"
+      ],
+      "dependencies": [
+        "gui_nav_panels"
+      ],
+      "status": "red",
+      "task_name": "gui-spawn-loop-controls",
+      "task_id": "T12",
+      "display_status": "pending",
+      "verified_live": false,
+      "verification_reason": "spawn loop controls are not wired to a control endpoint",
+      "progress": null
+    },
+    {
+      "id": "gui_audit_log_details",
+      "label": "T13 GUI Audit Log Details",
+      "description": "Make the audit log panel open detailed repo-backed audit events instead of a single summary card.",
+      "allowed_paths": [
+        "SPAWN/STOP/state/design.html",
+        "SPAWN/STOP/web/app.py"
+      ],
+      "dependencies": [
+        "gui_nav_panels"
+      ],
+      "status": "red",
+      "task_name": "gui-audit-log-details",
+      "task_id": "T13",
+      "display_status": "pending",
+      "verified_live": false,
+      "verification_reason": "audit log panel is not wired to detailed audit events",
+      "progress": null
+    },
+    {
+      "id": "gui_stray_monitor_details",
+      "label": "T14 GUI Stray Monitor Details",
+      "description": "Make the stray monitor panel open detailed repo-backed stray event history and diagnostics.",
+      "allowed_paths": [
+        "SPAWN/STOP/state/design.html",
+        "SPAWN/STOP/web/app.py"
+      ],
+      "dependencies": [
+        "gui_nav_panels"
+      ],
+      "status": "red",
+      "task_name": "gui-stray-monitor-details",
+      "task_id": "T14",
+      "display_status": "pending",
+      "verified_live": false,
+      "verification_reason": "stray monitor panel is not wired to detailed stray events",
+      "progress": null
+    },
+    {
+      "id": "gui_readiness_tracker_live",
+      "label": "T15 GUI Readiness Tracker Live",
+      "description": "Replace the static readiness tracker rows with canonical repo-backed readiness rendering.",
+      "allowed_paths": [
+        "SPAWN/STOP/state/design.html",
+        "SPAWN/STOP/web/app.py"
+      ],
+      "dependencies": [
+        "gui_nav_panels"
+      ],
+      "status": "red",
+      "task_name": "gui-readiness-tracker-live",
+      "task_id": "T15",
+      "display_status": "pending",
+      "verified_live": false,
+      "verification_reason": "readiness tracker is still mostly static text and not a live function surface",
       "progress": null
     }
   ],
   "edges": [
     {
-      "from": "loop_runtime",
-      "to": "task_queue_seeded"
+      "from": "gui_nav_panels",
+      "to": "gui_dag_task_details"
     },
     {
-      "from": "loop_runtime",
-      "to": "child_repos_ready"
+      "from": "gui_nav_panels",
+      "to": "gui_bootstrap_step_details"
     },
     {
-      "from": "child_repos_ready",
-      "to": "training_pipeline_scaffold"
+      "from": "gui_nav_panels",
+      "to": "gui_repo_structure_details"
     },
     {
-      "from": "task_queue_seeded",
-      "to": "runtime_tasks_derived"
+      "from": "gui_nav_panels",
+      "to": "gui_vector_phase_details"
     },
     {
-      "from": "runtime_tasks_derived",
-      "to": "vector_store_seeded"
+      "from": "gui_nav_panels",
+      "to": "gui_memory_file_open"
     },
     {
-      "from": "training_pipeline_scaffold",
-      "to": "vector_store_seeded"
+      "from": "gui_nav_panels",
+      "to": "gui_export_jsonl"
+    },
+    {
+      "from": "gui_nav_panels",
+      "to": "gui_export_alpaca"
+    },
+    {
+      "from": "gui_nav_panels",
+      "to": "gui_export_sharegpt"
+    },
+    {
+      "from": "gui_nav_panels",
+      "to": "gui_export_steering"
+    },
+    {
+      "from": "gui_nav_panels",
+      "to": "gui_repo_freeze_toggle"
+    },
+    {
+      "from": "gui_nav_panels",
+      "to": "gui_spawn_loop_controls"
+    },
+    {
+      "from": "gui_nav_panels",
+      "to": "gui_audit_log_details"
+    },
+    {
+      "from": "gui_nav_panels",
+      "to": "gui_stray_monitor_details"
+    },
+    {
+      "from": "gui_nav_panels",
+      "to": "gui_readiness_tracker_live"
     }
   ],
-  "last_cycle": 2,
-  "last_updated": "2026-03-27T20:16:22.965015",
-  "status": "awaiting_task_completion"
+  "status": "awaiting_task_completion",
+  "last_cycle": 0,
+  "last_updated": null
 }

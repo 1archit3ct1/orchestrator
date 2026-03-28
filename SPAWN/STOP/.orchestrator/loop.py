@@ -26,6 +26,7 @@ from pathlib import Path
 # Import security system
 import security_manager
 from security_manager import CredentialType, SecurityManager
+from dashboard_state import verify_dashboard_integrations
 
 logging.basicConfig(
     level=logging.INFO,
@@ -132,6 +133,98 @@ class OrchestratorLoop:
             logger.error(f"Failed to save {path}: {e}")
             return False
 
+    def _load_design_graph(self) -> dict:
+        return self._load_json(self.state_dir / 'design_graph.json')
+
+    def _derive_tasks_from_graph(self) -> list:
+        graph = self._load_design_graph()
+        tasks = []
+        for index, node in enumerate(graph.get('nodes', []), start=1):
+            node_status = node.get('status', 'red')
+            if node_status == 'green':
+                task_status = 'completed'
+            elif node_status == 'yellow':
+                task_status = 'active'
+            else:
+                task_status = 'pending'
+
+            tasks.append({
+                'id': f'task_{index:03d}',
+                'task_id': node.get('task_id', f'T{index:02d}'),
+                'dag_node_id': node.get('id'),
+                'label': node.get('task_name') or node.get('label') or node.get('id'),
+                'description': node.get('description', ''),
+                'allowed_paths': node.get('allowed_paths', []),
+                'dependencies': node.get('dependencies', []),
+                'status': task_status,
+                'priority': index,
+                'progress': node.get('progress'),
+            })
+        return tasks
+
+    def _sync_tasks_file_from_graph(self) -> list:
+        tasks = self._derive_tasks_from_graph()
+        self._save_json(self.state_dir / 'tasks.json', tasks)
+        return tasks
+
+    def _write_task_md(self, task: dict) -> bool:
+        task_md_path = self.root / 'SPAWN' / 'STOP' / 'TASK.md'
+        allowed_paths = task.get('allowed_paths', [])
+        allowed_lines = '\n'.join(f'  - {path}' for path in allowed_paths) if allowed_paths else '  - SPAWN/STOP/state/'
+        label = task.get('label') or task.get('dag_node_id') or task.get('task_id') or 'task'
+        description = task.get('description', '')
+        content = (
+            f"---\n"
+            f"task_id: {task.get('id')}\n"
+            f"dag_node_id: {task.get('dag_node_id')}\n"
+            f"allowed_paths:\n{allowed_lines}\n"
+            f"priority: {task.get('priority', 1)}\n"
+            f"---\n\n"
+            f"# Task: {label}\n\n"
+            f"## Description\n"
+            f"{description}\n\n"
+            f"## Allowed Paths\n"
+            f"You may ONLY write to: {', '.join(f'`{path}`' for path in allowed_paths) if allowed_paths else '`SPAWN/STOP/state/`'}\n\n"
+            f"## Status: PENDING\n"
+        )
+        try:
+            task_md_path.write_text(content, encoding='utf-8')
+            return True
+        except IOError as e:
+            logger.error(f"Failed to write TASK.md: {e}")
+            return False
+
+    def _find_next_runnable_task(self) -> dict | None:
+        tasks = self._sync_tasks_file_from_graph()
+        completed_nodes = {
+            task.get('dag_node_id')
+            for task in tasks
+            if task.get('status') == 'completed'
+        }
+        active_tasks = [task for task in tasks if task.get('status') == 'active']
+        if active_tasks:
+            return active_tasks[0]
+
+        for task in tasks:
+            if task.get('status') != 'pending':
+                continue
+            dependencies = task.get('dependencies', [])
+            if all(dep in completed_nodes for dep in dependencies):
+                return task
+        return None
+
+    def _promote_next_task(self) -> bool:
+        next_task = self._find_next_runnable_task()
+        if not next_task:
+            logger.info("  No next runnable DAG task was found.")
+            return False
+
+        self._update_task_status(next_task.get('id'), 'active')
+        if self._write_task_md(next_task):
+            logger.info(f"  Promoted next task: {next_task.get('task_id')} -> {next_task.get('label')}")
+            return True
+        return False
+
     # === 10-STEP AUTONOMOUS LOOP ===
 
     def check_and_process_task_md(self) -> bool:
@@ -237,6 +330,7 @@ class OrchestratorLoop:
                         # Delete TASK.md only when the repo truth says the task is satisfied.
                         task_md_path.unlink()
                         logger.info(f"  Task completed, TASK.md deleted")
+                        self._promote_next_task()
                     else:
                         self._update_task_status(task_id, 'pending')
                         self._update_dag_node_status(dag_node_id, 'red')
@@ -272,54 +366,15 @@ class OrchestratorLoop:
             'completed': False,
             'reason': 'no task handler matched',
         }
-
-        if dag_node_id == 'task_queue_seeded':
-            task_queue = self._load_json(self.task_queue_path)
-            if isinstance(task_queue, list) and task_queue:
-                result = {'completed': True, 'reason': 'task queue already contains child tasks'}
-            else:
-                result = {'completed': False, 'reason': 'task_queue.json is still empty'}
-        elif dag_node_id == 'child_repos_ready':
-            child_repos = [
-                repo for repo in self.repos_dir.iterdir()
-                if repo.is_dir() and (repo / 'SPAWN' / 'STOP').exists()
-            ] if self.repos_dir.exists() else []
+        verification = verify_dashboard_integrations(self.root / 'SPAWN' / 'STOP')
+        verified_state = verification.get(dag_node_id)
+        if verified_state:
             result = {
-                'completed': bool(child_repos),
-                'reason': 'child repos are scaffolded' if child_repos else 'no child repos with SPAWN/STOP runtime found'
+                'completed': bool(verified_state.get('live')),
+                'reason': verified_state.get('reason', 'verification check returned no reason'),
             }
-        elif dag_node_id == 'training_pipeline_scaffold':
-            required = [
-                self.training_dir / 'collect_data.py',
-                self.training_dir / 'prepare_dataset.py',
-                self.training_dir / 'train.py',
-                self.training_dir / 'config.yml',
-                self.training_dir / 'evaluate.py',
-            ]
-            ready = all(path.exists() for path in required)
-            result = {
-                'completed': ready,
-                'reason': 'training scaffold present' if ready else 'training scaffold files are still missing'
-            }
-        elif dag_node_id == 'runtime_tasks_derived':
-            tasks = self._load_json(self.state_dir / 'tasks.json')
-            result = {
-                'completed': isinstance(tasks, list) and len(tasks) > 0,
-                'reason': 'tasks.json contains executable tasks'
-                if isinstance(tasks, list) and len(tasks) > 0
-                else 'tasks.json has not been derived yet'
-            }
-        elif dag_node_id == 'vector_store_seeded':
-            seeded_entries = [
-                path for path in self.vector_store_dir.glob('*.json')
-                if not path.stem.startswith('cycle_')
-            ] if self.vector_store_dir.exists() else []
-            result = {
-                'completed': bool(seeded_entries),
-                'reason': 'vector store contains seeded context'
-                if seeded_entries
-                else 'vector store has no seeded context entries yet'
-            }
+        elif dag_node_id == 'loop_runtime':
+            result = {'completed': True, 'reason': 'loop runtime foundation is present'}
 
         self._audit_task_event(task_id, 'executed', {
             'dag_node_id': dag_node_id,
@@ -330,31 +385,9 @@ class OrchestratorLoop:
         return result
 
     def _task_condition_met(self, dag_node_id: str) -> bool:
-        if dag_node_id == 'task_queue_seeded':
-            task_queue = self._load_json(self.task_queue_path)
-            return isinstance(task_queue, list) and len(task_queue) > 0
-        if dag_node_id == 'child_repos_ready':
-            return self.repos_dir.exists() and any(
-                repo.is_dir() and (repo / 'SPAWN' / 'STOP').exists()
-                for repo in self.repos_dir.iterdir()
-            )
-        if dag_node_id == 'training_pipeline_scaffold':
-            required = [
-                self.training_dir / 'collect_data.py',
-                self.training_dir / 'prepare_dataset.py',
-                self.training_dir / 'train.py',
-                self.training_dir / 'config.yml',
-                self.training_dir / 'evaluate.py',
-            ]
-            return all(path.exists() for path in required)
-        if dag_node_id == 'runtime_tasks_derived':
-            tasks = self._load_json(self.state_dir / 'tasks.json')
-            return isinstance(tasks, list) and len(tasks) > 0
-        if dag_node_id == 'vector_store_seeded':
-            return self.vector_store_dir.exists() and any(
-                path.is_file() and path.suffix == '.json' and not path.stem.startswith('cycle_')
-                for path in self.vector_store_dir.iterdir()
-            )
+        verification = verify_dashboard_integrations(self.root / 'SPAWN' / 'STOP')
+        if dag_node_id in verification:
+            return bool(verification[dag_node_id].get('live'))
         if dag_node_id == 'loop_runtime':
             return True
         return False
@@ -362,6 +395,8 @@ class OrchestratorLoop:
     def _update_task_status(self, task_id: str, status: str):
         """Update task status in tasks.json."""
         tasks = self._load_json(self.state_dir / 'tasks.json')
+        if not isinstance(tasks, list) or not tasks:
+            tasks = self._derive_tasks_from_graph()
         if isinstance(tasks, list):
             for task in tasks:
                 if task.get('id') == task_id:
@@ -379,6 +414,12 @@ class OrchestratorLoop:
             for node in dag['nodes']:
                 if node.get('id') == node_id:
                     node['status'] = status
+                    if status == 'green':
+                        node['display_status'] = 'complete'
+                    elif status == 'yellow':
+                        node['display_status'] = 'active'
+                    else:
+                        node['display_status'] = 'pending'
                     break
             self._save_json(self.state_dir / 'design_graph.json', dag)
 

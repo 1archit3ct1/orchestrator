@@ -75,6 +75,10 @@ def directory_size(path: Path):
     return sum(item.stat().st_size for item in path.rglob("*") if item.is_file())
 
 
+def has_all(text: str, *needles: str) -> bool:
+    return all(needle in text for needle in needles)
+
+
 def normalize_tasks(graph, tasks):
     if isinstance(tasks, list) and tasks:
         normalized = []
@@ -127,77 +131,101 @@ def verify_dashboard_integrations(runtime_dir: Path):
     orchestrator_dir = runtime_dir / ".orchestrator"
     web_dir = runtime_dir / "web"
     state_dir = runtime_dir / "state"
-    repos_dir = runtime_dir / "repos"
-    training_dir = runtime_dir / "training"
-    task_queue_path = orchestrator_dir / "task_queue.json"
-    tasks_path = state_dir / "tasks.json"
-    vector_dir = orchestrator_dir / "vector_store"
-    loop_path = orchestrator_dir / "loop.py"
-
-    loop_text = read_text(loop_path)
-    task_queue = load_json(task_queue_path, [])
-    derived_tasks = load_json(tasks_path, [])
-
-    training_files = [
-        training_dir / "collect_data.py",
-        training_dir / "prepare_dataset.py",
-        training_dir / "train.py",
-        training_dir / "config.yml",
-        training_dir / "evaluate.py",
-    ]
-    child_repo_ready = False
-    if repos_dir.exists():
-        for repo_dir in repos_dir.iterdir():
-            if (repo_dir / "SPAWN" / "STOP").exists():
-                child_repo_ready = True
-                break
+    app_path = web_dir / "app.py"
+    design_path = state_dir / "design.html"
+    app_text = read_text(app_path)
+    design_text = read_text(design_path)
 
     checks = {
-        "loop_runtime": {
-            "live": (
-                loop_path.exists()
-                and "repo_path / 'SPAWN' / 'STOP' / 'state' / 'tasks.json'" in loop_text
-                and "repo_log_dir = self.repos_dir / repo_name / 'SPAWN' / 'STOP' / '.orchestrator' / 'logs'" in loop_text
-                and "root_dir = script_dir.parent.parent.parent" in loop_text
-            ),
-            "reason": "orchestration loop matches SPAWN/STOP path contract"
-            if (
-                loop_path.exists()
-                and "repo_path / 'SPAWN' / 'STOP' / 'state' / 'tasks.json'" in loop_text
-                and "repo_log_dir = self.repos_dir / repo_name / 'SPAWN' / 'STOP' / '.orchestrator' / 'logs'" in loop_text
-                and "root_dir = script_dir.parent.parent.parent" in loop_text
-            )
-            else "loop.py still needs path-contract alignment for child orchestration",
+        "gui_nav_panels": {
+            "live": has_all(design_text, "data-nav=", "data-panel=") and "function handleNavPanel" in app_text,
+            "reason": "sidebar navigation routes between dashboard panels from repo-backed hooks"
+            if has_all(design_text, "data-nav=", "data-panel=") and "function handleNavPanel" in app_text
+            else "sidebar nav items are still visual-only and lack panel routing hooks",
         },
-        "task_queue_seeded": {
-            "live": isinstance(task_queue, list) and len(task_queue) > 0,
-            "reason": "task_queue.json contains child tasks"
-            if isinstance(task_queue, list) and len(task_queue) > 0
-            else "task_queue.json is still empty",
+        "gui_dag_task_details": {
+            "live": 'data-dag-node="' in design_text and "function openDagTaskDetails" in app_text,
+            "reason": "task DAG rows open repo-backed task detail state"
+            if 'data-dag-node="' in design_text and "function openDagTaskDetails" in app_text
+            else "task DAG rows are still visual-only and do not open task details",
         },
-        "child_repos_ready": {
-            "live": child_repo_ready,
-            "reason": "at least one child repo has SPAWN/STOP runtime scaffolding"
-            if child_repo_ready
-            else "no child repos are scaffolded under repos/",
+        "gui_bootstrap_step_details": {
+            "live": 'data-boot-step="' in design_text and "function openBootstrapStep" in app_text,
+            "reason": "bootstrap steps open repo-backed status details"
+            if 'data-boot-step="' in design_text and "function openBootstrapStep" in app_text
+            else "bootstrap steps are clickable shells without drilldown behavior",
         },
-        "training_pipeline_scaffold": {
-            "live": all(path.exists() for path in training_files),
-            "reason": "training pipeline scaffold files are present"
-            if all(path.exists() for path in training_files)
-            else "training pipeline scaffold is incomplete",
+        "gui_repo_structure_details": {
+            "live": 'data-structure-node="' in design_text and "function openRepoStructureNode" in app_text,
+            "reason": "repo structure panel exposes repo-backed node details"
+            if 'data-structure-node="' in design_text and "function openRepoStructureNode" in app_text
+            else "repo structure panel has no clickable node drilldowns",
         },
-        "runtime_tasks_derived": {
-            "live": isinstance(derived_tasks, list) and len(derived_tasks) > 0,
-            "reason": "tasks.json contains derived executable tasks"
-            if isinstance(derived_tasks, list) and len(derived_tasks) > 0
-            else "tasks.json has not been derived from the design graph yet",
+        "gui_vector_phase_details": {
+            "live": 'data-vec-phase="' in design_text and "function openVectorPhase" in app_text,
+            "reason": "vector memory phases expose repo-backed drilldown state"
+            if 'data-vec-phase="' in design_text and "function openVectorPhase" in app_text
+            else "vector memory phases are not wired to drilldowns",
         },
-        "vector_store_seeded": {
-            "live": count_files(vector_dir, "*.json") > 0,
-            "reason": "vector store contains seeded context entries"
-            if count_files(vector_dir, "*.json") > 0
-            else "vector store is still empty",
+        "gui_memory_file_open": {
+            "live": 'data-memory-file="' in design_text and "function openMemoryFile" in app_text,
+            "reason": "memory file rows open real repo file detail state"
+            if 'data-memory-file="' in design_text and "function openMemoryFile" in app_text
+            else "memory file rows are not wired to repo-backed file details",
+        },
+        "gui_export_jsonl": {
+            "live": 'data-export-format="jsonl"' in design_text and "/api/export/jsonl" in app_text,
+            "reason": "JSONL export button is wired to a real export endpoint"
+            if 'data-export-format="jsonl"' in design_text and "/api/export/jsonl" in app_text
+            else "JSONL export is not wired to repo-backed export logic",
+        },
+        "gui_export_alpaca": {
+            "live": 'data-export-format="alpaca"' in design_text and "/api/export/alpaca" in app_text,
+            "reason": "Alpaca export button is wired to a real export endpoint"
+            if 'data-export-format="alpaca"' in design_text and "/api/export/alpaca" in app_text
+            else "Alpaca export is not wired to repo-backed export logic",
+        },
+        "gui_export_sharegpt": {
+            "live": 'data-export-format="sharegpt"' in design_text and "/api/export/sharegpt" in app_text,
+            "reason": "ShareGPT export button is wired to a real export endpoint"
+            if 'data-export-format="sharegpt"' in design_text and "/api/export/sharegpt" in app_text
+            else "ShareGPT export is not wired to repo-backed export logic",
+        },
+        "gui_export_steering": {
+            "live": 'data-export-format="steering"' in design_text and "/api/export/steering" in app_text,
+            "reason": "Steering-only export button is wired to a real export endpoint"
+            if 'data-export-format="steering"' in design_text and "/api/export/steering" in app_text
+            else "Steering-only export is not wired to repo-backed export logic",
+        },
+        "gui_repo_freeze_toggle": {
+            "live": 'data-control="repo-freeze"' in design_text and "/api/control/repo-freeze" in app_text,
+            "reason": "repo freeze toggle can mutate live freeze state through Flask"
+            if 'data-control="repo-freeze"' in design_text and "/api/control/repo-freeze" in app_text
+            else "repo freeze toggle is display-only and has no control endpoint",
+        },
+        "gui_spawn_loop_controls": {
+            "live": 'data-control="spawn-loop"' in design_text and "/api/control/spawn-loop" in app_text,
+            "reason": "spawn loop controls are wired to a live Flask control plane"
+            if 'data-control="spawn-loop"' in design_text and "/api/control/spawn-loop" in app_text
+            else "spawn loop controls are not wired to a control endpoint",
+        },
+        "gui_audit_log_details": {
+            "live": 'data-panel="audit-log"' in design_text and "/api/audit/events" in app_text,
+            "reason": "audit log panel opens repo-backed audit event details"
+            if 'data-panel="audit-log"' in design_text and "/api/audit/events" in app_text
+            else "audit log panel is not wired to detailed audit events",
+        },
+        "gui_stray_monitor_details": {
+            "live": 'data-panel="stray-monitor"' in design_text and "/api/stray/events" in app_text,
+            "reason": "stray monitor panel opens repo-backed stray event details"
+            if 'data-panel="stray-monitor"' in design_text and "/api/stray/events" in app_text
+            else "stray monitor panel is not wired to detailed stray events",
+        },
+        "gui_readiness_tracker_live": {
+            "live": 'data-readiness-key="' in design_text and "function renderReadinessTracker" in app_text,
+            "reason": "readiness tracker rows are rendered from canonical repo state"
+            if 'data-readiness-key="' in design_text and "function renderReadinessTracker" in app_text
+            else "readiness tracker is still mostly static text and not a live function surface",
         },
     }
     return checks

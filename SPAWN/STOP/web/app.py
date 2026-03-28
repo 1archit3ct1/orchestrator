@@ -50,8 +50,6 @@ MEMORY_PATH = RUNTIME_DIR / "MEMORY.md"
 DESIGN_HTML_PATH = STATE_DIR / "design.html"
 SECURITY_AUDIT_LOG_PATH = LOGS_DIR / "security" / "security_audit.log"
 ORCHESTRATOR_LOG_PATH = LOGS_DIR / "orchestrator.log"
-DASHBOARD_STATE_PATH = STATE_DIR / "dashboard_state.json"
-
 if str(ORCHESTRATOR_DIR) not in sys.path:
     sys.path.insert(0, str(ORCHESTRATOR_DIR))
 
@@ -444,7 +442,7 @@ LIVE_DASHBOARD_SCRIPT = r"""
 
     const steeringBody = qs('.steering-body');
     if (steeringBody) {
-      const steeringText = data.stray_events[1] || 'No high-priority steering trace has been captured yet.';
+      const steeringText = (data.steering_events && data.steering_events[0]) || 'No high-priority steering trace has been captured yet.';
       steeringBody.innerHTML = ''
         + '<div class="steering-entry">'
         + '<div class="steering-tags"><span class="stag stag-arch">LIVE</span><span class="stag stag-resolved">STATE</span></div>'
@@ -488,6 +486,37 @@ LIVE_DASHBOARD_SCRIPT = r"""
     if (strayTime) setText(strayTime, formatClock(data.generated_at) + ' · LIVE');
     const strayDesc = qs('.stray-event-desc');
     if (strayDesc) setText(strayDesc, data.stray_events[0] || 'No stray write attempts were found in the latest security scan.');
+  }
+
+  function renderRepoFreeze(data) {
+    const mutexBadge = qs('.repo-lock .mutex-badge');
+    const mutexDot = qs('.repo-lock .mutex-dot');
+    const freezeLabel = qs('.freeze-label');
+    const freezeNote = qs('.freeze-note');
+    const toggle = qs('.toggle-wrap');
+    const toggleThumb = qs('.toggle-thumb');
+    const held = !!(data.repo_freeze && data.repo_freeze.mutex_held);
+
+    if (mutexBadge) mutexBadge.innerHTML = '<div class="mutex-dot"></div>' + (held ? 'MUTEX HELD' : 'MUTEX OPEN');
+    if (mutexDot) {
+      mutexDot.style.background = held ? 'var(--red)' : 'var(--green)';
+      mutexDot.style.boxShadow = held ? '0 0 8px var(--red-glow)' : '0 0 8px var(--green-glow)';
+    }
+    if (freezeLabel) freezeLabel.textContent = held ? 'WRITE LOCK ACTIVE' : 'WRITE LOCK OPEN';
+    if (freezeNote) {
+      freezeNote.textContent = held
+        ? 'Mutex held. All writes are currently gated by the active task scope.'
+        : 'No active lock is held. Writes should only occur after the next task lock is acquired.';
+    }
+    if (toggle) {
+      toggle.style.background = held ? 'var(--red)' : 'rgba(34,197,94,0.25)';
+      toggle.style.borderColor = held ? 'var(--border)' : 'rgba(34,197,94,0.35)';
+    }
+    if (toggleThumb) {
+      toggleThumb.style.left = held ? '24px' : '2px';
+      toggleThumb.style.background = held ? 'var(--red)' : 'var(--green)';
+      toggleThumb.style.boxShadow = held ? '0 0 8px var(--red-glow)' : '0 0 8px var(--green-glow)';
+    }
   }
 
   function renderTraceCapture(data) {
@@ -546,6 +575,7 @@ LIVE_DASHBOARD_SCRIPT = r"""
     renderModelPanel(data);
     renderAuditPanels(data);
     renderSpawnPanel(data);
+    renderRepoFreeze(data);
     renderPolicyAndStray(data);
     renderTraceCapture(data);
     renderMemoryFiles(data);

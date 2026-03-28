@@ -224,30 +224,28 @@ class OrchestratorLoop:
                     logger.info(f"  SECURITY: Write lock acquired")
                     logger.info(f"  SECURITY: Credentials injected ({len(required_credentials)} keys)")
 
-                    # Mark task as in_progress
                     self._update_task_status(task_id, 'in_progress')
-
-                    # Execute the task
-                    # In full implementation, this would call a planner/executor
                     logger.info(f"  Executing task: {dag_node_id}")
 
-                    # Simulate task execution
-                    self._execute_task(task_id, dag_node_id, allowed_paths)
+                    result = self._execute_task(task_id, dag_node_id, allowed_paths)
 
-                    # Mark task as completed
-                    self._update_task_status(task_id, 'completed')
-                    self._update_dag_node_status(dag_node_id, 'green')
+                    if result.get('completed') and self._task_condition_met(dag_node_id):
+                        self._update_task_status(task_id, 'completed')
+                        self._update_dag_node_status(dag_node_id, 'green')
+                        logger.info(f"  SECURITY: Task completed successfully")
 
-                    logger.info(f"  SECURITY: Task completed successfully")
+                        # Delete TASK.md only when the repo truth says the task is satisfied.
+                        task_md_path.unlink()
+                        logger.info(f"  Task completed, TASK.md deleted")
+                    else:
+                        self._update_task_status(task_id, 'pending')
+                        self._update_dag_node_status(dag_node_id, 'red')
+                        logger.warning(f"  Task not satisfied yet: {result.get('reason', 'verification failed')}")
 
                 # Context manager automatically:
                 # - Revokes credentials
                 # - Releases write lock
                 # - Writes audit log
-
-                # Delete TASK.md after completion
-                task_md_path.unlink()
-                logger.info(f"  Task completed, TASK.md deleted")
 
                 return True
 
@@ -270,13 +268,96 @@ class OrchestratorLoop:
         logger.info(f"  Task execution: {cred_count} credentials available in environment")
         logger.info(f"  Allowed paths: {allowed_paths}")
 
-        # Task-specific logic would go here
-        # For now, just log that execution occurred
+        result = {
+            'completed': False,
+            'reason': 'no task handler matched',
+        }
+
+        if dag_node_id == 'task_queue_seeded':
+            task_queue = self._load_json(self.task_queue_path)
+            if isinstance(task_queue, list) and task_queue:
+                result = {'completed': True, 'reason': 'task queue already contains child tasks'}
+            else:
+                result = {'completed': False, 'reason': 'task_queue.json is still empty'}
+        elif dag_node_id == 'child_repos_ready':
+            child_repos = [
+                repo for repo in self.repos_dir.iterdir()
+                if repo.is_dir() and (repo / 'SPAWN' / 'STOP').exists()
+            ] if self.repos_dir.exists() else []
+            result = {
+                'completed': bool(child_repos),
+                'reason': 'child repos are scaffolded' if child_repos else 'no child repos with SPAWN/STOP runtime found'
+            }
+        elif dag_node_id == 'training_pipeline_scaffold':
+            required = [
+                self.training_dir / 'collect_data.py',
+                self.training_dir / 'prepare_dataset.py',
+                self.training_dir / 'train.py',
+                self.training_dir / 'config.yml',
+                self.training_dir / 'evaluate.py',
+            ]
+            ready = all(path.exists() for path in required)
+            result = {
+                'completed': ready,
+                'reason': 'training scaffold present' if ready else 'training scaffold files are still missing'
+            }
+        elif dag_node_id == 'runtime_tasks_derived':
+            tasks = self._load_json(self.state_dir / 'tasks.json')
+            result = {
+                'completed': isinstance(tasks, list) and len(tasks) > 0,
+                'reason': 'tasks.json contains executable tasks'
+                if isinstance(tasks, list) and len(tasks) > 0
+                else 'tasks.json has not been derived yet'
+            }
+        elif dag_node_id == 'vector_store_seeded':
+            seeded_entries = [
+                path for path in self.vector_store_dir.glob('*.json')
+                if not path.stem.startswith('cycle_')
+            ] if self.vector_store_dir.exists() else []
+            result = {
+                'completed': bool(seeded_entries),
+                'reason': 'vector store contains seeded context'
+                if seeded_entries
+                else 'vector store has no seeded context entries yet'
+            }
+
         self._audit_task_event(task_id, 'executed', {
             'dag_node_id': dag_node_id,
             'allowed_paths': allowed_paths,
-            'credentials_used': cred_count
+            'credentials_used': cred_count,
+            'result': result,
         })
+        return result
+
+    def _task_condition_met(self, dag_node_id: str) -> bool:
+        if dag_node_id == 'task_queue_seeded':
+            task_queue = self._load_json(self.task_queue_path)
+            return isinstance(task_queue, list) and len(task_queue) > 0
+        if dag_node_id == 'child_repos_ready':
+            return self.repos_dir.exists() and any(
+                repo.is_dir() and (repo / 'SPAWN' / 'STOP').exists()
+                for repo in self.repos_dir.iterdir()
+            )
+        if dag_node_id == 'training_pipeline_scaffold':
+            required = [
+                self.training_dir / 'collect_data.py',
+                self.training_dir / 'prepare_dataset.py',
+                self.training_dir / 'train.py',
+                self.training_dir / 'config.yml',
+                self.training_dir / 'evaluate.py',
+            ]
+            return all(path.exists() for path in required)
+        if dag_node_id == 'runtime_tasks_derived':
+            tasks = self._load_json(self.state_dir / 'tasks.json')
+            return isinstance(tasks, list) and len(tasks) > 0
+        if dag_node_id == 'vector_store_seeded':
+            return self.vector_store_dir.exists() and any(
+                path.is_file() and path.suffix == '.json' and not path.stem.startswith('cycle_')
+                for path in self.vector_store_dir.iterdir()
+            )
+        if dag_node_id == 'loop_runtime':
+            return True
+        return False
 
     def _update_task_status(self, task_id: str, status: str):
         """Update task status in tasks.json."""
@@ -346,7 +427,8 @@ class OrchestratorLoop:
             repo_name = task.get('repo', 'unknown')
             repo_path = self.repos_dir / repo_name
             if repo_path.exists():
-                task_file = repo_path / 'Stop' / 'state' / 'tasks.json'
+                # Child repos follow the same SPAWN/STOP runtime contract.
+                task_file = repo_path / 'SPAWN' / 'STOP' / 'state' / 'tasks.json'
                 if self._is_write_allowed(str(task_file)):
                     results[repo_name] = {'status': 'dispatched', 'task': task}
                     logger.info(f"  Dispatched to {repo_name}")
@@ -360,7 +442,7 @@ class OrchestratorLoop:
         logger.info("Step 5: Collecting logs from child repos")
         collected = []
         for repo_name, result in dispatch_results.items():
-            repo_log_dir = self.repos_dir / repo_name / 'Stop' / '.orchestrator' / 'logs'
+            repo_log_dir = self.repos_dir / repo_name / 'SPAWN' / 'STOP' / '.orchestrator' / 'logs'
             if repo_log_dir.exists():
                 for log_file in repo_log_dir.glob('*.log'):
                     collected.append({
@@ -392,6 +474,9 @@ class OrchestratorLoop:
     def step_7_update_vector_store(self, state: dict, training_result: dict) -> bool:
         """Step 7: Append orchestration result to vector store"""
         logger.info("Step 7: Updating vector store with results")
+        if not state.get('tasks') and not training_result.get('trained'):
+            logger.info("  No coordinated work occurred, skipping vector-store append")
+            return False
         entry = {
             'cycle': self.cycle_count,
             'timestamp': datetime.now().isoformat(),
@@ -419,11 +504,30 @@ class OrchestratorLoop:
         graph = self._load_json(design_graph)
         graph['last_cycle'] = self.cycle_count
         graph['last_updated'] = datetime.now().isoformat()
-        graph['status'] = 'complete' if not remaining_tasks else 'in_progress'
+        node_statuses = [node.get('status') for node in graph.get('nodes', [])]
+        if node_statuses and all(status == 'green' for status in node_statuses):
+            graph['status'] = 'complete'
+        elif (self.root / 'SPAWN' / 'STOP' / 'TASK.md').exists():
+            graph['status'] = 'awaiting_task_completion'
+        elif remaining_tasks:
+            graph['status'] = 'in_progress'
+        else:
+            graph['status'] = 'waiting_for_work'
         return self._save_json(design_graph, graph)
 
     def step_10_loop_control(self, tasks: list) -> bool:
         """Step 10: Repeat until all coordinated tasks complete"""
+        if (self.root / 'SPAWN' / 'STOP' / 'TASK.md').exists():
+            logger.info("Step 10: TASK.md still active. Continuing loop.")
+            return True
+        graph = self._load_json(self.state_dir / 'design_graph.json')
+        pending_nodes = [
+            node for node in graph.get('nodes', [])
+            if node.get('status') != 'green'
+        ]
+        if pending_nodes:
+            logger.info(f"Step 10: {len(pending_nodes)} DAG tasks remain. Waiting for real work.")
+            return True
         if not tasks:
             logger.info("Step 10: All tasks complete. Orchestration finished.")
             return False
@@ -455,7 +559,11 @@ class OrchestratorLoop:
             try:
                 # Priority 1: Check for TASK.md (orchestrator's own DAG tasks)
                 if self.check_and_process_task_md():
-                    logger.info("TASK.md processed, continuing to next cycle...")
+                    logger.info("TASK.md checked, continuing to next cycle...")
+                    if max_cycles > 0 and self.cycle_count >= max_cycles:
+                        logger.info(f"Reached max cycles ({max_cycles}). Stopping.")
+                        should_continue = False
+                        continue
                     time.sleep(2)
                     continue
 
@@ -509,9 +617,9 @@ class OrchestratorLoop:
 
 
 if __name__ == '__main__':
-    # Determine root directory (two levels up from this file)
+    # Determine repo root from SPAWN/STOP/.orchestrator/loop.py
     script_dir = Path(__file__).resolve().parent
-    root_dir = script_dir.parent.parent  # Stop/.orchestrator -> Stop -> orchestrator root
+    root_dir = script_dir.parent.parent.parent  # .orchestrator -> STOP -> SPAWN -> repo root
 
     max_cycles = int(sys.argv[1]) if len(sys.argv) > 1 else 0
 

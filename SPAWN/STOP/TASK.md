@@ -1,20 +1,20 @@
 ---
 task_id: task_002
-dag_node_id: control_plane
+dag_node_id: task_queue_seeded
 allowed_paths:
-  - SPAWN/STOP/.orchestrator/control_plane.py
+  - SPAWN/STOP/.orchestrator/task_queue.json
 priority: 2
 ---
 
-# Task: Control Plane
+# Task: Seed Task Queue
 
 ## Description
-Add the runtime control layer that persists dashboard commands such as start, pause, stop, dispatch, freeze, and cycle speed.
+Populate `SPAWN/STOP/.orchestrator/task_queue.json` with priority-ordered child tasks so the orchestrator can start coordinating real repo work.
 
 ## Allowed Paths
-You may ONLY write to: `SPAWN/STOP/.orchestrator/control_plane.py`
+You may ONLY write to: `SPAWN/STOP/.orchestrator/task_queue.json`
 
 ## Context
-The canonical dashboard now verifies integrations directly from repo state. This task should only turn green once the control plane is implemented in the repository and the Flask dashboard can read that truth.
+The loop runtime is structural. The next real gap in the original plan is giving the orchestrator actual child tasks to read, prioritize, and dispatch.
 
 ## Status: PENDING

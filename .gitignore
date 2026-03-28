@@ -17,3 +17,4 @@ SPAWN/STOP/.orchestrator/dashboard.pid
 SPAWN/STOP/Stop/
 SPAWN/STOP/web/orchestrator.log
 SPAWN/STOP/state/dashboard_state.json
+# Security: Vault credentials and runtime logs

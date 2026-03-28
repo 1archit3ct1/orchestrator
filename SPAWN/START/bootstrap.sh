@@ -141,7 +141,7 @@ cat > "$STOP_DIR/.orchestrator/config.json" <<'EOF'
   "cycle_count": 0,
   "gpu_enabled": false,
   "training_config": {
-    "model_name": "deepseek-ai/deepseek-coder-6.7b-instruct",
+    "integrated": false,
     "output_dir": "SPAWN/STOP/.orchestrator/models/finetuned"
   }
 }
@@ -155,139 +155,79 @@ cat > "$STOP_DIR/state/design_graph.json" <<'EOF'
 {
   "nodes": [
     {
-      "id": "auth_api",
-      "label": "T01 Auth API",
-      "description": "Ship the authentication API surface that establishes the guarded entry point for spawned work.",
-      "allowed_paths": ["SPAWN/STOP/web/app.py"],
+      "id": "loop_runtime",
+      "label": "T01 Loop Runtime",
+      "description": "Keep the orchestrator loop aligned to the SPAWN/STOP child-repo contract so coordination can run from the repo as designed.",
+      "allowed_paths": ["SPAWN/STOP/.orchestrator/loop.py"],
       "dependencies": [],
-      "status": "green",
-      "task_name": "auth-api",
+      "status": "red",
+      "task_name": "loop-runtime",
       "task_id": "T01",
-      "display_status": "complete"
+      "display_status": "pending"
     },
     {
-      "id": "dash_shell",
-      "label": "T02 Dashboard Shell",
-      "description": "Build the dashboard shell that hosts orchestration state, task views, and system panels.",
-      "allowed_paths": ["SPAWN/STOP/web/templates/index.html"],
-      "dependencies": ["auth_api"],
-      "status": "green",
-      "task_name": "dash-shell",
+      "id": "task_queue_seeded",
+      "label": "T02 Task Queue Seeded",
+      "description": "Populate task_queue.json with priority-ordered child tasks so the orchestrator has real work to coordinate.",
+      "allowed_paths": ["SPAWN/STOP/.orchestrator/task_queue.json"],
+      "dependencies": ["loop_runtime"],
+      "status": "red",
+      "task_name": "task-queue",
       "task_id": "T02",
-      "display_status": "complete"
+      "display_status": "pending"
     },
     {
-      "id": "dag_monitor",
-      "label": "T03 DAG Monitor",
-      "description": "Render and monitor live DAG execution so the active task, progress, and queue state stay visible.",
-      "allowed_paths": ["SPAWN/STOP/web/static/script.js"],
-      "dependencies": ["dash_shell"],
+      "id": "child_repos_ready",
+      "label": "T03 Child Repos Ready",
+      "description": "Create or clone child repos with their own SPAWN/STOP runtimes so orchestrated dispatch has real targets.",
+      "allowed_paths": ["SPAWN/STOP/repos/"],
+      "dependencies": ["loop_runtime"],
       "status": "red",
-      "task_name": "dag-monitor",
+      "task_name": "child-repos",
       "task_id": "T03",
-      "display_status": "active",
-      "progress": 61
+      "display_status": "pending"
     },
     {
-      "id": "llm_audit",
-      "label": "T04 LLM Audit",
-      "description": "Capture autonomous model actions, blocked writes, and policy violations for operator review.",
-      "allowed_paths": ["SPAWN/STOP/.orchestrator/logs/security/"],
-      "dependencies": ["dag_monitor"],
+      "id": "training_pipeline_scaffold",
+      "label": "T04 Training Pipeline Scaffold",
+      "description": "Create the training scripts that collect logs, prepare datasets, train models, and evaluate outputs.",
+      "allowed_paths": ["SPAWN/STOP/training/"],
+      "dependencies": ["child_repos_ready"],
       "status": "red",
-      "task_name": "llm-audit",
+      "task_name": "training-pipeline",
       "task_id": "T04",
       "display_status": "pending"
     },
     {
-      "id": "sec_layer",
-      "label": "T05 Security Layer",
-      "description": "Enforce the orchestrator security layer that validates protected actions and hardened runtime behavior.",
-      "allowed_paths": ["SPAWN/STOP/.orchestrator/security_manager.py"],
-      "dependencies": ["llm_audit"],
+      "id": "runtime_tasks_derived",
+      "label": "T05 Runtime Tasks Derived",
+      "description": "Derive executable tasks.json entries from the orchestrator design graph so the loop can advance task ownership cleanly.",
+      "allowed_paths": ["SPAWN/STOP/state/tasks.json"],
+      "dependencies": ["task_queue_seeded"],
       "status": "red",
-      "task_name": "sec-layer",
+      "task_name": "runtime-tasks",
       "task_id": "T05",
       "display_status": "pending"
     },
     {
-      "id": "spawn_gate",
-      "label": "T06 Spawn Gate",
-      "description": "Gate task dispatch so spawned agents only receive work through the approved queue and policy flow.",
-      "allowed_paths": ["SPAWN/STOP/.orchestrator/task_queue.json"],
-      "dependencies": ["sec_layer"],
-      "status": "red",
-      "task_name": "spawn-gate",
-      "task_id": "T06",
-      "display_status": "pending"
-    },
-    {
-      "id": "write_mutex",
-      "label": "T07 Write Mutex",
-      "description": "Add the repository write lock that serializes file mutation and blocks stray writes outside task scope.",
-      "allowed_paths": ["SPAWN/STOP/.orchestrator/locks/repo_locks"],
-      "dependencies": ["spawn_gate"],
-      "status": "red",
-      "task_name": "write-mutex",
-      "task_id": "T07",
-      "display_status": "pending"
-    },
-    {
-      "id": "vec_memory",
-      "label": "T08 Vector Memory",
-      "description": "Persist retrieval-ready execution memory so prior outcomes can be embedded and reused in planning.",
+      "id": "vector_store_seeded",
+      "label": "T06 Vector Store Seeded",
+      "description": "Seed the vector store with memory and prior orchestration context so retrieval can inform future cycles.",
       "allowed_paths": ["SPAWN/STOP/.orchestrator/vector_store/"],
-      "dependencies": ["write_mutex"],
+      "dependencies": ["runtime_tasks_derived", "training_pipeline_scaffold"],
       "status": "red",
-      "task_name": "vec-memory",
-      "task_id": "T08",
-      "display_status": "pending"
-    },
-    {
-      "id": "model_eta",
-      "label": "T09 Model ETA",
-      "description": "Project training milestones from current trace throughput and expose ETA signals to the dashboard.",
-      "allowed_paths": ["SPAWN/STOP/.orchestrator/models/"],
-      "dependencies": ["vec_memory"],
-      "status": "red",
-      "task_name": "model-eta",
-      "task_id": "T09",
-      "display_status": "pending"
-    },
-    {
-      "id": "trace_pipe",
-      "label": "T10 Trace Pipe",
-      "description": "Pipe loop, task, and memory events into append-only traces for exports, steering, and replay.",
-      "allowed_paths": ["SPAWN/STOP/.orchestrator/iteration_logger.py"],
-      "dependencies": ["model_eta"],
-      "status": "red",
-      "task_name": "trace-pipe",
-      "task_id": "T10",
-      "display_status": "pending"
-    },
-    {
-      "id": "train_pipeline",
-      "label": "T11 Training Pipeline",
-      "description": "Turn captured traces into the model-training pipeline that exports datasets and powers iterative learning.",
-      "allowed_paths": ["SPAWN/STOP/training/"],
-      "dependencies": ["trace_pipe"],
-      "status": "red",
-      "task_name": "train-pipeline",
-      "task_id": "T11",
+      "task_name": "vector-store",
+      "task_id": "T06",
       "display_status": "pending"
     }
   ],
   "edges": [
-    { "from": "auth_api", "to": "dash_shell" },
-    { "from": "dash_shell", "to": "dag_monitor" },
-    { "from": "dag_monitor", "to": "llm_audit" },
-    { "from": "llm_audit", "to": "sec_layer" },
-    { "from": "sec_layer", "to": "spawn_gate" },
-    { "from": "spawn_gate", "to": "write_mutex" },
-    { "from": "write_mutex", "to": "vec_memory" },
-    { "from": "vec_memory", "to": "model_eta" },
-    { "from": "model_eta", "to": "trace_pipe" },
-    { "from": "trace_pipe", "to": "train_pipeline" }
+    { "from": "loop_runtime", "to": "task_queue_seeded" },
+    { "from": "loop_runtime", "to": "child_repos_ready" },
+    { "from": "child_repos_ready", "to": "training_pipeline_scaffold" },
+    { "from": "task_queue_seeded", "to": "runtime_tasks_derived" },
+    { "from": "runtime_tasks_derived", "to": "vector_store_seeded" },
+    { "from": "training_pipeline_scaffold", "to": "vector_store_seeded" }
   ]
 }
 EOF
@@ -298,23 +238,23 @@ EOF
 
 cat > "$STOP_DIR/TASK.md" <<'EOF'
 ---
-task_id: task_001
-dag_node_id: auth_api
+task_id: task_002
+dag_node_id: task_queue_seeded
 allowed_paths:
-  - SPAWN/STOP/web/app.py
-priority: 1
+  - SPAWN/STOP/.orchestrator/task_queue.json
+priority: 2
 ---
 
-# Task: Auth API
+# Task: Seed Task Queue
 
 ## Description
-Ship the authentication API surface that establishes the guarded entry point for spawned work.
+Populate `SPAWN/STOP/.orchestrator/task_queue.json` with priority-ordered child tasks so the orchestrator can start coordinating real repo work.
 
 ## Allowed Paths
-You may ONLY write to: `SPAWN/STOP/web/app.py`
+You may ONLY write to: `SPAWN/STOP/.orchestrator/task_queue.json`
 
 ## Context
-This is the first task in the orchestrator DAG. The live dashboard is expected to reflect runtime state as the graph progresses.
+The loop runtime is structural. The next real gap in the original plan is giving the orchestrator actual child tasks to read, prioritize, and dispatch.
 
 ## Status: PENDING
 EOF
@@ -368,7 +308,13 @@ echo "  4. Run the orchestrator loop: cd SPAWN/STOP && python3 .orchestrator/loo
 echo "  5. Live dashboard: $DASHBOARD_URL"
 echo
 echo "[WORKFLOW]"
-echo "  - The orchestrator reads SPAWN/STOP/TASK.md and executes the task"
-echo "  - On completion, the task is marked done and the next task is loaded"
-echo "  - The dashboard auto-renders the live state from repo files"
-echo "  - Add new tasks by editing SPAWN/STOP/state/tasks.json"
+echo "  - 1. Read task_queue.json (priority-ordered child tasks)"
+echo "  - 2. Query vector store for relevant context"
+echo "  - 3. Call loop.py with state + child repo requirements"
+echo "  - 4. Dispatch tasks to child repos via allowed_paths"
+echo "  - 5. Collect child logs into SPAWN/STOP/.orchestrator/logs/"
+echo "  - 6. Train or update models if training data is available"
+echo "  - 7. Append orchestration results to the vector store"
+echo "  - 8. Update task_queue.json with next priorities"
+echo "  - 9. Finalize state when orchestration completes"
+echo "  - 10. Repeat until all coordinated tasks complete"

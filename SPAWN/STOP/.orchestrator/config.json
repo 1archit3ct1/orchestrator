@@ -3,8 +3,10 @@
   "global_memory_enabled": true,
   "vault_enabled": true,
   "secret_rotation_days": 30,
+  "cycle_count": 0,
+  "gpu_enabled": false,
   "training_config": {
-    "model_name": "deepseek-ai/deepseek-coder-6.7b-instruct",
-    "output_dir": "Stop/.orchestrator/models/finetuned"
+    "integrated": false,
+    "output_dir": "SPAWN/STOP/.orchestrator/models/finetuned"
   }
 }

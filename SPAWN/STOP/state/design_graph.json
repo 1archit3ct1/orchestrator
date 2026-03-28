@@ -1,141 +1,140 @@
 {
   "nodes": [
     {
-      "id": "dashboard_state_service",
-      "label": "T01 Dashboard State Service",
-      "description": "Build a dedicated state service that computes the per-panel payloads, detail views, and button targets the live design page needs.",
-      "allowed_paths": ["SPAWN/STOP/.orchestrator/dashboard_state.py"],
+      "id": "loop_runtime",
+      "label": "T01 Loop Runtime",
+      "description": "Keep the orchestrator loop aligned to the SPAWN/STOP child-repo contract so coordination can run from the repo as designed.",
+      "allowed_paths": [
+        "SPAWN/STOP/.orchestrator/loop.py"
+      ],
       "dependencies": [],
       "status": "green",
-      "task_name": "dashboard-state",
+      "task_name": "loop-runtime",
       "task_id": "T01",
       "display_status": "complete",
-      "gui_targets": [
-        "task DAG rows",
-        "bootstrap steps",
-        "vector phases",
-        "memory files",
-        "repo freeze panel",
-        "trace capture panel"
-      ]
+      "verified_live": true,
+      "verification_reason": "orchestration loop matches SPAWN/STOP path contract",
+      "progress": null
     },
     {
-      "id": "control_plane",
-      "label": "T02 Control Plane",
-      "description": "Add the runtime control layer that persists dashboard commands such as start, pause, stop, dispatch, freeze, and cycle speed.",
-      "allowed_paths": ["SPAWN/STOP/.orchestrator/control_plane.py"],
-      "dependencies": ["dashboard_state_service"],
+      "id": "task_queue_seeded",
+      "label": "T02 Task Queue Seeded",
+      "description": "Populate task_queue.json with priority-ordered child tasks so the orchestrator has real work to coordinate.",
+      "allowed_paths": [
+        "SPAWN/STOP/.orchestrator/task_queue.json"
+      ],
+      "dependencies": [
+        "loop_runtime"
+      ],
       "status": "yellow",
-      "task_name": "control-plane",
+      "task_name": "task-queue",
       "task_id": "T02",
       "display_status": "active",
-      "gui_targets": [
-        "start",
-        "pause",
-        "stop",
-        "dispatch",
-        "freeze toggle",
-        "cycle speed"
-      ]
+      "verified_live": false,
+      "verification_reason": "task_queue.json is still empty",
+      "progress": null
     },
     {
-      "id": "trace_exporter",
-      "label": "T03 Trace Exporter",
-      "description": "Implement export jobs that generate JSONL, Alpaca, ShareGPT, and steering-only datasets from the orchestrator traces.",
-      "allowed_paths": ["SPAWN/STOP/training/export_traces.py"],
-      "dependencies": ["dashboard_state_service"],
+      "id": "child_repos_ready",
+      "label": "T03 Child Repos Ready",
+      "description": "Create or clone child repos with their own SPAWN/STOP runtimes so orchestrated dispatch has real targets.",
+      "allowed_paths": [
+        "SPAWN/STOP/repos/"
+      ],
+      "dependencies": [
+        "loop_runtime"
+      ],
       "status": "red",
-      "task_name": "trace-exporter",
+      "task_name": "child-repos",
       "task_id": "T03",
       "display_status": "pending",
-      "gui_targets": [
-        "export JSONL",
-        "export Alpaca",
-        "export ShareGPT",
-        "export Steering Only"
-      ]
+      "verified_live": false,
+      "verification_reason": "no child repos are scaffolded under repos/",
+      "progress": null
     },
     {
-      "id": "flask_dashboard_api",
-      "label": "T04 Flask Dashboard API",
-      "description": "Expose the POST and drilldown endpoints the live page needs for controls, exports, file inspection, and section detail actions.",
-      "allowed_paths": ["SPAWN/STOP/web/app.py"],
-      "dependencies": ["dashboard_state_service", "control_plane", "trace_exporter"],
+      "id": "training_pipeline_scaffold",
+      "label": "T04 Training Pipeline Scaffold",
+      "description": "Create the training scripts that collect logs, prepare datasets, train models, and evaluate outputs.",
+      "allowed_paths": [
+        "SPAWN/STOP/training/"
+      ],
+      "dependencies": [
+        "child_repos_ready"
+      ],
       "status": "red",
-      "task_name": "flask-dashboard-api",
+      "task_name": "training-pipeline",
       "task_id": "T04",
       "display_status": "pending",
-      "gui_targets": [
-        "all live button actions",
-        "detail modals",
-        "download responses",
-        "refresh actions"
-      ]
+      "verified_live": false,
+      "verification_reason": "training pipeline scaffold is incomplete",
+      "progress": null
     },
     {
-      "id": "design_action_hooks",
-      "label": "T05 Design Action Hooks",
-      "description": "Add stable action metadata and UI mount points to the design shell so each clickable element can map cleanly to Flask behavior.",
-      "allowed_paths": ["SPAWN/STOP/state/design.html"],
-      "dependencies": [],
+      "id": "runtime_tasks_derived",
+      "label": "T05 Runtime Tasks Derived",
+      "description": "Derive executable tasks.json entries from the orchestrator design graph so the loop can advance task ownership cleanly.",
+      "allowed_paths": [
+        "SPAWN/STOP/state/tasks.json"
+      ],
+      "dependencies": [
+        "task_queue_seeded"
+      ],
       "status": "red",
-      "task_name": "design-action-hooks",
+      "task_name": "runtime-tasks",
       "task_id": "T05",
       "display_status": "pending",
-      "gui_targets": [
-        "nav items",
-        "dag task rows",
-        "bootstrap steps",
-        "vector phases",
-        "memory files",
-        "export buttons",
-        "freeze toggle"
-      ]
+      "verified_live": false,
+      "verification_reason": "tasks.json has not been derived from the design graph yet",
+      "progress": null
     },
     {
-      "id": "live_dashboard_controller",
-      "label": "T06 Live Dashboard Controller",
-      "description": "Wire the designed root page to the Flask APIs with real click handling, active-state transitions, toasts, modals, and fallback refresh behavior.",
-      "allowed_paths": ["SPAWN/STOP/web/static/live_dashboard.js"],
-      "dependencies": ["flask_dashboard_api", "design_action_hooks"],
+      "id": "vector_store_seeded",
+      "label": "T06 Vector Store Seeded",
+      "description": "Seed the vector store with memory and prior orchestration context so retrieval can inform future cycles.",
+      "allowed_paths": [
+        "SPAWN/STOP/.orchestrator/vector_store/"
+      ],
+      "dependencies": [
+        "runtime_tasks_derived",
+        "training_pipeline_scaffold"
+      ],
       "status": "red",
-      "task_name": "live-dashboard-controller",
+      "task_name": "vector-store",
       "task_id": "T06",
       "display_status": "pending",
-      "gui_targets": [
-        "click routing",
-        "notification feedback",
-        "section focus",
-        "modal rendering",
-        "SSE refresh fallback"
-      ]
-    },
-    {
-      "id": "vector_metrics_service",
-      "label": "T07 Vector Metrics Service",
-      "description": "Compute the live retrieval, memory, and store-size metrics needed to make the vector and memory surfaces truthful instead of placeholder values.",
-      "allowed_paths": ["SPAWN/STOP/.orchestrator/vector_metrics.py"],
-      "dependencies": ["dashboard_state_service"],
-      "status": "red",
-      "task_name": "vector-metrics",
-      "task_id": "T07",
-      "display_status": "pending",
-      "gui_targets": [
-        "vector memory counts",
-        "retrieval counts",
-        "store size",
-        "memory file stats"
-      ]
+      "verified_live": false,
+      "verification_reason": "vector store is still empty",
+      "progress": null
     }
   ],
   "edges": [
-    { "from": "dashboard_state_service", "to": "control_plane" },
-    { "from": "dashboard_state_service", "to": "trace_exporter" },
-    { "from": "dashboard_state_service", "to": "flask_dashboard_api" },
-    { "from": "control_plane", "to": "flask_dashboard_api" },
-    { "from": "trace_exporter", "to": "flask_dashboard_api" },
-    { "from": "design_action_hooks", "to": "live_dashboard_controller" },
-    { "from": "flask_dashboard_api", "to": "live_dashboard_controller" },
-    { "from": "dashboard_state_service", "to": "vector_metrics_service" }
-  ]
+    {
+      "from": "loop_runtime",
+      "to": "task_queue_seeded"
+    },
+    {
+      "from": "loop_runtime",
+      "to": "child_repos_ready"
+    },
+    {
+      "from": "child_repos_ready",
+      "to": "training_pipeline_scaffold"
+    },
+    {
+      "from": "task_queue_seeded",
+      "to": "runtime_tasks_derived"
+    },
+    {
+      "from": "runtime_tasks_derived",
+      "to": "vector_store_seeded"
+    },
+    {
+      "from": "training_pipeline_scaffold",
+      "to": "vector_store_seeded"
+    }
+  ],
+  "last_cycle": 2,
+  "last_updated": "2026-03-27T20:16:22.965015",
+  "status": "awaiting_task_completion"
 }

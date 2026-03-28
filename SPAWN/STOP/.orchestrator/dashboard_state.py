@@ -3,7 +3,7 @@
 Canonical dashboard state builder.
 
 The dashboard must read from repo state files, not inferred placeholder values.
-This module consolidates those state files into `SPAWN/STOP/state/dashboard_state.json`.
+This module consolidates repo state into an in-memory dashboard payload.
 """
 
 from __future__ import annotations
@@ -24,10 +24,12 @@ def load_json(path: Path, default):
     return default
 
 
-def save_json(path: Path, data):
-    path.parent.mkdir(parents=True, exist_ok=True)
-    with open(path, "w", encoding="utf-8") as handle:
-        json.dump(data, handle, indent=2, default=str)
+def write_json_if_changed(path: Path, data):
+    rendered = json.dumps(data, indent=2, default=str) + "\n"
+    current = read_text(path, default=None)
+    if current != rendered:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(rendered, encoding="utf-8")
 
 
 def read_text(path: Path, default=""):
@@ -125,38 +127,77 @@ def verify_dashboard_integrations(runtime_dir: Path):
     orchestrator_dir = runtime_dir / ".orchestrator"
     web_dir = runtime_dir / "web"
     state_dir = runtime_dir / "state"
+    repos_dir = runtime_dir / "repos"
+    training_dir = runtime_dir / "training"
+    task_queue_path = orchestrator_dir / "task_queue.json"
+    tasks_path = state_dir / "tasks.json"
+    vector_dir = orchestrator_dir / "vector_store"
+    loop_path = orchestrator_dir / "loop.py"
 
-    app_text = read_text(web_dir / "app.py")
-    design_text = read_text(state_dir / "design.html")
+    loop_text = read_text(loop_path)
+    task_queue = load_json(task_queue_path, [])
+    derived_tasks = load_json(tasks_path, [])
+
+    training_files = [
+        training_dir / "collect_data.py",
+        training_dir / "prepare_dataset.py",
+        training_dir / "train.py",
+        training_dir / "config.yml",
+        training_dir / "evaluate.py",
+    ]
+    child_repo_ready = False
+    if repos_dir.exists():
+        for repo_dir in repos_dir.iterdir():
+            if (repo_dir / "SPAWN" / "STOP").exists():
+                child_repo_ready = True
+                break
 
     checks = {
-        "dashboard_state_service": {
-            "live": (orchestrator_dir / "dashboard_state.py").exists(),
-            "reason": "canonical dashboard state module exists",
+        "loop_runtime": {
+            "live": (
+                loop_path.exists()
+                and "repo_path / 'SPAWN' / 'STOP' / 'state' / 'tasks.json'" in loop_text
+                and "repo_log_dir = self.repos_dir / repo_name / 'SPAWN' / 'STOP' / '.orchestrator' / 'logs'" in loop_text
+                and "root_dir = script_dir.parent.parent.parent" in loop_text
+            ),
+            "reason": "orchestration loop matches SPAWN/STOP path contract"
+            if (
+                loop_path.exists()
+                and "repo_path / 'SPAWN' / 'STOP' / 'state' / 'tasks.json'" in loop_text
+                and "repo_log_dir = self.repos_dir / repo_name / 'SPAWN' / 'STOP' / '.orchestrator' / 'logs'" in loop_text
+                and "root_dir = script_dir.parent.parent.parent" in loop_text
+            )
+            else "loop.py still needs path-contract alignment for child orchestration",
         },
-        "control_plane": {
-            "live": (orchestrator_dir / "control_plane.py").exists(),
-            "reason": "control plane module is present in repo" if (orchestrator_dir / "control_plane.py").exists() else "control plane module is missing",
+        "task_queue_seeded": {
+            "live": isinstance(task_queue, list) and len(task_queue) > 0,
+            "reason": "task_queue.json contains child tasks"
+            if isinstance(task_queue, list) and len(task_queue) > 0
+            else "task_queue.json is still empty",
         },
-        "trace_exporter": {
-            "live": (runtime_dir / "training" / "export_traces.py").exists(),
-            "reason": "trace exporter is present in repo" if (runtime_dir / "training" / "export_traces.py").exists() else "trace exporter is missing",
+        "child_repos_ready": {
+            "live": child_repo_ready,
+            "reason": "at least one child repo has SPAWN/STOP runtime scaffolding"
+            if child_repo_ready
+            else "no child repos are scaffolded under repos/",
         },
-        "flask_dashboard_api": {
-            "live": all(token in app_text for token in ["/api/dashboard", "/api/control", "/api/export", "/events"]),
-            "reason": "dashboard API exposes read and action routes" if all(token in app_text for token in ["/api/dashboard", "/api/control", "/api/export", "/events"]) else "dashboard API is still missing action/export routes",
+        "training_pipeline_scaffold": {
+            "live": all(path.exists() for path in training_files),
+            "reason": "training pipeline scaffold files are present"
+            if all(path.exists() for path in training_files)
+            else "training pipeline scaffold is incomplete",
         },
-        "design_action_hooks": {
-            "live": "data-action=" in design_text or "data-panel=" in design_text,
-            "reason": "design shell exposes explicit action hooks" if ("data-action=" in design_text or "data-panel=" in design_text) else "design shell is still missing explicit action hooks",
+        "runtime_tasks_derived": {
+            "live": isinstance(derived_tasks, list) and len(derived_tasks) > 0,
+            "reason": "tasks.json contains derived executable tasks"
+            if isinstance(derived_tasks, list) and len(derived_tasks) > 0
+            else "tasks.json has not been derived from the design graph yet",
         },
-        "live_dashboard_controller": {
-            "live": (web_dir / "static" / "live_dashboard.js").exists(),
-            "reason": "separate live dashboard controller is present" if (web_dir / "static" / "live_dashboard.js").exists() else "separate live dashboard controller is missing",
-        },
-        "vector_metrics_service": {
-            "live": (orchestrator_dir / "vector_metrics.py").exists(),
-            "reason": "vector metrics service is present" if (orchestrator_dir / "vector_metrics.py").exists() else "vector metrics service is missing",
+        "vector_store_seeded": {
+            "live": count_files(vector_dir, "*.json") > 0,
+            "reason": "vector store contains seeded context entries"
+            if count_files(vector_dir, "*.json") > 0
+            else "vector store is still empty",
         },
     }
     return checks
@@ -308,6 +349,46 @@ def parse_security_events(log_paths, limit=6):
     return events[-limit:]
 
 
+def parse_steering_events(decisions_dir: Path, limit=6):
+    events = []
+    if not decisions_dir.exists():
+        return events
+
+    for path in sorted(decisions_dir.glob("dec_*.json"))[-limit:]:
+        payload = load_json(path, {})
+        if isinstance(payload, dict):
+            decision = payload.get("decision") if isinstance(payload.get("decision"), dict) else payload
+            if decision.get("question") and decision.get("chosen"):
+                rationale = decision.get("rationale")
+                summary = f"{decision.get('question')} Chosen: {decision.get('chosen')}."
+                if rationale:
+                    summary += f" {rationale}"
+            else:
+                summary = payload.get("summary") or decision.get("summary") or decision.get("title") or path.stem
+            events.append(str(summary))
+        else:
+            events.append(path.stem)
+    return events[-limit:]
+
+
+def lock_is_active(lock_path: Path):
+    if not lock_path.exists():
+        return False
+    payload = load_json(lock_path, {})
+    if not isinstance(payload, dict):
+        return False
+    expires_at = payload.get("expires_at")
+    status = payload.get("status")
+    if status and status != "acquired":
+        return False
+    if not expires_at:
+        return True
+    try:
+        return datetime.fromisoformat(expires_at) >= datetime.now()
+    except ValueError:
+        return False
+
+
 def build_bootstrap_steps(start_dir: Path):
     steps = []
     for idx, name in enumerate(["01-init", "02-config", "03-templates", "04-hooks", "05-validation"], start=1):
@@ -384,19 +465,28 @@ def sync_dashboard_state(runtime_dir: Path):
     logs_dir = orchestrator_dir / "logs"
     iterations_dir = orchestrator_dir / "iterations"
     repos_dir = runtime_dir / "repos"
-    locks_path = orchestrator_dir / "locks" / "repo_locks"
+    locks_dir = orchestrator_dir / "locks"
+    locks_path = locks_dir / "repo_locks"
     security_log = logs_dir / "security" / "security_audit.log"
     orchestrator_log = logs_dir / "orchestrator.log"
     iteration_log = logs_dir / "iteration_logger.log"
     retrieval_log = runtime_dir / "retrieval_log.jsonl"
-    dashboard_state_path = state_dir / "dashboard_state.json"
-
     config = load_json(config_path, {})
     training_config = config.get("training_config", {})
     base_graph = load_json(design_graph_path, {"nodes": [], "edges": []})
     task_md = parse_task_md(task_md_path)
     verification = verify_dashboard_integrations(runtime_dir)
     graph = apply_verification_to_graph(base_graph, verification, task_md)
+    loop_cycles = int(base_graph.get("last_cycle", 0) or 0)
+    if task_md:
+        graph["status"] = "awaiting_task_completion"
+    elif any(node.get("status") != "green" for node in graph.get("nodes", [])):
+        graph["status"] = "waiting_for_work"
+    else:
+        graph["status"] = "complete"
+    graph["last_cycle"] = loop_cycles
+    graph["last_updated"] = base_graph.get("last_updated")
+    write_json_if_changed(design_graph_path, graph)
     tasks = normalize_tasks(graph, load_json(tasks_path, []))
     task_counts = task_status_counts(tasks)
 
@@ -434,6 +524,7 @@ def sync_dashboard_state(runtime_dir: Path):
     error_traces = len(list((iterations_dir / "errors").glob("err_*.json"))) if (iterations_dir / "errors").exists() else 0
     steering_traces = len(list((iterations_dir / "decisions").glob("dec_*.json"))) if (iterations_dir / "decisions").exists() else 0
     total_training_traces = success_traces + error_traces + steering_traces
+    steering_events = parse_steering_events(iterations_dir / "decisions", limit=6)
 
     vector_entries = count_files(vector_dir, "*.json")
     vector_size = directory_size(vector_dir)
@@ -472,7 +563,7 @@ def sync_dashboard_state(runtime_dir: Path):
         "task_md": task_md,
         "active_task": active_task,
         "metrics": {
-            "cycles": config.get("cycle_count", graph.get("last_cycle", 0)),
+            "cycles": max(int(config.get("cycle_count", 0) or 0), loop_cycles),
             "dag_progress": {
                 "total": node_count,
                 "green": green_count,
@@ -493,7 +584,7 @@ def sync_dashboard_state(runtime_dir: Path):
             "model_integrated": model_integrated,
         },
         "summary": {
-            "loops_executed": config.get("cycle_count", graph.get("last_cycle", 0)),
+            "loops_executed": max(int(config.get("cycle_count", 0) or 0), loop_cycles),
             "training_traces": total_training_traces,
             "dag_total": task_counts["total"],
             "dag_pending": task_counts["pending"],
@@ -520,6 +611,7 @@ def sync_dashboard_state(runtime_dir: Path):
         ],
         "trace_entries": trace_entries,
         "stray_events": security_events,
+        "steering_events": steering_events,
         "repos": repos,
         "bootstrap_steps": build_bootstrap_steps(start_dir),
         "vector_phases": build_vector_phases(vector_dir, iterations_dir),
@@ -533,12 +625,14 @@ def sync_dashboard_state(runtime_dir: Path):
             tasks_path,
         ),
         "repo_freeze": {
-            "mutex_held": locks_path.exists(),
-            "lock_path": str(locks_path),
+            "mutex_held": (
+                lock_is_active(locks_dir / "global_write.lock")
+                or (locks_path.exists() and any(lock_is_active(path) for path in locks_path.glob("*.lock")))
+            ),
+            "lock_path": str(locks_dir),
             "allowed_paths": task_md.get("allowed_paths", []) if task_md else [],
         },
         "task_queue": load_json(task_queue_path, []),
     }
 
-    save_json(dashboard_state_path, dashboard_state)
     return dashboard_state

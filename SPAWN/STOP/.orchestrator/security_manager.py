@@ -34,6 +34,8 @@ import json
 import logging
 import os
 import subprocess
+import time
+from contextlib import contextmanager
 from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta
 from enum import Enum
@@ -105,13 +107,15 @@ class SecurityManager:
 
     def __init__(self, orchestrator_dir: Path = None):
         if orchestrator_dir is None:
-            orchestrator_dir = Path(__file__).resolve().parent.parent.parent
+            orchestrator_dir = Path(__file__).resolve().parent.parent
 
         self.orchestrator_dir = Path(orchestrator_dir)
-        self.vault_dir = self.orchestrator_dir / 'STOP' / '.orchestrator' / 'vault'
-        self.locks_dir = self.orchestrator_dir / 'STOP' / '.orchestrator' / 'locks'
-        self.audit_dir = self.orchestrator_dir / 'STOP' / '.orchestrator' / 'logs' / 'security'
-        self.config_path = self.orchestrator_dir / 'STOP' / '.orchestrator' / 'config.json'
+        runtime_root = self.orchestrator_dir / 'SPAWN' / 'STOP' if (self.orchestrator_dir / 'SPAWN' / 'STOP').exists() else self.orchestrator_dir
+        self.runtime_root = runtime_root
+        self.vault_dir = self.runtime_root / '.orchestrator' / 'vault'
+        self.locks_dir = self.runtime_root / '.orchestrator' / 'locks'
+        self.audit_dir = self.runtime_root / '.orchestrator' / 'logs' / 'security'
+        self.config_path = self.runtime_root / '.orchestrator' / 'config.json'
 
         # Ensure directories exist
         for dir_path in [self.vault_dir, self.locks_dir, self.audit_dir]:
@@ -350,12 +354,23 @@ class SecurityManager:
         lock_id = f"global_{task_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
         expires_at = (datetime.now() + timedelta(seconds=timeout_seconds)).isoformat()
 
-        # Try to acquire lock
+        # Try to acquire lock using file metadata so it works on both Windows and Linux.
         try:
-            lock_file = open(self.global_lock_file, 'w')
-            fcntl.flock(lock_file.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+            if self.global_lock_file.exists():
+                with open(self.global_lock_file, 'r', encoding='utf-8') as handle:
+                    existing = json.load(handle)
+                expires = existing.get('expires_at')
+                if expires and datetime.fromisoformat(expires) >= datetime.now():
+                    self._audit("Global write lock denied", task_id, {'reason': 'lock held by another task'})
+                    return WriteLock(
+                        lock_id=lock_id,
+                        task_id=task_id,
+                        repo=None,
+                        acquired_at=datetime.now().isoformat(),
+                        expires_at=expires_at,
+                        status=LockStatus.DENIED.value
+                    )
 
-            # Write lock metadata
             lock_data = WriteLock(
                 lock_id=lock_id,
                 task_id=task_id,
@@ -364,9 +379,9 @@ class SecurityManager:
                 expires_at=expires_at,
                 status=LockStatus.ACQUIRED.value
             )
-
-            json.dump(asdict(lock_data), lock_file)
-            lock_file.flush()
+            self.global_lock_file.parent.mkdir(parents=True, exist_ok=True)
+            with open(self.global_lock_file, 'w', encoding='utf-8') as handle:
+                json.dump(asdict(lock_data), handle)
 
             self._audit("Global write lock acquired", task_id, {
                 'lock_id': lock_id,
@@ -375,7 +390,7 @@ class SecurityManager:
 
             return lock_data
 
-        except (IOError, BlockingIOError):
+        except (IOError, json.JSONDecodeError, OSError):
             self._audit("Global write lock denied", task_id, {'reason': 'lock held by another task'})
             return WriteLock(
                 lock_id=lock_id,
@@ -390,18 +405,19 @@ class SecurityManager:
         """Release global write lock."""
         try:
             if self.global_lock_file.exists():
-                with open(self.global_lock_file, 'r') as f:
+                with open(self.global_lock_file, 'r', encoding='utf-8') as f:
                     lock_data = json.load(f)
                     if lock_data.get('task_id') == task_id:
-                        # Release lock
-                        lock_file = open(self.global_lock_file, 'w')
-                        fcntl.flock(lock_file.fileno(), fcntl.LOCK_UN)
-                        lock_file.close()
-                        if self.global_lock_file.exists():
-                            self.global_lock_file.unlink()
+                        for _ in range(5):
+                            try:
+                                if self.global_lock_file.exists():
+                                    self.global_lock_file.unlink()
+                                break
+                            except OSError:
+                                time.sleep(0.1)
 
                         self._audit("Global write lock released", task_id)
-                        return True
+                        return not self.global_lock_file.exists()
         except (IOError, json.JSONDecodeError) as e:
             logger.error(f"Failed to release lock: {e}")
         return False
@@ -425,8 +441,22 @@ class SecurityManager:
         expires_at = (datetime.now() + timedelta(seconds=timeout_seconds)).isoformat()
 
         try:
-            lock_file = open(lock_file_path, 'w')
-            fcntl.flock(lock_file.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+            if lock_file_path.exists():
+                with open(lock_file_path, 'r', encoding='utf-8') as handle:
+                    existing = json.load(handle)
+                expires = existing.get('expires_at')
+                if expires and datetime.fromisoformat(expires) >= datetime.now():
+                    self._audit(f"Repo write lock denied: {repo_name}", task_id, {
+                        'reason': 'lock held by another task'
+                    })
+                    return WriteLock(
+                        lock_id=lock_id,
+                        task_id=task_id,
+                        repo=repo_name,
+                        acquired_at=datetime.now().isoformat(),
+                        expires_at=expires_at,
+                        status=LockStatus.DENIED.value
+                    )
 
             lock_data = WriteLock(
                 lock_id=lock_id,
@@ -436,9 +466,8 @@ class SecurityManager:
                 expires_at=expires_at,
                 status=LockStatus.ACQUIRED.value
             )
-
-            json.dump(asdict(lock_data), lock_file)
-            lock_file.flush()
+            with open(lock_file_path, 'w', encoding='utf-8') as handle:
+                json.dump(asdict(lock_data), handle)
 
             self._audit(f"Repo write lock acquired: {repo_name}", task_id, {
                 'lock_id': lock_id,
@@ -447,7 +476,7 @@ class SecurityManager:
 
             return lock_data
 
-        except (IOError, BlockingIOError):
+        except (IOError, json.JSONDecodeError, OSError):
             self._audit(f"Repo write lock denied: {repo_name}", task_id, {
                 'reason': 'lock held by another task'
             })
@@ -466,17 +495,19 @@ class SecurityManager:
 
         try:
             if lock_file_path.exists():
-                with open(lock_file_path, 'r') as f:
+                with open(lock_file_path, 'r', encoding='utf-8') as f:
                     lock_data = json.load(f)
                     if lock_data.get('task_id') == task_id:
-                        lock_file = open(lock_file_path, 'w')
-                        fcntl.flock(lock_file.fileno(), fcntl.LOCK_UN)
-                        lock_file.close()
-                        if lock_file_path.exists():
-                            lock_file_path.unlink()
+                        for _ in range(5):
+                            try:
+                                if lock_file_path.exists():
+                                    lock_file_path.unlink()
+                                break
+                            except OSError:
+                                time.sleep(0.1)
 
                         self._audit(f"Repo write lock released: {repo_name}", task_id)
-                        return True
+                        return not lock_file_path.exists()
         except (IOError, json.JSONDecodeError) as e:
             logger.error(f"Failed to release repo lock: {e}")
         return False
@@ -541,6 +572,7 @@ class SecurityManager:
 
     # ==================== SECURITY CONTEXT MANAGER ====================
 
+    @contextmanager
     def task_security_context(self, task_id: str, repo_name: str = None,
                              credential_keys: List[str] = None):
         """

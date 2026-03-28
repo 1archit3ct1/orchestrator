@@ -19,6 +19,11 @@ html, body { height: 100%; overflow: hidden; }
   --red-mid:    rgba(255,32,32,0.18);
   --red-glow:   rgba(255,32,32,0.35);
   --red-glass:  rgba(255,32,32,0.06);
+  --green:      #22c55e;
+  --green-b:    #15803d;
+  --green-dim:  rgba(34,197,94,0.10);
+  --green-mid:  rgba(34,197,94,0.18);
+  --green-glow: rgba(34,197,94,0.30);
   --amber:      #ff6b20;
   --bg:         #050507;
   --bg2:        #08080c;
@@ -482,8 +487,9 @@ body::after {
   opacity: 0.4;
 }
 .dag-task.active::before { opacity: 1; box-shadow: 0 0 8px var(--red-glow); }
-.dag-task.complete::before { background: rgba(255,32,32,0.3); opacity: 0.3; }
+.dag-task.complete::before { background: var(--green); opacity: 1; box-shadow: 0 0 8px var(--green-glow); }
 .dag-task:hover { border-color: var(--border); background: var(--red-dim); }
+.dag-task.complete .task-name { color: var(--green); }
 
 .task-id {
   font-size: 8px;
@@ -506,7 +512,7 @@ body::after {
   border-radius: 2px;
   font-weight: 700;
 }
-.status-complete { background: rgba(255,32,32,0.12); color: var(--red); border: 1px solid var(--border); }
+.status-complete { background: var(--green-dim); color: var(--green); border: 1px solid rgba(34,197,94,0.30); box-shadow: 0 0 8px var(--green-glow); }
 .status-active   { background: var(--red-mid); color: var(--red); border: 1px solid var(--border); animation: activePulse 1.5s ease-in-out infinite; }
 .status-pending  { background: transparent; color: var(--text-ghost); border: 1px solid var(--border-dim); }
 

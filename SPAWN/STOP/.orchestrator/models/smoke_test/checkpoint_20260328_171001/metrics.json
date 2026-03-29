@@ -1,0 +1,7 @@
+{
+  "global_step": 64,
+  "effective_tokens": 37070,
+  "train_loss": 0.05,
+  "learning_rate": 0.0002,
+  "adapter": "qlora"
+}

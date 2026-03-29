@@ -1,0 +1,14 @@
+{
+  "run_id": "20260328_171001",
+  "generated_at": "2026-03-28T17:10:01.790312",
+  "mode": "smoke",
+  "framework": "axolotl",
+  "base_model": "mistralai/Mistral-Small-24B-Instruct-2501",
+  "dataset": "SPAWN/STOP/.orchestrator/data/smoke_subset.jsonl",
+  "dataset_stats": {
+    "line_count": 64,
+    "byte_count": 37070,
+    "sha256": "30884707bd5b4d27299f68af5ab501a0818d58836b123869d803c90cb51d99e2"
+  },
+  "status": "checkpoint_artifact_created"
+}

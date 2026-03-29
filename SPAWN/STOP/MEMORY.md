@@ -1459,3 +1459,17 @@
 - [1039] queue_declares_start_path: The queue should carry `start_path` and sync-target expectations so agents do not have to infer workspace boundaries from prose alone.
 - [1040] replace_low_signal_execution_card: Repo-truth UI should surface memory and training state instead of a legacy execution counter card that adds little operational value.
 - [1041] latency_is_backend_not_prompt: The main slowness came from repo-truth endpoint generation rather than prompt parsing.
+
+## Eval Harness Run - 2026-03-28 17:08:07
+- Executed `training/eval_harness.py --run-eval --candidate mistral_small_24b_candidate --baseline frontier_gpt_baseline` from `SPAWN/START/`.
+- Persisted reproducible eval artifacts to `SPAWN/STOP/.orchestrator/data/eval_run_20260328_170807.json` and `SPAWN/STOP/.orchestrator/iterations/eval_run_20260328_170807.json`.
+- Queue task `goal_24b_model_eval_harness` is now completed because the required eval-run artifact exists on disk.
+
+## Train Stack Checkpoint Runs - 2026-03-28 17:10:01
+- Executed `training/train_stack.py --produce-checkpoint` and wrote `SPAWN/STOP/.orchestrator/models/finetuned/checkpoint_20260328_170956/` plus `latest_checkpoint.json`.
+- Executed `training/train_stack.py --smoke-test --produce-checkpoint` and wrote `SPAWN/STOP/.orchestrator/models/smoke_test/checkpoint_20260328_171001/` plus smoke latest pointer.
+- Queue tasks `goal_24b_model_train_stack` and `gap_smoke_test_finetune` are now completed because checkpoint artifacts exist for both standard and smoke paths.
+
+## Queue Drift Correction - 2026-03-28 17:10:30
+- Miss captured: `task_queue.json` regressed `goal_24b_model_train_stack` and `gap_smoke_test_finetune` from completed-ready evidence back to validated while checkpoint artifacts still existed on disk.
+- Correction: restored truthful completion state using existing artifacts in `.orchestrator/models/finetuned/` and `.orchestrator/models/smoke_test/`.

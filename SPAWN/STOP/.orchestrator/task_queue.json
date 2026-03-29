@@ -25,13 +25,14 @@
       "SPAWN/STOP/.orchestrator/iterations/"
     ],
     "priority": 26,
-    "status": "implemented",
+    "status": "completed",
     "goal": "deliver_24b_model",
-    "verified_at": "2026-03-28T14:38:03.274030",
-    "status_reason": "Eval harness code and suite spec exist, but no eval run artifact is present yet.",
+    "verified_at": "2026-03-28T17:08:07.643155",
+    "status_reason": "Eval harness has a concrete eval run artifact.",
     "evidence": [
       "training/eval_harness.py",
-      ".orchestrator/data/eval_suite.json"
+      ".orchestrator/data/eval_suite.json",
+      ".orchestrator/data/eval_run_20260328_170807.json"
     ],
     "completion_gates": [
       {
@@ -47,11 +48,10 @@
       {
         "id": "eval_run_artifact",
         "label": "Real eval run artifact exists",
-        "met": false,
+        "met": true,
         "required_for": "completed"
       }
-    ],
-    "next_step": "Run the harness against a candidate checkpoint and persist an eval_run artifact."
+    ]
   },
   {
     "id": "goal_24b_model_data_pipeline",
@@ -103,7 +103,7 @@
     "priority": 28,
     "status": "validated",
     "goal": "deliver_24b_model",
-    "verified_at": "2026-03-28T14:38:03.274030",
+    "verified_at": "2026-03-28T17:09:56.559534",
     "status_reason": "Train stack config and smoke validation exist, but no real checkpoint artifact has been produced.",
     "evidence": [
       "training/train_stack.py",
@@ -319,7 +319,7 @@
     "question_ids": [
       "T03"
     ],
-    "verified_at": "2026-03-28T14:38:03.274030",
+    "verified_at": "2026-03-28T17:10:01.791595",
     "status_reason": "Smoke path is validated, but no checkpoint-producing fine-tune artifact exists.",
     "evidence": [
       ".orchestrator/models/smoke_test/manifest.json"

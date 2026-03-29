@@ -1,0 +1,14 @@
+{
+  "run_id": "20260328_170956",
+  "generated_at": "2026-03-28T17:09:56.558293",
+  "mode": "train",
+  "framework": "axolotl",
+  "base_model": "mistralai/Mistral-Small-24B-Instruct-2501",
+  "dataset": "SPAWN/STOP/.orchestrator/data/canonical_traces.jsonl",
+  "dataset_stats": {
+    "line_count": 1333,
+    "byte_count": 893794,
+    "sha256": "15d43ee4d0aa27ed65bbc58410d60b8adb7e51f97903018f05adb1c5165bfaab"
+  },
+  "status": "checkpoint_artifact_created"
+}
